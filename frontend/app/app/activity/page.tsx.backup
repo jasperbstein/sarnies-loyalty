@@ -1,0 +1,149 @@
+'use client';
+
+import React, { useState, useEffect } from "react";
+import { ActivityFilters, ActivityFilterValue } from "@/components/customer/activity/ActivityFilters";
+import { EmptyState } from "@/components/customer/ui/EmptyState";
+import AppLayout from "@/components/AppLayout";
+import { useTabSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useAuthStore } from "@/lib/store";
+import { usersAPI } from "@/lib/api";
+import VoucherInstanceCard from "@/components/VoucherInstanceCard";
+import QRModal from "@/components/QRModal";
+import toast from 'react-hot-toast';
+
+interface VoucherInstance {
+  id: number;
+  uuid: string;
+  voucher_id: number;
+  qr_code_data: string;
+  status: string;
+  computed_status: 'active' | 'used' | 'expired';
+  redeemed_at: string;
+  used_at?: string;
+  expires_at?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  points_required: number;
+  cash_value: number;
+  voucher_type: string;
+}
+
+export default function ActivityPage() {
+  const [filter, setFilter] = useState<ActivityFilterValue>("all");
+  const { user, hasHydrated } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+  const [voucherInstances, setVoucherInstances] = useState<VoucherInstance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState<VoucherInstance | null>(null);
+
+  // Enable swipe navigation between tabs
+  useTabSwipeNavigation();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (user && mounted && hasHydrated) {
+      fetchVoucherInstances();
+    }
+  }, [user, mounted, hasHydrated, filter]);
+
+  const fetchVoucherInstances = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const statusFilter = filter === 'all' ? undefined : filter as 'active' | 'used' | 'expired';
+      const response = await usersAPI.getVoucherInstances(user.id, statusFilter);
+      setVoucherInstances(response.data.voucher_instances);
+    } catch (error) {
+      console.error('Failed to fetch voucher instances:', error);
+      toast.error('Failed to load voucher history');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVoucherClick = (instance: VoucherInstance) => {
+    if (instance.computed_status === 'active') {
+      setSelectedInstance(instance);
+      setShowQRModal(true);
+    }
+  };
+
+  if (!mounted || !hasHydrated) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const isEmployee = user?.user_type === 'employee';
+
+  return (
+    <AppLayout>
+      <div className="flex flex-col gap-6 pb-24">
+        <header>
+          <h1 className="text-[24px] font-semibold text-[#1B1B1B]">
+            {isEmployee ? 'Redemption History' : 'Activity History'}
+          </h1>
+          <p className="text-[14px] text-[#6F6F6F] mt-1">
+            {isEmployee ? 'Your daily drink redemption history.' : 'Your points and voucher history.'}
+          </p>
+          {!isEmployee && (
+            <div className="mt-3 inline-flex items-center px-4 py-2 rounded-full bg-[#FFF6E8] text-[14px] text-[#8B6F36]">
+              ⭐ <span className="ml-2">{user?.points_balance || 0} points remaining</span>
+            </div>
+          )}
+        </header>
+
+        <ActivityFilters value={filter} onChange={setFilter} />
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : voucherInstances.length === 0 ? (
+          <EmptyState
+            title="No activity yet"
+            description={
+              filter === 'all'
+                ? "Your vouchers will appear here after redemption."
+                : `No ${filter} vouchers found.`
+            }
+          />
+        ) : (
+          <div className="space-y-3">
+            {voucherInstances.map((instance) => (
+              <VoucherInstanceCard
+                key={instance.id}
+                {...instance}
+                onClick={() => handleVoucherClick(instance)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* QR Modal for active vouchers */}
+      {selectedInstance && (
+        <QRModal
+          isOpen={showQRModal}
+          onClose={() => {
+            setShowQRModal(false);
+            setSelectedInstance(null);
+          }}
+          title={selectedInstance.title}
+          qrDataUrl={selectedInstance.qr_code_data}
+          expiresAt={selectedInstance.expires_at}
+        />
+      )}
+    </AppLayout>
+  );
+}

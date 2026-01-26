@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jacek Błoński | Abstract & Surreal Art</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Darker+Grotesque:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111115;
+            --text-primary: #f5f5f0;
+            --text-muted: #8a8a8a;
+            --accent: #c4a77d;
+            --accent-light: #e8d5b5;
+            --gradient-1: #1a1a2e;
+            --gradient-2: #16213e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Darker Grotesque', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Floating Particles Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(196, 167, 125, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: difference;
+        }
+
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.4s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(196, 167, 125, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(22, 33, 62, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(26, 26, 46, 0.5) 0%, transparent 70%);
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+            padding: 2rem;
+        }
+
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(4rem, 15vw, 12rem);
+            font-weight: 300;
+            line-height: 0.9;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: revealUp 1.5s ease forwards;
+            animation-delay: 0.5s;
+        }
+
+        .hero-title span {
+            display: block;
+        }
+
+        .hero-title .first-name {
+            font-style: italic;
+            color: var(--accent-light);
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            opacity: 0;
+            animation: revealUp 1.2s ease forwards;
+            animation-delay: 1s;
+        }
+
+        @keyframes revealUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+            animation-delay: 2s;
+        }
+
+        .scroll-indicator span {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+            50% { opacity: 1; transform: scaleY(1); }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* About Section */
+        .about {
+            padding: 12rem 8rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8rem;
+            align-items: center;
+            position: relative;
+        }
+
+        .about::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+        }
+
+        .about-image {
+            position: relative;
+        }
+
+        .about-image-frame {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(196, 167, 125, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-image-frame::before {
+            content: 'Artist Portrait';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .about-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .about-image-decoration {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            border: 1px solid var(--accent);
+            opacity: 0.3;
+        }
+
+        .about-content h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+        }
+
+        .about-content h2 em {
+            color: var(--accent);
+        }
+
+        .about-content p {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .signature {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-style: italic;
+            color: var(--accent);
+            margin-top: 3rem;
+            opacity: 0.8;
+        }
+
+        /* Gallery Section */
+        .gallery {
+            padding: 8rem 4rem;
+            background: var(--bg-secondary);
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 6rem;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 300;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-primary);
+            border: 1px solid rgba(196, 167, 125, 0.1);
+            transition: transform 0.6s ease, box-shadow 0.6s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .gallery-item.large {
+            grid-column: span 6;
+            aspect-ratio: 4/3;
+        }
+
+        .gallery-item.medium {
+            grid-column: span 4;
+            aspect-ratio: 1;
+        }
+
+        .gallery-item.tall {
+            grid-column: span 4;
+            aspect-ratio: 3/4;
+        }
+
+        .artwork-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--gradient-1) 0%, var(--gradient-2) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .artwork-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(196, 167, 125, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 70% 30%, rgba(196, 167, 125, 0.05) 0%, transparent 40%);
+        }
+
+        .artwork-placeholder span {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            opacity: 0.6;
+            z-index: 1;
+        }
+
+        .artwork-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .gallery-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem;
+            background: linear-gradient(to top, rgba(10, 10, 12, 0.95) 0%, transparent 100%);
+            transform: translateY(100%);
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover .gallery-item-overlay {
+            transform: translateY(0);
+        }
+
+        .artwork-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+
+        .artwork-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        /* Philosophy Section */
+        .philosophy {
+            padding: 12rem 8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+        }
+
+        .philosophy-content {
+            max-width: 900px;
+        }
+
+        .quote-mark {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 8rem;
+            color: var(--accent);
+            opacity: 0.3;
+            line-height: 0.5;
+            margin-bottom: 2rem;
+        }
+
+        .philosophy-quote {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 3rem;
+        }
+
+        .philosophy-author {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 10rem 8rem;
+            background: var(--bg-secondary);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8rem;
+        }
+
+        .contact-info h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        .contact-info p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contact-item-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            min-width: 80px;
+        }
+
+        .contact-item-value {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .contact-item-value a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-item-value a:hover {
+            color: var(--accent);
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1.5rem 0;
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(196, 167, 125, 0.3);
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group textarea {
+            resize: none;
+            min-height: 150px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group label {
+            position: absolute;
+            left: 0;
+            top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus + label,
+        .form-group input:not(:placeholder-shown) + label,
+        .form-group textarea:focus + label,
+        .form-group textarea:not(:placeholder-shown) + label {
+            top: -0.5rem;
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .submit-btn {
+            align-self: flex-start;
+            padding: 1.2rem 3rem;
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--bg-primary);
+            background: var(--accent);
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-light);
+            transition: left 0.4s ease;
+        }
+
+        .submit-btn:hover::before {
+            left: 0;
+        }
+
+        .submit-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(196, 167, 125, 0.1);
+        }
+
+        .footer-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .social-links a {
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--accent);
+        }
+
+        .footer-copyright {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .about {
+                padding: 8rem 4rem;
+                gap: 4rem;
+            }
+            
+            .contact {
+                padding: 6rem 4rem;
+                gap: 4rem;
+            }
+        }
+
+        @media (max-width: 968px) {
+            nav {
+                padding: 1.5rem 2rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .about {
+                grid-template-columns: 1fr;
+                padding: 6rem 2rem;
+            }
+            
+            .about-image {
+                order: -1;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            
+            .gallery-item.large,
+            .gallery-item.medium,
+            .gallery-item.tall {
+                grid-column: span 6;
+            }
+            
+            .philosophy {
+                padding: 6rem 2rem;
+            }
+            
+            .contact {
+                grid-template-columns: 1fr;
+                padding: 4rem 2rem;
+            }
+            
+            footer {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+                padding: 3rem 2rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .gallery-item.large,
+            .gallery-item.medium,
+            .gallery-item.tall {
+                grid-column: span 12;
+            }
+            
+            .hero-title {
+                font-size: 3rem;
+            }
+        }
+
+        /* Reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-dot"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="#" class="logo">J. Błoński</a>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#gallery">Works</a></li>
+            <li><a href="#philosophy">Philosophy</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="first-name">Jacek</span>
+                <span>Błoński</span>
+            </h1>
+            <p class="hero-subtitle">Abstract & Surreal Paintings</p>
+        </div>
+        <div class="scroll-indicator">
+            <span>Explore</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="about-image reveal">
+            <div class="about-image-frame">
+                <!-- Add artist portrait here: <img src="portrait.jpg" alt="Jacek Błoński"> -->
+            </div>
+            <div class="about-image-decoration"></div>
+        </div>
+        <div class="about-content reveal">
+            <h2>Where <em>reality</em> dissolves into <em>dreams</em></h2>
+            <p>
+                Jacek Błoński is a Polish painter whose work transcends the boundaries between the conscious and subconscious mind. Through layers of abstraction and surrealist imagery, his paintings invite viewers into worlds where the familiar becomes strange and the impossible becomes tangible.
+            </p>
+            <p>
+                Working primarily with oil and acrylic, Błoński creates canvases that pulse with hidden meaning and emotional depth. Each painting is a portal—a meditation on the nature of perception and the landscapes that exist just beyond the edge of waking life.
+            </p>
+            <p>
+                His work has been exhibited across Poland and Europe, resonating with collectors who seek art that challenges, provokes, and ultimately transforms.
+            </p>
+            <div class="signature">— Jacek Błoński</div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery" id="gallery">
+        <div class="section-header reveal">
+            <span class="section-label">Selected Works</span>
+            <h2 class="section-title">Explorations in Form & Dream</h2>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item large reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                    <!-- Add image: <img src="artwork1.jpg" alt="Title"> -->
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled I</h3>
+                    <p class="artwork-info">Oil on Canvas — 120 × 80 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item medium reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled II</h3>
+                    <p class="artwork-info">Acrylic on Canvas — 60 × 60 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item medium reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled III</h3>
+                    <p class="artwork-info">Mixed Media — 50 × 50 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item tall reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled IV</h3>
+                    <p class="artwork-info">Oil on Canvas — 100 × 70 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item medium reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled V</h3>
+                    <p class="artwork-info">Acrylic on Canvas — 80 × 80 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item medium reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled VI</h3>
+                    <p class="artwork-info">Oil on Canvas — 60 × 60 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item large reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled VII</h3>
+                    <p class="artwork-info">Mixed Media — 150 × 100 cm</p>
+                </div>
+            </div>
+            <div class="gallery-item medium reveal">
+                <div class="artwork-placeholder">
+                    <span>Artwork Image</span>
+                </div>
+                <div class="gallery-item-overlay">
+                    <h3 class="artwork-title">Untitled VIII</h3>
+                    <p class="artwork-info">Acrylic on Canvas — 70 × 70 cm</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Philosophy Section -->
+    <section class="philosophy" id="philosophy">
+        <div class="philosophy-content reveal">
+            <div class="quote-mark">"</div>
+            <p class="philosophy-quote">
+                I paint not what I see, but what I feel when I close my eyes. The canvas becomes a mirror reflecting the landscapes of the unconscious—where logic surrenders to intuition and form emerges from chaos.
+            </p>
+            <p class="philosophy-author">Jacek Błoński</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="contact-info reveal">
+            <h2>Get in Touch</h2>
+            <p>
+                For inquiries about available works, commissions, or exhibition opportunities, please reach out. I welcome conversations with collectors, galleries, and fellow art enthusiasts.
+            </p>
+            <div class="contact-details">
+                <div class="contact-item">
+                    <span class="contact-item-label">Email</span>
+                    <span class="contact-item-value">
+                        <a href="mailto:contact@jacekblonski.art">contact@jacekblonski.art</a>
+                    </span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-item-label">Instagram</span>
+                    <span class="contact-item-value">
+                        <a href="https://instagram.com/jacekblonski.art_and_photo" target="_blank">@jacekblonski.art_and_photo</a>
+                    </span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-item-label">Location</span>
+                    <span class="contact-item-value">Poland</span>
+                </div>
+            </div>
+        </div>
+        <form class="contact-form reveal">
+            <div class="form-group">
+                <input type="text" id="name" placeholder=" " required>
+                <label for="name">Your Name</label>
+            </div>
+            <div class="form-group">
+                <input type="email" id="email" placeholder=" " required>
+                <label for="email">Email Address</label>
+            </div>
+            <div class="form-group">
+                <textarea id="message" placeholder=" " required></textarea>
+                <label for="message">Your Message</label>
+            </div>
+            <button type="submit" class="submit-btn">
+                <span>Send Message</span>
+            </button>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">Jacek Błoński</div>
+        <div class="social-links">
+            <a href="https://instagram.com/jacekblonski.art_and_photo" target="_blank">Instagram</a>
+        </div>
+        <div class="footer-copyright">© 2025 All Rights Reserved</div>
+    </footer>
+
+    <script>
+        // Custom Cursor
+        const cursor = document.querySelector('.cursor');
+        const cursorDot = document.querySelector('.cursor-dot');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+            cursorDot.style.left = e.clientX - 2 + 'px';
+            cursorDot.style.top = e.clientY - 2 + 'px';
+        });
+
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(2)';
+                cursor.style.borderColor = 'var(--accent-light)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.borderColor = 'var(--accent)';
+            });
+        });
+
+        // Generate Particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = 15 + Math.random() * 20 + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Reveal on Scroll
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        function reveal() {
+            revealElements.forEach(el => {
+                const windowHeight = window.innerHeight;
+                const elementTop = el.getBoundingClientRect().top;
+                const revealPoint = 150;
+                
+                if (elementTop < windowHeight - revealPoint) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', reveal);
+        reveal(); // Initial check
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Form submission (placeholder)
+        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message. Jacek will respond soon.');
+            this.reset();
+        });
+    </script>
+</body>
+</html>

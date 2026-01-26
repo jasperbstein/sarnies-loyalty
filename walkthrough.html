@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarnies Loyalty App - Interactive Walkthrough</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1C1917 0%, #292524 100%);
+            min-height: 100vh;
+            color: #FAFAF9;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-size: 14px;
+            letter-spacing: 4px;
+            font-weight: 500;
+            color: #D97706;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #A8A29E;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #44403C;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #D97706;
+            transform: scale(1.2);
+        }
+
+        .progress-dot:hover {
+            background: #78716C;
+        }
+
+        .progress-dot.active:hover {
+            background: #D97706;
+        }
+
+        /* Main Walkthrough Area */
+        .walkthrough {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 80px;
+            min-height: 600px;
+        }
+
+        /* Phone Frame */
+        .phone-container {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .phone-frame {
+            width: 300px;
+            height: 620px;
+            background: #000;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 24px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 10;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .screen-image.loading {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        /* Placeholder screen */
+        .placeholder-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #FAF7F2 0%, #F5F1EB 100%);
+            color: #1C1917;
+        }
+
+        .placeholder-screen .brand {
+            font-size: 18px;
+            letter-spacing: 3px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .placeholder-screen .screen-name {
+            font-size: 14px;
+            color: #78716C;
+        }
+
+        /* Content Panel */
+        .content-panel {
+            max-width: 450px;
+        }
+
+        .step-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(217, 119, 6, 0.15);
+            color: #D97706;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .content-panel h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .content-panel p {
+            font-size: 16px;
+            color: #A8A29E;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(217, 119, 6, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #D97706;
+            font-size: 18px;
+        }
+
+        .feature span {
+            font-size: 15px;
+            color: #E7E5E4;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #D97706;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #B45309;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Screen navigation dots on phone */
+        .screen-nav {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+        }
+
+        .screen-nav span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #44403C;
+            transition: all 0.3s ease;
+        }
+
+        .screen-nav span.active {
+            background: #D97706;
+            width: 20px;
+            border-radius: 3px;
+        }
+
+        /* Keyboard navigation hint */
+        .keyboard-hint {
+            text-align: center;
+            margin-top: 60px;
+            color: #57534E;
+            font-size: 13px;
+        }
+
+        .keyboard-hint kbd {
+            background: #292524;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin: 0 4px;
+            border: 1px solid #44403C;
+        }
+
+        /* Section dividers */
+        .section-label {
+            text-align: center;
+            margin: 60px 0 20px;
+            color: #78716C;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .content-panel {
+            animation: slideIn 0.4s ease;
+        }
+
+        /* Touch/swipe support indicator */
+        .swipe-hint {
+            display: none;
+            text-align: center;
+            color: #57534E;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        @media (pointer: coarse) {
+            .swipe-hint {
+                display: block;
+            }
+            .keyboard-hint {
+                display: none;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .walkthrough {
+                flex-direction: column;
+                gap: 40px;
+            }
+
+            .content-panel {
+                text-align: center;
+                padding: 0 20px;
+            }
+
+            .features {
+                align-items: center;
+            }
+
+            .nav-buttons {
+                justify-content: center;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .content-panel h2 {
+                font-size: 28px;
+            }
+
+            .phone-frame {
+                width: 260px;
+                height: 540px;
+            }
+        }
+
+        /* All screens grid view */
+        .all-screens {
+            display: none;
+            margin-top: 60px;
+        }
+
+        .all-screens.visible {
+            display: block;
+        }
+
+        .all-screens h3 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 32px;
+            color: #FAFAF9;
+        }
+
+        .screens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 24px;
+        }
+
+        .screen-thumb {
+            background: #292524;
+            border-radius: 16px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .screen-thumb:hover {
+            background: #44403C;
+            transform: translateY(-4px);
+        }
+
+        .screen-thumb img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .screen-thumb .name {
+            font-size: 13px;
+            color: #A8A29E;
+            text-align: center;
+        }
+
+        .toggle-view {
+            display: block;
+            margin: 40px auto 0;
+            background: transparent;
+            border: 1px solid #44403C;
+            color: #A8A29E;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .toggle-view:hover {
+            border-color: #D97706;
+            color: #D97706;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">SARNIES</div>
+            <h1>Loyalty App Walkthrough</h1>
+            <p class="subtitle">Discover how the Sarnies loyalty app rewards customers, empowers staff, and provides powerful analytics for your business.</p>
+        </header>
+
+        <div class="progress-container" id="progressDots"></div>
+
+        <div class="walkthrough" id="walkthrough">
+            <div class="phone-container">
+                <div class="phone-frame">
+                    <div class="phone-screen" id="phoneScreen">
+                        <div class="placeholder-screen" id="placeholder">
+                            <div class="brand">SARNIES</div>
+                            <div class="screen-name" id="placeholderName">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="screen-nav" id="screenNav"></div>
+            </div>
+
+            <div class="content-panel" id="contentPanel">
+                <!-- Dynamic content loaded here -->
+            </div>
+        </div>
+
+        <div class="swipe-hint">
+            Swipe left or right to navigate
+        </div>
+
+        <div class="keyboard-hint">
+            Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to navigate
+        </div>
+
+        <button class="toggle-view" onclick="toggleAllScreens()">View All Screens</button>
+
+        <div class="all-screens" id="allScreens">
+            <h3>All Screens</h3>
+            <div class="screens-grid" id="screensGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const screens = [
+            {
+                id: "splash",
+                name: "Splash",
+                title: "Welcome to Sarnies",
+                description: "A premium loyalty experience for your favorite coffee shop. The app opens with a beautiful branded splash screen.",
+                features: [
+                    { icon: "✨", text: "Clean, branded introduction" },
+                    { icon: "🎨", text: "Dark theme with signature colors" },
+                    { icon: "⚡", text: "Fast loading experience" }
+                ],
+                section: "Onboarding"
+            },
+            {
+                id: "login",
+                name: "Login",
+                title: "Magic Link Authentication",
+                description: "Customers can easily sign in with a magic link sent to their email - no passwords to remember. Supports multiple user roles.",
+                features: [
+                    { icon: "✉️", text: "Passwordless magic link authentication" },
+                    { icon: "👥", text: "Multiple roles: Customer, Employee, Staff, Admin" },
+                    { icon: "🔒", text: "Secure and seamless login" }
+                ],
+                section: "Onboarding"
+            },
+            {
+                id: "register1",
+                name: "Register Step 1",
+                title: "Easy Registration",
+                description: "New customers can create an account in just a few steps. The process is broken down to reduce friction.",
+                features: [
+                    { icon: "📝", text: "Step-by-step registration flow" },
+                    { icon: "✅", text: "Progress indicator" },
+                    { icon: "📧", text: "Email-first approach" }
+                ],
+                section: "Onboarding"
+            },
+            {
+                id: "home",
+                name: "Customer Home",
+                title: "Your Loyalty Dashboard",
+                description: "Customers see their points balance, membership tier, and quick actions all in one beautiful home screen.",
+                features: [
+                    { icon: "⭐", text: "Real-time points balance display" },
+                    { icon: "🎯", text: "Progress towards next tier" },
+                    { icon: "🎁", text: "Quick access to QR code and store finder" }
+                ],
+                section: "Customer Experience"
+            },
+            {
+                id: "vouchers",
+                name: "Vouchers Browse",
+                title: "Browse & Redeem Vouchers",
+                description: "Explore available rewards organized by category. Filter by drinks, food, or discounts to find the perfect treat.",
+                features: [
+                    { icon: "☕", text: "Category filters for easy browsing" },
+                    { icon: "🏷️", text: "Clear points requirements shown" },
+                    { icon: "📸", text: "Beautiful food photography" }
+                ],
+                section: "Customer Experience"
+            },
+            {
+                id: "voucher-detail",
+                name: "Voucher Details",
+                title: "Voucher Details",
+                description: "Clear information about each reward including points required, validity period, and terms & conditions.",
+                features: [
+                    { icon: "📋", text: "Complete terms & conditions" },
+                    { icon: "📍", text: "Available outlet information" },
+                    { icon: "⏰", text: "Validity and redemption limits" }
+                ],
+                section: "Customer Experience"
+            },
+            {
+                id: "activity",
+                name: "Activity History",
+                title: "Activity History",
+                description: "Track every transaction - see when you earned points and when you redeemed rewards, all in a clean timeline view.",
+                features: [
+                    { icon: "📊", text: "Filter by earned vs redeemed" },
+                    { icon: "🕐", text: "Organized by date" },
+                    { icon: "📍", text: "Location details for each transaction" }
+                ],
+                section: "Customer Experience"
+            },
+            {
+                id: "rewards",
+                name: "Rewards",
+                title: "Rewards & Tiers",
+                description: "Understand how to earn points and see the benefits of each membership tier - from Bronze to Platinum.",
+                features: [
+                    { icon: "🥉", text: "Bronze, Silver, Gold, Platinum tiers" },
+                    { icon: "📈", text: "Clear progress tracking" },
+                    { icon: "💡", text: "Tips on how to earn more points" }
+                ],
+                section: "Customer Experience"
+            },
+            {
+                id: "profile",
+                name: "Profile",
+                title: "Profile & Settings",
+                description: "Manage personal information, payment methods, security settings, and notification preferences all in one place.",
+                features: [
+                    { icon: "👤", text: "Personal information management" },
+                    { icon: "💳", text: "Payment methods" },
+                    { icon: "🔔", text: "Push & email notification controls" }
+                ],
+                section: "Customer Experience"
+            }
+        ];
+
+        let currentScreen = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function renderProgressDots() {
+            const container = document.getElementById('progressDots');
+            container.innerHTML = screens.map((_, i) =>
+                `<div class="progress-dot ${i === currentScreen ? 'active' : ''}" onclick="goToScreen(${i})"></div>`
+            ).join('');
+        }
+
+        function renderScreenNav() {
+            const container = document.getElementById('screenNav');
+            container.innerHTML = screens.map((_, i) =>
+                `<span class="${i === currentScreen ? 'active' : ''}"></span>`
+            ).join('');
+        }
+
+        function renderContent() {
+            const screen = screens[currentScreen];
+            const panel = document.getElementById('contentPanel');
+            const placeholder = document.getElementById('placeholder');
+            const placeholderName = document.getElementById('placeholderName');
+
+            // Update placeholder
+            placeholderName.textContent = screen.name;
+
+            panel.style.animation = 'none';
+            panel.offsetHeight; // Trigger reflow
+            panel.style.animation = 'slideIn 0.4s ease';
+
+            panel.innerHTML = `
+                <div class="step-indicator">
+                    <span>${screen.section} • ${currentScreen + 1} of ${screens.length}</span>
+                </div>
+                <h2>${screen.title}</h2>
+                <p>${screen.description}</p>
+                <div class="features">
+                    ${screen.features.map(f => `
+                        <div class="feature">
+                            <div class="feature-icon">${f.icon}</div>
+                            <span>${f.text}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="prevScreen()" ${currentScreen === 0 ? 'disabled' : ''}>
+                        ← Previous
+                    </button>
+                    <button class="btn btn-primary" onclick="nextScreen()" ${currentScreen === screens.length - 1 ? 'disabled' : ''}>
+                        Next →
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderAllScreens() {
+            const grid = document.getElementById('screensGrid');
+            grid.innerHTML = screens.map((screen, i) => `
+                <div class="screen-thumb" onclick="goToScreen(${i}); toggleAllScreens();">
+                    <div style="background: linear-gradient(180deg, #FAF7F2 0%, #F5F1EB 100%); height: 200px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                        <div style="font-size: 12px; letter-spacing: 2px; color: #1C1917; margin-bottom: 4px;">SARNIES</div>
+                        <div style="font-size: 11px; color: #78716C;">${screen.name}</div>
+                    </div>
+                    <div class="name">${screen.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleAllScreens() {
+            const allScreens = document.getElementById('allScreens');
+            const walkthrough = document.getElementById('walkthrough');
+            allScreens.classList.toggle('visible');
+
+            if (allScreens.classList.contains('visible')) {
+                walkthrough.style.display = 'none';
+            } else {
+                walkthrough.style.display = 'flex';
+            }
+        }
+
+        function goToScreen(index) {
+            currentScreen = index;
+            renderProgressDots();
+            renderScreenNav();
+            renderContent();
+        }
+
+        function nextScreen() {
+            if (currentScreen < screens.length - 1) {
+                goToScreen(currentScreen + 1);
+            }
+        }
+
+        function prevScreen() {
+            if (currentScreen > 0) {
+                goToScreen(currentScreen - 1);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextScreen();
+            if (e.key === 'ArrowLeft') prevScreen();
+        });
+
+        // Touch/swipe navigation
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextScreen(); // Swipe left = next
+                } else {
+                    prevScreen(); // Swipe right = prev
+                }
+            }
+        }
+
+        // Initialize
+        renderProgressDots();
+        renderScreenNav();
+        renderContent();
+        renderAllScreens();
+    </script>
+</body>
+</html>

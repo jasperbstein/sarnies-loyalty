@@ -1,0 +1,297 @@
+/**
+ * SARNIES DESIGN SYSTEM v1.2
+ * Global Styles & Component Classes
+ */
+
+@import './design-tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply font-sans text-md font-normal leading-normal tracking-tight;
+    color: var(--color-black);
+    background-color: var(--color-white);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-black);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-black);
+    color: var(--color-white);
+  }
+}
+
+/* ========================================
+   TYPOGRAPHY CLASSES
+
+   Naming: .text-{type}
+   Types: display, title, heading, label, body, caption, nav
+   ======================================== */
+
+@layer components {
+  /* Display - Hero text, 42px */
+  .text-display {
+    @apply text-4xl font-medium uppercase tracking-widest leading-tight;
+  }
+
+  /* Title - Page titles, 30px */
+  .text-title {
+    @apply text-3xl font-medium uppercase tracking-widest leading-tight;
+  }
+
+  /* Heading - Section headers, 18-21px */
+  .text-heading {
+    @apply text-lg font-medium uppercase tracking-wider leading-snug;
+  }
+
+  /* Label - Card titles, buttons, 13-14px */
+  .text-label {
+    @apply text-base font-medium uppercase tracking-wide leading-snug;
+  }
+
+  /* Body - Default text, 15px */
+  .text-body {
+    @apply text-md font-normal tracking-tight leading-normal;
+  }
+
+  /* Caption - Small text, meta, 11-13px */
+  .text-caption {
+    @apply text-sm font-normal tracking-tight leading-snug;
+  }
+
+  /* Nav - Navigation labels, 10px */
+  .text-nav {
+    @apply text-xs font-medium uppercase tracking-wide leading-none;
+  }
+}
+
+/* ========================================
+   BUTTON CLASSES
+
+   Naming: .btn-{variant}
+   Variants: primary, secondary, ghost
+   ======================================== */
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply font-medium transition-all duration-fast;
+    @apply active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn px-5 py-3.5 rounded;
+    @apply bg-black text-white;
+    @apply text-base uppercase tracking-wide;
+    @apply hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply btn px-5 py-3.5 rounded;
+    @apply bg-white text-black border border-black;
+    @apply text-base uppercase tracking-wide;
+    @apply hover:bg-gray-50;
+  }
+
+  .btn-ghost {
+    @apply btn px-0 py-2;
+    @apply bg-transparent text-black;
+    @apply text-base tracking-tight;
+    @apply hover:opacity-70 hover:underline;
+  }
+}
+
+/* ========================================
+   CARD CLASSES
+
+   Naming: .card-{variant}
+   Variants: default, dark, flat
+   ======================================== */
+
+@layer components {
+  .card {
+    @apply bg-white border border-gray-200 rounded p-6;
+  }
+
+  .card-dark {
+    @apply bg-black text-white rounded-lg p-5;
+  }
+
+  .card-flat {
+    @apply bg-white rounded p-6;
+  }
+}
+
+/* ========================================
+   FORM CLASSES
+
+   Naming: .input-{variant}, .form-{element}
+   ======================================== */
+
+@layer components {
+  .input {
+    @apply w-full px-4 py-3 rounded;
+    @apply bg-white border border-gray-200;
+    @apply text-md font-normal tracking-tight;
+    @apply transition-colors duration-fast;
+    @apply focus:outline-none focus:border-black;
+    @apply placeholder:text-gray-400;
+  }
+
+  .input-underline {
+    @apply w-full py-3 px-0;
+    @apply bg-transparent border-0 border-b border-gray-300;
+    @apply text-md font-normal tracking-tight;
+    @apply transition-colors duration-fast;
+    @apply focus:outline-none focus:border-black;
+    @apply placeholder:text-gray-400;
+  }
+
+  .form-label {
+    @apply block mb-2;
+    @apply text-base font-medium text-gray-700;
+  }
+
+  .form-error {
+    @apply mt-1 text-sm text-error;
+  }
+}
+
+/* ========================================
+   BADGE CLASSES
+
+   Naming: .badge-{variant}
+   Variants: default, accent, success, warning, error
+   ======================================== */
+
+@layer components {
+  .badge {
+    @apply inline-flex items-center px-2 py-1 rounded-sm;
+    @apply text-xs font-medium uppercase tracking-wide;
+  }
+
+  .badge-default {
+    @apply badge bg-gray-100 text-gray-600;
+  }
+
+  .badge-accent {
+    @apply badge;
+    background-color: var(--color-accent-muted);
+    color: var(--color-accent-text);
+  }
+
+  .badge-success {
+    @apply badge;
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+  }
+
+  .badge-warning {
+    @apply badge;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+  }
+
+  .badge-error {
+    @apply badge;
+    background-color: var(--color-error-bg);
+    color: var(--color-error);
+  }
+}
+
+/* ========================================
+   LAYOUT CLASSES
+   ======================================== */
+
+@layer components {
+  .container-app {
+    @apply max-w-container mx-auto px-5;
+  }
+
+  .container-content {
+    @apply max-w-content mx-auto px-5;
+  }
+
+  .container-narrow {
+    @apply max-w-narrow mx-auto px-5;
+  }
+}
+
+/* ========================================
+   LEGACY ALIASES (for backwards compatibility)
+   TODO: Remove after all components migrated
+   ======================================== */
+
+@layer components {
+  /* Map old sarnies-* classes to new text-* classes */
+  .sarnies-title { @apply text-display; }
+  .sarnies-title-sm { @apply text-title; }
+  .sarnies-headline { @apply text-heading; }
+  .sarnies-subhead { @apply text-label; }
+  .sarnies-body { @apply text-body; }
+  .sarnies-caption { @apply text-nav; }
+  .sarnies-footnote { @apply text-caption; }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}

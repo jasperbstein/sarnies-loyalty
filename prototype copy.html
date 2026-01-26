@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarnies Loyalty - Interactive Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --black: #1C1917;
+            --white: #FFFCF7;
+            --surface: #FFFFFF;
+            --gray-50: #FAFAF9;
+            --gray-100: #F5F5F4;
+            --gray-200: #E7E5E4;
+            --gray-400: #A8A29E;
+            --gray-500: #78716C;
+            --gray-600: #57534E;
+            --accent: #D97706;
+            --accent-dark: #C2410C;
+            --accent-light: #F59E0B;
+            --success: #059669;
+            --error: #DC2626;
+            --info: #2563EB;
+            --border: #E5E5E5;
+            --border-light: #F0F0F0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { display: flex; align-items: center; gap: 48px; }
+        .phone {
+            width: 390px; height: 844px;
+            background: #000; border-radius: 54px; padding: 12px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 50px 100px rgba(0,0,0,0.5);
+            position: relative; flex-shrink: 0;
+        }
+        .phone::before {
+            content: ''; position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+            width: 126px; height: 34px; background: #000; border-radius: 20px; z-index: 1000;
+        }
+        .screen {
+            width: 366px; height: 820px; border-radius: 44px;
+            overflow: hidden; background: var(--surface); position: relative;
+        }
+        .screen-view {
+            display: none; width: 100%; height: 100%;
+            flex-direction: column; overflow: hidden;
+        }
+        .screen-view.active { display: flex; }
+        .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        .scroll-content::-webkit-scrollbar { display: none; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            display: flex; justify-content: space-around; align-items: center;
+            height: 68px; background: var(--surface); border-top: 1px solid var(--border);
+            padding: 8px 0; margin-top: auto; flex-shrink: 0;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 12px 16px; cursor: pointer; color: var(--gray-500); transition: color 0.15s;
+        }
+        .nav-item:hover { color: var(--gray-600); }
+        .nav-item.active { color: var(--accent-dark); }
+        .nav-item i { font-size: 20px; }
+        .nav-item span { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; }
+
+        /* Common */
+        .section-title { font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--gray-500); margin-bottom: 8px; }
+        .back-btn { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .back-btn i { font-size: 20px; }
+        .back-btn span { font-size: 14px; font-weight: 500; }
+        .primary-btn {
+            width: 100%; padding: 14px 24px; background: var(--black); color: #fff;
+            border: none; border-radius: 4px; font-size: 13px; font-weight: 500;
+            letter-spacing: 2.5px; cursor: pointer; text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .primary-btn:hover { background: #2C2520; }
+        .input-field {
+            width: 100%; height: 48px; padding: 0 16px; background: #fff;
+            border: 1px solid var(--border-light); border-radius: 4px;
+            font-size: 14px; color: var(--gray-500); display: flex; align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .divider { height: 1px; background: var(--gray-200); width: 100%; }
+
+        /* ===== SPLASH ===== */
+        .splash-screen { background: var(--black); justify-content: center; align-items: center; cursor: pointer; }
+        .splash-logo { color: #fff; font-size: 32px; font-weight: 600; letter-spacing: 6px; }
+        .splash-dots { display: flex; gap: 8px; margin-top: 32px; }
+        .splash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-500); }
+        .splash-dot:first-child { background: #fff; }
+
+        /* ===== LOGIN ===== */
+        .login-screen { background: var(--surface); position: relative; }
+        .login-bg { position: absolute; top: 0; left: 0; width: 100%; height: 360px; background: url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800') center/cover; }
+        .login-overlay { position: absolute; top: 280px; left: 0; width: 100%; height: 80px; background: linear-gradient(180deg, transparent 0%, #fff 100%); }
+        .login-card {
+            position: absolute; top: 300px; left: 25px; right: 25px;
+            background: #fff; border-radius: 12px; padding: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 24px;
+        }
+        .login-logo { text-align: center; }
+        .login-logo h2 { font-size: 24px; font-weight: 500; letter-spacing: 4px; color: var(--black); }
+        .login-logo p { font-size: 14px; color: var(--gray-600); margin-top: 8px; }
+        .login-tabs { display: flex; gap: 4px; background: var(--gray-50); padding: 4px; border-radius: 8px; }
+        .login-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: var(--gray-600); border-radius: 6px; cursor: pointer; }
+        .login-tab.active { background: #fff; color: var(--black); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .login-form { display: flex; flex-direction: column; gap: 16px; }
+        .login-input { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: #fff; border: 1px solid var(--border); border-radius: 12px; }
+        .login-input i { color: var(--gray-500); font-size: 20px; }
+        .login-input span { color: var(--gray-500); font-size: 14px; }
+        .login-helper { font-size: 12px; color: var(--gray-500); }
+        .login-btn { height: 56px; background: var(--black); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .login-btn:hover { background: #2C2520; }
+        .login-terms { font-size: 11px; color: var(--gray-500); text-align: center; line-height: 1.4; }
+        .login-footer { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--gray-600); }
+        .login-register { text-align: center; font-size: 13px; color: var(--gray-600); }
+        .login-register a { color: var(--accent-dark); font-weight: 500; cursor: pointer; }
+
+        /* ===== REGISTER ===== */
+        .register-screen { background: var(--surface); }
+        .register-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
+        .register-header span { font-size: 14px; color: var(--gray-500); }
+        .progress-bar { height: 4px; display: flex; width: 100%; }
+        .progress-filled { background: var(--accent-dark); height: 100%; }
+        .progress-empty { background: var(--gray-200); height: 100%; flex: 1; }
+        .register-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+        .register-title h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .register-title p { font-size: 14px; color: var(--gray-600); }
+        .form-group { display: flex; flex-direction: column; gap: 16px; }
+        .form-label { font-size: 14px; font-weight: 500; }
+        .form-spacer { flex: 1; }
+        .form-hint { font-size: 12px; color: var(--gray-500); text-align: center; }
+        .password-reqs { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; }
+        .password-reqs span { font-size: 12px; color: var(--gray-500); }
+        .password-reqs span:first-child { font-weight: 500; color: var(--gray-600); }
+
+        /* ===== HOME ===== */
+        .home-screen { background: var(--surface); }
+        .home-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 56px; flex-shrink: 0; }
+        .home-header h1 { font-size: 18px; font-weight: 500; letter-spacing: 3px; }
+        .header-btn { width: 40px; height: 40px; border: 1px solid var(--gray-200); border-radius: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        .header-btn i { font-size: 18px; }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--accent-dark); border-radius: 50%; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .home-content { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 20px; }
+        .member-card { position: relative; height: 200px; background: linear-gradient(135deg, #2C2520 0%, #1A1614 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.15); cursor: pointer; }
+        .member-card-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1720242569488-ece73980ba11?w=800') center/cover; }
+        .member-card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%); }
+        .member-card-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .member-info { color: #fff; }
+        .member-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; opacity: 0.7; margin-bottom: 4px; }
+        .member-name { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+        .member-id { font-size: 12px; font-weight: 500; letter-spacing: 0.5px; opacity: 0.7; }
+        .member-qr { width: 56px; height: 56px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .member-qr i { font-size: 36px; color: var(--black); }
+        .points-card { background: #fff; border: 1px solid var(--border-light); border-radius: 6px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .points-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .points-label { font-size: 11px; font-weight: 500; letter-spacing: 2px; color: var(--gray-600); }
+        .points-tier { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; color: var(--gray-600); background: var(--gray-50); padding: 6px 10px; border-radius: 4px; }
+        .points-value { font-size: 36px; font-weight: 400; letter-spacing: -1px; color: var(--black); }
+        .points-bar { height: 4px; background: var(--border-light); border-radius: 2px; margin: 12px 0 6px; overflow: hidden; }
+        .points-bar-fill { height: 100%; width: 82%; background: var(--accent-dark); border-radius: 2px; }
+        .points-range { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-600); }
+        .points-range span:last-child { color: var(--gray-500); }
+        .quick-actions { display: flex; gap: 12px; }
+        .quick-action { flex: 1; background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.15s; }
+        .quick-action:hover { border-color: var(--accent); }
+        .quick-action-icon { width: 44px; height: 44px; background: #F5F1EB; border-radius: 22px; display: flex; align-items: center; justify-content: center; }
+        .quick-action-icon i { font-size: 20px; color: var(--black); }
+        .quick-action span { font-size: 13px; font-weight: 500; }
+        .invite-card { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); border-radius: 12px; padding: 24px; display: flex; align-items: center; gap: 16px; color: #fff; cursor: pointer; box-shadow: 0 4px 12px rgba(217,119,6,0.15); }
+        .invite-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.3); border-radius: 26px; display: flex; align-items: center; justify-content: center; }
+        .invite-icon i { font-size: 26px; }
+        .invite-text { flex: 1; }
+        .invite-text h4 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+        .invite-text p { font-size: 13px; opacity: 0.85; }
+        .invite-card > i { font-size: 20px; }
+        .featured-header { display: flex; justify-content: space-between; align-items: center; }
+        .featured-link { display: flex; align-items: center; gap: 4px; color: var(--accent-dark); font-size: 13px; font-weight: 500; cursor: pointer; }
+        .featured-link i { font-size: 14px; }
+        .rewards-grid { display: flex; gap: 12px; margin-top: 8px; }
+        .reward-card { flex: 1; background: #fff; border: 1px solid var(--border-light); border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: border-color 0.15s; }
+        .reward-card:hover { border-color: var(--accent); }
+        .reward-image { height: 100px; background: url('https://images.unsplash.com/photo-1630439924740-b7cf5e98e7e1?w=400') center/cover; }
+        .reward-content { padding: 12px; }
+        .reward-content h4 { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .reward-content p { font-size: 11px; color: var(--gray-500); }
+
+        /* ===== VOUCHERS ===== */
+        .vouchers-screen { background: var(--surface); }
+        .vouchers-header { padding: 20px; }
+        .vouchers-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .vouchers-title-row h1 { font-size: 21px; font-weight: 500; letter-spacing: 0.15px; }
+        .vouchers-points { display: flex; align-items: center; gap: 4px; color: var(--accent-dark); font-size: 13px; font-weight: 500; margin-top: 4px; }
+        .vouchers-points i { font-size: 14px; }
+        .sort-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--gray-600); cursor: pointer; }
+        .sort-btn i { font-size: 14px; color: var(--gray-500); }
+        .vouchers-content { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 20px; }
+        .search-bar { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; background: var(--gray-100); border-radius: 8px; cursor: pointer; }
+        .search-bar i { font-size: 18px; color: var(--gray-400); }
+        .search-bar span { font-size: 14px; color: var(--gray-400); }
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; }
+        .category-tab { padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--gray-200); color: var(--gray-600); transition: all 0.15s; white-space: nowrap; }
+        .category-tab:hover { border-color: var(--gray-400); }
+        .category-tab.active { background: #000; color: #fff; border-color: #000; }
+        .voucher-section { display: flex; flex-direction: column; gap: 12px; }
+        .voucher-grid { display: flex; gap: 12px; }
+        .voucher-card { flex: 1; background: #fff; border: 1px solid var(--border-light); border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: border-color 0.15s; }
+        .voucher-card:hover { border-color: var(--accent); }
+        .voucher-image { height: 100px; background: url('https://images.unsplash.com/photo-1630439924740-b7cf5e98e7e1?w=400') center/cover; }
+        .voucher-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .voucher-content h4 { font-size: 14px; font-weight: 500; }
+        .voucher-content p { font-size: 11px; color: var(--gray-500); }
+        .voucher-meta { display: flex; justify-content: space-between; font-size: 12px; }
+        .voucher-pts { color: var(--accent-dark); font-weight: 500; }
+        .voucher-badge { color: var(--gray-500); }
+
+        /* ===== VOUCHER DETAIL ===== */
+        .voucher-detail-screen { background: var(--surface); }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--gray-200); }
+        .detail-header h2 { font-size: 16px; font-weight: 600; }
+        .hero-image { height: 200px; background: url('https://images.unsplash.com/photo-1553517521-eb1ba27ddb74?w=800') center/cover; }
+        .detail-content { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .voucher-info h3 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .voucher-info p { font-size: 14px; color: var(--gray-600); }
+        .cost-row { display: flex; justify-content: space-between; align-items: center; }
+        .cost-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--gray-500); }
+        .cost-value { font-size: 18px; font-weight: 600; color: var(--accent-dark); }
+        .detail-section { display: flex; flex-direction: column; gap: 12px; }
+        .detail-row { display: flex; justify-content: space-between; }
+        .detail-row span:first-child { font-size: 14px; color: var(--gray-600); }
+        .detail-row span:last-child { font-size: 14px; font-weight: 500; }
+        .terms-text { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+
+        /* ===== ACTIVITY ===== */
+        .activity-screen { background: var(--surface); }
+        .activity-header { padding: 16px 20px; text-align: center; background: #fff; }
+        .activity-header h1 { font-size: 18px; font-weight: 600; }
+        .filter-row { display: flex; gap: 8px; padding: 16px 20px; background: #fff; }
+        .filter-pill { padding: 10px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; cursor: pointer; background: var(--gray-50); color: var(--gray-600); transition: all 0.15s; }
+        .filter-pill:hover { background: var(--gray-100); }
+        .filter-pill.active { background: #000; color: #fff; }
+        .activity-content { padding: 0 20px 100px; display: flex; flex-direction: column; gap: 12px; }
+        .date-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--gray-500); margin-top: 8px; }
+        .transaction-row { display: flex; align-items: center; gap: 12px; padding: 16px; background: #fff; border: 1px solid var(--border-light); border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); cursor: pointer; transition: border-color 0.15s; }
+        .transaction-row:hover { border-color: var(--gray-300); }
+        .transaction-icon { width: 40px; height: 40px; background: var(--gray-50); border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+        .transaction-icon i { font-size: 20px; color: var(--black); }
+        .transaction-icon.redeem i { color: var(--gray-500); }
+        .transaction-info { flex: 1; }
+        .transaction-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+        .transaction-info p { font-size: 12px; color: var(--gray-500); }
+        .transaction-points { font-size: 16px; font-weight: 500; }
+        .transaction-points.positive { color: var(--black); }
+        .transaction-points.negative { color: var(--gray-500); }
+
+        /* ===== PROFILE ===== */
+        .profile-screen { background: var(--surface); }
+        .profile-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #fff; }
+        .profile-header h1 { font-size: 18px; font-weight: 600; }
+        .profile-header .edit { font-size: 14px; font-weight: 500; color: var(--accent-dark); cursor: pointer; }
+        .profile-section { padding: 24px; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .profile-avatar { width: 64px; height: 64px; background: var(--gray-50); border-radius: 32px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 500; color: var(--gray-600); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .profile-name { font-size: 20px; font-weight: 600; }
+        .profile-email { font-size: 14px; color: var(--gray-500); }
+        .profile-tier { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; background: var(--gray-50); padding: 6px 10px; border-radius: 4px; }
+        .settings-content { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .settings-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--gray-500); }
+        .settings-group { background: #fff; border-radius: 12px; padding: 0 16px; }
+        .settings-row { display: flex; align-items: center; gap: 12px; padding: 16px 0; justify-content: space-between; cursor: pointer; }
+        .settings-row:hover { opacity: 0.8; }
+        .settings-row:not(:last-child) { border-bottom: 1px solid var(--border-light); }
+        .settings-left { display: flex; align-items: center; gap: 12px; }
+        .settings-left i { font-size: 20px; color: var(--gray-600); }
+        .settings-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+        .settings-info p { font-size: 12px; color: var(--gray-500); }
+        .settings-chevron { font-size: 20px; color: var(--gray-500); }
+        .toggle { width: 64px; height: 44px; background: var(--black); border-radius: 22px; position: relative; cursor: pointer; }
+        .toggle::after { content: ''; position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; background: #fff; border-radius: 50%; }
+        .toggle.off { background: var(--gray-200); }
+        .toggle.off::after { right: auto; left: 4px; }
+        .logout-btn { padding: 14px 24px; border: 1px solid var(--error); border-radius: 4px; text-align: center; font-size: 13px; font-weight: 500; letter-spacing: 2.5px; color: var(--error); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .logout-btn:hover { background: #FEE2E2; }
+
+        /* ===== REWARDS ===== */
+        .rewards-screen { background: var(--surface); }
+        .rewards-header { padding: 16px 20px; }
+        .rewards-header h1 { font-size: 24px; font-weight: 600; }
+        .rewards-header p { font-size: 14px; color: var(--gray-600); margin-top: 4px; }
+        .rewards-content { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 24px; }
+        .points-display { display: flex; align-items: center; gap: 8px; }
+        .points-display i { font-size: 20px; color: var(--accent-dark); }
+        .points-display span { font-size: 20px; font-weight: 600; }
+        .progress-section { display: flex; flex-direction: column; gap: 8px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 1.5px; }
+        .progress-label span:first-child { color: var(--gray-600); }
+        .progress-label span:last-child { font-weight: 500; }
+        .progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent-dark); border-radius: 3px; }
+        .earn-section, .tier-section { display: flex; flex-direction: column; gap: 12px; }
+        .earn-section h3, .tier-section h3 { font-size: 16px; font-weight: 600; }
+        .earn-list, .tier-list { border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+        .earn-row, .tier-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border-light); cursor: pointer; }
+        .earn-row:last-child, .tier-row:last-child { border-bottom: none; }
+        .earn-row:hover, .tier-row:hover { background: var(--gray-50); }
+        .earn-row span:last-child { font-weight: 600; color: var(--success); }
+        .tier-row span:last-child { font-size: 13px; color: var(--gray-500); }
+        .tier-row.active { background: #FEF3C7; }
+        .tier-row.active span:last-child { color: var(--accent-dark); font-weight: 500; }
+
+        /* ===== REFERRALS ===== */
+        .referrals-screen { background: var(--gray-50); }
+        .ref-header { padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--gray-200); }
+        .ref-hero { padding: 24px; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+        .ref-icon { width: 80px; height: 80px; background: var(--accent-dark); border-radius: 40px; display: flex; align-items: center; justify-content: center; }
+        .ref-icon i { font-size: 40px; color: #fff; }
+        .ref-hero h2 { font-size: 24px; font-weight: 600; }
+        .ref-hero p { font-size: 14px; color: var(--gray-600); max-width: 300px; }
+        .ref-content { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+        .code-section { display: flex; flex-direction: column; gap: 12px; }
+        .code-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--gray-500); }
+        .code-box { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; }
+        .code-box span { font-size: 20px; font-weight: 600; letter-spacing: 2px; }
+        .copy-btn { display: flex; align-items: center; gap: 4px; color: var(--accent-dark); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .copy-btn i { font-size: 16px; }
+        .stats-row { display: flex; gap: 12px; padding: 20px 0; }
+        .stat-card { flex: 1; background: #fff; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .stat-card .value { font-size: 28px; font-weight: 600; }
+        .stat-card .value.accent { color: var(--accent-dark); }
+        .stat-card .value.success { color: var(--success); }
+        .stat-card .label { font-size: 12px; color: var(--gray-500); }
+        .history-section { display: flex; flex-direction: column; gap: 8px; }
+        .ref-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff; border-radius: 8px; cursor: pointer; }
+        .ref-row:hover { background: var(--gray-100); }
+        .ref-left { display: flex; align-items: center; gap: 12px; }
+        .ref-avatar { width: 40px; height: 40px; background: var(--gray-50); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: var(--gray-600); }
+        .ref-info h4 { font-size: 14px; font-weight: 500; }
+        .ref-info p { font-size: 12px; color: var(--gray-500); }
+        .ref-points { font-size: 14px; font-weight: 600; color: var(--success); }
+
+        /* ===== OUTLETS ===== */
+        .outlets-screen { background: var(--gray-50); }
+        .outlets-header { padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--gray-200); }
+        .outlets-search { padding: 16px 20px; background: #fff; display: flex; flex-direction: column; gap: 12px; }
+        .outlets-content { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .outlet-card { background: #fff; border: 1px solid var(--border-light); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; }
+        .outlet-card:hover { border-color: var(--accent); }
+        .outlet-card h3 { font-size: 16px; font-weight: 500; }
+        .outlet-distance { font-size: 12px; color: var(--gray-500); }
+        .outlet-address { display: flex; align-items: flex-start; gap: 8px; }
+        .outlet-address i { font-size: 16px; color: var(--gray-500); margin-top: 2px; }
+        .outlet-address span { font-size: 14px; color: var(--gray-600); }
+
+        /* ===== QR CODE ===== */
+        .qr-screen { background: var(--surface); }
+        .qr-header { display: flex; align-items: center; padding: 12px 16px; }
+        .qr-close { width: 32px; height: 32px; background: var(--gray-100); border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .qr-close i { font-size: 18px; color: var(--gray-500); }
+        .success-banner { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--gray-50); border-radius: 6px; margin: 0 20px; }
+        .success-banner i { font-size: 20px; }
+        .success-banner span { font-size: 14px; font-weight: 500; }
+        .qr-content { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
+        .qr-card { background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); width: 300px; }
+        .qr-card h3 { font-size: 16px; font-weight: 500; text-align: center; }
+        .qr-card p { font-size: 13px; color: var(--gray-600); text-align: center; }
+        .qr-placeholder { width: 200px; height: 200px; background: var(--gray-50); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .qr-placeholder i { font-size: 120px; color: var(--black); }
+        .qr-timer { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .qr-timer .label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--gray-500); }
+        .qr-timer .value { font-size: 36px; font-weight: 400; letter-spacing: -1px; }
+        .status-card { display: flex; align-items: center; gap: 8px; padding: 16px; background: var(--gray-50); border-radius: 6px; width: 100%; }
+        .status-dot { width: 12px; height: 12px; background: var(--black); border-radius: 6px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .status-info h4 { font-size: 12px; font-weight: 500; letter-spacing: 1.5px; }
+        .status-info p { font-size: 13px; color: var(--gray-600); }
+        .tips-card { padding: 16px; background: var(--gray-50); border-radius: 6px; width: 100%; }
+        .tips-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .tips-header i { font-size: 18px; }
+        .tips-header span { font-size: 12px; font-weight: 500; letter-spacing: 1.5px; }
+        .tips-list { display: flex; flex-direction: column; gap: 8px; }
+        .tips-list span { font-size: 13px; color: var(--gray-600); }
+        .qr-footer { padding: 20px; }
+
+        /* ===== NEWS ===== */
+        .news-screen { background: var(--surface); }
+        .news-header { padding: 16px 20px; }
+        .news-header h1 { font-size: 24px; font-weight: 600; }
+        .news-header p { font-size: 14px; color: var(--gray-500); margin-top: 4px; }
+        .news-content { padding: 0 20px 100px; display: flex; flex-direction: column; gap: 16px; }
+        .featured-news { border-radius: 6px; overflow: hidden; background: #fff; border: 1px solid var(--border-light); box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; }
+        .featured-news:hover { border-color: var(--accent); }
+        .featured-news-image { height: 180px; background: url('https://images.unsplash.com/photo-1711633648859-1eac3e5969b9?w=800') center/cover; }
+        .featured-news-content { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .news-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; letter-spacing: 1.5px; }
+        .news-badge.new { background: var(--black); color: #fff; }
+        .news-badge.promo { background: var(--gray-100); color: var(--gray-600); }
+        .news-badge.seasonal { background: #D1FAE5; color: var(--success); }
+        .news-badge.announcement { background: #DBEAFE; color: var(--info); }
+        .featured-news-content h3 { font-size: 16px; font-weight: 500; }
+        .featured-news-content .date { font-size: 12px; color: var(--gray-500); }
+        .news-list { display: flex; flex-direction: column; gap: 12px; }
+        .news-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer; }
+        .news-row:hover { border-color: var(--accent); }
+        .news-thumb { width: 64px; height: 64px; background: url('https://images.unsplash.com/photo-1683640319686-0406003cd5a5?w=200') center/cover; border-radius: 4px; flex-shrink: 0; }
+        .news-row-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .news-row-content .category { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; color: var(--gray-600); }
+        .news-row-content .category.new { color: var(--accent-dark); }
+        .news-row-content .category.seasonal { color: var(--success); }
+        .news-row-content .category.announcement { color: var(--info); }
+        .news-row-content h4 { font-size: 14px; font-weight: 500; }
+        .news-row-content .date { font-size: 11px; color: var(--gray-500); }
+        .news-row i { font-size: 16px; color: var(--gray-500); }
+
+        /* ===== ANNOUNCEMENT DETAIL ===== */
+        .announcement-screen { background: var(--surface); }
+        .announcement-image { height: 200px; background: url('https://images.unsplash.com/photo-1568124549635-e4d2c8ae8a3d?w=800') center/cover; }
+        .announcement-content { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .announcement-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; letter-spacing: 1px; background: #FEF3C7; color: var(--accent-dark); width: fit-content; }
+        .announcement-content h2 { font-size: 24px; font-weight: 600; }
+        .announcement-content .date { font-size: 13px; color: var(--gray-500); }
+        .announcement-content .body { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+
+        /* ===== INVITE FRIENDS ===== */
+        .invite-screen { background: var(--surface); }
+        .invite-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+        .invite-header h2 { font-size: 18px; font-weight: 600; }
+        .invite-content { padding: 20px; }
+        .invite-main-card { background: #fff; border: 1px solid var(--border-light); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .invite-main-header { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+        .invite-main-icon { width: 64px; height: 64px; background: #FEF2F2; border-radius: 32px; display: flex; align-items: center; justify-content: center; }
+        .invite-main-icon i { font-size: 28px; color: var(--accent-dark); }
+        .invite-main-header h3 { font-size: 20px; font-weight: 600; }
+        .invite-main-header p { font-size: 14px; color: var(--gray-600); }
+        .reward-box { display: flex; justify-content: space-around; align-items: center; padding: 16px; background: #FEF2F2; border-radius: 8px; }
+        .reward-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .reward-item .label { font-size: 12px; color: var(--gray-600); }
+        .reward-item .value { font-size: 18px; font-weight: 600; color: var(--accent-dark); }
+        .reward-divider { width: 1px; height: 40px; background: var(--border); }
+        .invite-code-section { display: flex; flex-direction: column; gap: 8px; }
+        .invite-code-label { font-size: 12px; font-weight: 500; color: var(--gray-600); text-align: center; }
+        .invite-code-box { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--gray-50); border: 1px solid var(--border); border-radius: 8px; }
+        .invite-code-box .code { font-size: 18px; font-weight: 600; letter-spacing: 2px; }
+        .invite-copy-btn { display: flex; align-items: center; gap: 4px; padding: 6px 10px; background: var(--accent-dark); border-radius: 6px; color: #fff; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .invite-copy-btn i { font-size: 14px; }
+        .share-section { display: flex; flex-direction: column; gap: 12px; }
+        .share-label { font-size: 12px; font-weight: 500; color: var(--gray-600); text-align: center; }
+        .share-buttons { display: flex; justify-content: center; gap: 12px; }
+        .share-btn { width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .share-btn i { font-size: 20px; color: #fff; }
+        .share-btn.whatsapp { background: #25D366; }
+        .share-btn.sms { background: var(--black); }
+        .share-btn.email { background: var(--accent-dark); }
+        .share-btn.more { background: var(--gray-50); border: 1px solid var(--border); }
+        .share-btn.more i { color: var(--gray-600); }
+
+        /* ===== NOTIFICATIONS ===== */
+        .notifications-screen { background: var(--gray-50); }
+        .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--gray-200); }
+        .notif-header h2 { font-size: 18px; font-weight: 600; }
+        .mark-read { font-size: 13px; color: var(--accent-dark); font-weight: 500; cursor: pointer; }
+        .notif-content { padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
+        .notif-item { display: flex; gap: 12px; padding: 16px; background: #fff; border-radius: 8px; cursor: pointer; }
+        .notif-item:hover { background: var(--gray-100); }
+        .notif-item.unread { background: #FEF3C7; }
+        .notif-icon { width: 40px; height: 40px; background: var(--gray-50); border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-icon i { font-size: 20px; color: var(--gray-600); }
+        .notif-icon.points i { color: var(--accent-dark); }
+        .notif-icon.voucher i { color: var(--success); }
+        .notif-icon.news i { color: var(--info); }
+        .notif-info { flex: 1; }
+        .notif-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .notif-info p { font-size: 13px; color: var(--gray-600); margin-bottom: 4px; }
+        .notif-info .time { font-size: 12px; color: var(--gray-500); }
+
+        /* ===== NAV PANEL ===== */
+        .nav-panel { color: #fff; width: 280px; }
+        .nav-panel h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .nav-panel .subtitle { color: #666; font-size: 14px; margin-bottom: 32px; line-height: 1.5; }
+        .screen-list { display: flex; flex-direction: column; gap: 4px; max-height: 500px; overflow-y: auto; }
+        .screen-list::-webkit-scrollbar { width: 4px; }
+        .screen-list::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        .screen-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; cursor: pointer; color: #888; transition: all 0.15s; }
+        .screen-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .screen-item.active { background: rgba(217,119,6,0.15); color: var(--accent); }
+        .screen-item .num { width: 22px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+        .screen-item.active .num { background: var(--accent); color: #fff; }
+        .screen-item span { font-size: 13px; }
+        .nav-hint { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: #444; font-size: 12px; }
+        .nav-hint kbd { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; }
+
+        @media (max-width: 800px) {
+            .container { flex-direction: column; }
+            .nav-panel { order: -1; text-align: center; width: 100%; }
+            .screen-list { flex-direction: row; flex-wrap: wrap; justify-content: center; max-height: none; }
+            .phone { transform: scale(0.85); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="phone">
+            <div class="screen">
+                <!-- SPLASH -->
+                <div class="screen-view splash-screen active" data-screen="splash" onclick="goTo('login')">
+                    <div class="splash-logo">SARNIES</div>
+                    <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
+                </div>
+
+                <!-- LOGIN -->
+                <div class="screen-view login-screen" data-screen="login">
+                    <div class="login-bg"></div>
+                    <div class="login-overlay"></div>
+                    <div class="login-card">
+                        <div class="login-logo"><h2>SARNIES</h2><p>Welcome to Sarnies Loyalty</p></div>
+                        <div class="login-tabs">
+                            <div class="login-tab active">Customer</div>
+                            <div class="login-tab">Employee</div>
+                            <div class="login-tab">Staff</div>
+                            <div class="login-tab">Admin</div>
+                        </div>
+                        <div class="login-form">
+                            <div class="login-input"><i class="lucide-mail"></i><span>you@sarnies.com</span></div>
+                            <div class="login-helper">Enter your @sarnies.com email address</div>
+                            <button class="login-btn" onclick="goTo('home')">Send Magic Link</button>
+                            <div class="login-helper" style="text-align:center">We'll email you a link to sign in instantly</div>
+                        </div>
+                        <div class="login-terms">By continuing, you agree to our Terms of Service and Privacy Policy</div>
+                        <div class="login-register">Don't have an account? <a onclick="goTo('register1')">Sign up</a></div>
+                    </div>
+                    <div class="login-footer">© 2025 Sarnies</div>
+                </div>
+
+                <!-- REGISTER 1 -->
+                <div class="screen-view register-screen" data-screen="register1">
+                    <div class="register-header">
+                        <i class="lucide-x" style="font-size:24px;cursor:pointer" onclick="goTo('login')"></i>
+                        <span>Step 1 of 3</span>
+                        <div style="width:24px"></div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-filled" style="width:33%"></div><div class="progress-empty"></div></div>
+                    <div class="register-content">
+                        <div class="register-title"><h2>Create your account</h2><p>Enter your email address to get started</p></div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <div class="input-field">your@email.com</div>
+                        </div>
+                        <div class="form-spacer"></div>
+                        <div class="form-hint">By continuing, you agree to our Terms of Service and Privacy Policy</div>
+                        <button class="primary-btn" onclick="goTo('register2')">Continue</button>
+                    </div>
+                </div>
+
+                <!-- REGISTER 2 -->
+                <div class="screen-view register-screen" data-screen="register2">
+                    <div class="register-header">
+                        <i class="lucide-chevron-left" style="font-size:24px;cursor:pointer" onclick="goTo('register1')"></i>
+                        <span>Step 2 of 3</span>
+                        <div style="width:24px"></div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-filled" style="width:66%"></div><div class="progress-empty"></div></div>
+                    <div class="register-content">
+                        <div class="register-title"><h2>Personal Information</h2><p>Tell us a bit about yourself</p></div>
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <div class="input-field">John</div>
+                            <label class="form-label">Last Name</label>
+                            <div class="input-field">Smith</div>
+                            <label class="form-label">Phone Number</label>
+                            <div class="input-field">+65 9123 4567</div>
+                        </div>
+                        <div class="form-spacer"></div>
+                        <button class="primary-btn" onclick="goTo('register3')">Continue</button>
+                    </div>
+                </div>
+
+                <!-- REGISTER 3 -->
+                <div class="screen-view register-screen" data-screen="register3">
+                    <div class="register-header">
+                        <i class="lucide-chevron-left" style="font-size:24px;cursor:pointer" onclick="goTo('register2')"></i>
+                        <span>Step 3 of 3</span>
+                        <div style="width:24px"></div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-filled" style="width:100%"></div></div>
+                    <div class="register-content">
+                        <div class="register-title"><h2>Set your password</h2><p>Create a secure password for your account</p></div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="input-field">••••••••</div>
+                            <label class="form-label">Confirm Password</label>
+                            <div class="input-field">••••••••</div>
+                            <div class="password-reqs">
+                                <span>Password must contain:</span>
+                                <span>• At least 8 characters</span>
+                                <span>• One uppercase letter</span>
+                                <span>• One number</span>
+                            </div>
+                        </div>
+                        <div class="form-spacer"></div>
+                        <button class="primary-btn" onclick="goTo('home')">Create Account</button>
+                    </div>
+                </div>
+
+                <!-- HOME -->
+                <div class="screen-view home-screen" data-screen="home">
+                    <div class="home-header">
+                        <h1>SARNIES</h1>
+                        <div class="header-btn" onclick="goTo('notifications')">
+                            <i class="lucide-bell"></i>
+                            <div class="notif-badge">3</div>
+                        </div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="home-content">
+                            <div class="member-card" onclick="goTo('qr-code')">
+                                <div class="member-card-bg"></div>
+                                <div class="member-card-overlay"></div>
+                                <div class="member-card-content">
+                                    <div class="member-info">
+                                        <div class="member-label">WELCOME BACK</div>
+                                        <div class="member-name">Sarah Chen</div>
+                                        <div class="member-id">SAR-008742</div>
+                                    </div>
+                                    <div class="member-qr"><i class="lucide-qr-code"></i></div>
+                                </div>
+                            </div>
+                            <div class="points-card" onclick="goTo('rewards')" style="cursor:pointer">
+                                <div class="points-header"><span class="points-label">YOUR POINTS</span><span class="points-tier">Gold Member</span></div>
+                                <div class="points-value">2,450</div>
+                                <div class="points-bar"><div class="points-bar-fill"></div></div>
+                                <div class="points-range"><span>2,450 pts</span><span>3,000 to Platinum</span></div>
+                            </div>
+                            <div><div class="section-title">QUICK ACTIONS</div>
+                                <div class="quick-actions">
+                                    <div class="quick-action" onclick="goTo('qr-code')"><div class="quick-action-icon"><i class="lucide-qr-code"></i></div><span>Show QR</span></div>
+                                    <div class="quick-action" onclick="goTo('outlets')"><div class="quick-action-icon"><i class="lucide-map-pin"></i></div><span>Find Store</span></div>
+                                </div>
+                            </div>
+                            <div class="invite-card" onclick="goTo('invite')">
+                                <div class="invite-icon"><i class="lucide-gift"></i></div>
+                                <div class="invite-text"><h4>Invite Friends</h4><p>Get 500 pts for each friend</p></div>
+                                <i class="lucide-chevron-right"></i>
+                            </div>
+                            <div>
+                                <div class="featured-header">
+                                    <span class="section-title" style="margin:0">FEATURED REWARDS</span>
+                                    <div class="featured-link" onclick="goTo('vouchers')">View all <i class="lucide-arrow-right"></i></div>
+                                </div>
+                                <div class="rewards-grid">
+                                    <div class="reward-card" onclick="goTo('voucher-detail')"><div class="reward-image"></div><div class="reward-content"><h4>Free Latte</h4><p>Any size, hot or iced</p></div></div>
+                                    <div class="reward-card" onclick="goTo('voucher-detail')"><div class="reward-image"></div><div class="reward-content"><h4>Birthday Cake</h4><p>Slice of the day</p></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- VOUCHERS -->
+                <div class="screen-view vouchers-screen" data-screen="vouchers">
+                    <div class="vouchers-header">
+                        <div class="vouchers-title-row">
+                            <div><h1>Vouchers</h1><div class="vouchers-points"><i class="lucide-star"></i> 2,450 points</div></div>
+                            <div class="sort-btn">Sort <i class="lucide-chevron-down"></i></div>
+                        </div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="vouchers-content">
+                            <div class="search-bar"><i class="lucide-search"></i><span>Search vouchers...</span></div>
+                            <div class="category-tabs">
+                                <div class="category-tab active">All</div>
+                                <div class="category-tab">Drinks</div>
+                                <div class="category-tab">Food</div>
+                                <div class="category-tab">Discounts</div>
+                            </div>
+                            <div class="voucher-section">
+                                <div class="section-title">FEATURED</div>
+                                <div class="voucher-grid">
+                                    <div class="voucher-card" onclick="goTo('voucher-detail')"><div class="voucher-image"></div><div class="voucher-content"><h4>Free Latte</h4><p>Any size, hot or iced</p><div class="voucher-meta"><span class="voucher-pts">150 pts</span><span class="voucher-badge">Featured</span></div></div></div>
+                                    <div class="voucher-card" onclick="goTo('voucher-detail')"><div class="voucher-image"></div><div class="voucher-content"><h4>Birthday Cake</h4><p>Slice of the day</p><div class="voucher-meta"><span class="voucher-pts">250 pts</span><span class="voucher-badge">Featured</span></div></div></div>
+                                </div>
+                            </div>
+                            <div class="voucher-section">
+                                <div class="section-title">DRINKS & COFFEE</div>
+                                <div class="voucher-grid">
+                                    <div class="voucher-card" onclick="goTo('voucher-detail')"><div class="voucher-image"></div><div class="voucher-content"><h4>Espresso Shot</h4><p>Double shot</p><div class="voucher-meta"><span class="voucher-pts">100 pts</span><span class="voucher-badge">8 left</span></div></div></div>
+                                    <div class="voucher-card" onclick="goTo('voucher-detail')"><div class="voucher-image"></div><div class="voucher-content"><h4>Cold Brew</h4><p>Signature blend</p><div class="voucher-meta"><span class="voucher-pts">200 pts</span><span class="voucher-badge">15 left</span></div></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item active" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- VOUCHER DETAIL -->
+                <div class="screen-view voucher-detail-screen" data-screen="voucher-detail">
+                    <div class="detail-header">
+                        <div class="back-btn" onclick="goTo('vouchers')"><i class="lucide-chevron-left"></i><span>Back</span></div>
+                        <h2>Voucher Details</h2>
+                        <div style="width:50px"></div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="hero-image"></div>
+                        <div class="detail-content">
+                            <div class="voucher-info"><h3>Free Coffee</h3><p>Enjoy a complimentary coffee of your choice</p></div>
+                            <div class="cost-row"><span class="cost-label">POINTS REQUIRED</span><span class="cost-value">150 pts</span></div>
+                            <div class="divider"></div>
+                            <div class="detail-section">
+                                <span class="cost-label">DETAILS</span>
+                                <div class="detail-row"><span>Valid until</span><span>Dec 31, 2025</span></div>
+                                <div class="detail-row"><span>Redemption limit</span><span>1 per day</span></div>
+                                <div class="detail-row"><span>Available at</span><span>All outlets</span></div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="detail-section">
+                                <span class="cost-label">TERMS & CONDITIONS</span>
+                                <p class="terms-text">• Valid for one standard coffee only<br>• Cannot be combined with other offers<br>• Staff discount does not apply<br>• Present QR code at counter to redeem</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding:20px;background:#fff;border-top:1px solid var(--border)">
+                        <button class="primary-btn" onclick="goTo('qr-code')">Redeem (150 pts)</button>
+                    </div>
+                </div>
+
+                <!-- ACTIVITY -->
+                <div class="screen-view activity-screen" data-screen="activity">
+                    <div class="activity-header"><h1>Activity</h1></div>
+                    <div class="filter-row">
+                        <div class="filter-pill active">ALL</div>
+                        <div class="filter-pill">Earned</div>
+                        <div class="filter-pill">Redeemed</div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="activity-content">
+                            <div class="date-label">TODAY</div>
+                            <div class="transaction-row"><div class="transaction-icon"><i class="lucide-plus"></i></div><div class="transaction-info"><h4>Coffee Purchase</h4><p>2:30 PM • Raffles Place</p></div><div class="transaction-points positive">+10</div></div>
+                            <div class="transaction-row"><div class="transaction-icon redeem"><i class="lucide-minus"></i></div><div class="transaction-info"><h4>Free Coffee Redeemed</h4><p>11:00 AM • Marina Bay</p></div><div class="transaction-points negative">-150</div></div>
+                            <div class="date-label">YESTERDAY</div>
+                            <div class="transaction-row"><div class="transaction-icon"><i class="lucide-plus"></i></div><div class="transaction-info"><h4>Lunch Combo</h4><p>1:15 PM • Tanjong Pagar</p></div><div class="transaction-points positive">+25</div></div>
+                            <div class="transaction-row"><div class="transaction-icon"><i class="lucide-plus"></i></div><div class="transaction-info"><h4>Coffee Purchase</h4><p>9:00 AM • Raffles Place</p></div><div class="transaction-points positive">+10</div></div>
+                            <div class="date-label">THIS WEEK</div>
+                            <div class="transaction-row"><div class="transaction-icon"><i class="lucide-plus"></i></div><div class="transaction-info"><h4>Referral Bonus</h4><p>Jan 18 • System</p></div><div class="transaction-points positive">+500</div></div>
+                            <div class="transaction-row"><div class="transaction-icon redeem"><i class="lucide-minus"></i></div><div class="transaction-info"><h4>Birthday Cake Redeemed</h4><p>Jan 17 • Marina Bay</p></div><div class="transaction-points negative">-250</div></div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item active" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- PROFILE -->
+                <div class="screen-view profile-screen" data-screen="profile">
+                    <div class="profile-header"><h1>Profile</h1><span class="edit">Edit</span></div>
+                    <div class="scroll-content">
+                        <div class="profile-section">
+                            <div class="profile-avatar">SC</div>
+                            <div class="profile-name">Sarah Chen</div>
+                            <div class="profile-email">sarah.chen@example.com</div>
+                            <div class="profile-tier">Gold Member</div>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-label">ACCOUNT</div>
+                            <div class="settings-group">
+                                <div class="settings-row"><div class="settings-left"><i class="lucide-user"></i><div class="settings-info"><h4>Personal Information</h4><p>Name, email, phone</p></div></div><i class="lucide-chevron-right settings-chevron"></i></div>
+                                <div class="settings-row"><div class="settings-left"><i class="lucide-credit-card"></i><div class="settings-info"><h4>Payment Methods</h4><p>Manage saved cards</p></div></div><i class="lucide-chevron-right settings-chevron"></i></div>
+                                <div class="settings-row"><div class="settings-left"><i class="lucide-shield"></i><div class="settings-info"><h4>Security</h4><p>Password, 2FA</p></div></div><i class="lucide-chevron-right settings-chevron"></i></div>
+                            </div>
+                            <div class="settings-label">PREFERENCES</div>
+                            <div class="settings-group">
+                                <div class="settings-row"><div class="settings-left"><i class="lucide-bell"></i><div class="settings-info"><h4>Push Notifications</h4><p>Receive push notifications</p></div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+                                <div class="settings-row"><div class="settings-left"><i class="lucide-mail"></i><div class="settings-info"><h4>Email Updates</h4><p>Receive email notifications</p></div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+                            </div>
+                            <div class="settings-label">MORE</div>
+                            <div class="settings-group">
+                                <div class="settings-row" onclick="goTo('referrals')"><div class="settings-left"><i class="lucide-users"></i><div class="settings-info"><h4>Referrals</h4><p>View your referral history</p></div></div><i class="lucide-chevron-right settings-chevron"></i></div>
+                                <div class="settings-row" onclick="goTo('news')"><div class="settings-left"><i class="lucide-newspaper"></i><div class="settings-info"><h4>News & Updates</h4><p>Latest from Sarnies</p></div></div><i class="lucide-chevron-right settings-chevron"></i></div>
+                                <div class="settings-row"><div class="settings-left"><i class="lucide-help-circle"></i><div class="settings-info"><h4>Help & Support</h4><p>FAQs, contact us</p></div></div><i class="lucide-chevron-right settings-chevron"></i></div>
+                            </div>
+                            <div class="logout-btn" onclick="goTo('login')">LOG OUT</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item active" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- REWARDS -->
+                <div class="screen-view rewards-screen" data-screen="rewards">
+                    <div class="rewards-header"><h1>Rewards</h1><p>Earn & redeem points</p></div>
+                    <div class="scroll-content">
+                        <div class="rewards-content">
+                            <div class="points-display"><i class="lucide-star"></i><span>2,450 points</span></div>
+                            <div class="progress-section">
+                                <div class="progress-label"><span>PROGRESS</span><span>82%</span></div>
+                                <div class="progress-track"><div class="progress-fill" style="width:82%"></div></div>
+                            </div>
+                            <div class="earn-section">
+                                <h3>How to Earn</h3>
+                                <div class="earn-list">
+                                    <div class="earn-row"><span>☕ Buy Coffee</span><span>+10 pts</span></div>
+                                    <div class="earn-row"><span>🍽️ Buy Food</span><span>+5 pts</span></div>
+                                    <div class="earn-row" onclick="goTo('referrals')" style="cursor:pointer"><span>🎁 Refer Friend</span><span>+100 pts</span></div>
+                                </div>
+                            </div>
+                            <div class="tier-section">
+                                <h3>Membership Tiers</h3>
+                                <div class="tier-list">
+                                    <div class="tier-row"><span>⭐ Bronze</span><span>0-499 pts</span></div>
+                                    <div class="tier-row"><span>⭐ Silver</span><span>500-999 pts</span></div>
+                                    <div class="tier-row active"><span>★ Gold</span><span>1000-1999 pts ✓</span></div>
+                                    <div class="tier-row"><span>💎 Platinum</span><span>2000+ pts</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- REFERRALS -->
+                <div class="screen-view referrals-screen" data-screen="referrals">
+                    <div class="ref-header"><div class="back-btn" onclick="goTo('home')"><i class="lucide-chevron-left"></i><span>Back</span></div></div>
+                    <div class="scroll-content">
+                        <div class="ref-hero">
+                            <div class="ref-icon"><i class="lucide-gift"></i></div>
+                            <h2>Refer & Earn</h2>
+                            <p>Invite friends and earn 100 bonus points for each successful referral!</p>
+                        </div>
+                        <div class="ref-content">
+                            <div class="code-section">
+                                <span class="code-label">YOUR REFERRAL CODE</span>
+                                <div class="code-box"><span>SARAH2025</span><div class="copy-btn" onclick="alert('Code copied!')"><i class="lucide-copy"></i>Copy</div></div>
+                                <button class="primary-btn" onclick="goTo('invite')">Share Invite Link</button>
+                            </div>
+                            <div class="stats-row">
+                                <div class="stat-card"><span class="value accent">5</span><span class="label">Friends Invited</span></div>
+                                <div class="stat-card"><span class="value success">500</span><span class="label">Points Earned</span></div>
+                            </div>
+                            <div class="history-section">
+                                <span class="code-label">REFERRAL HISTORY</span>
+                                <div class="ref-row"><div class="ref-left"><div class="ref-avatar">AS</div><div class="ref-info"><h4>Alice Smith</h4><p>Jan 15, 2025</p></div></div><span class="ref-points">+100</span></div>
+                                <div class="ref-row"><div class="ref-left"><div class="ref-avatar">BJ</div><div class="ref-info"><h4>Bob Johnson</h4><p>Jan 10, 2025</p></div></div><span class="ref-points">+100</span></div>
+                                <div class="ref-row"><div class="ref-left"><div class="ref-avatar">CW</div><div class="ref-info"><h4>Carol Wong</h4><p>Jan 5, 2025</p></div></div><span class="ref-points">+100</span></div>
+                                <div class="ref-row"><div class="ref-left"><div class="ref-avatar">DL</div><div class="ref-info"><h4>David Lee</h4><p>Dec 28, 2024</p></div></div><span class="ref-points">+100</span></div>
+                                <div class="ref-row"><div class="ref-left"><div class="ref-avatar">ET</div><div class="ref-info"><h4>Emma Tan</h4><p>Dec 20, 2024</p></div></div><span class="ref-points">+100</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- OUTLETS -->
+                <div class="screen-view outlets-screen" data-screen="outlets">
+                    <div class="outlets-header"><div class="back-btn" onclick="goTo('home')"><i class="lucide-chevron-left"></i><span>Back</span></div></div>
+                    <div class="outlets-search">
+                        <div class="search-bar"><i class="lucide-search"></i><span>Search outlets...</span></div>
+                        <div class="filter-row" style="padding:0">
+                            <div class="filter-pill active">All</div>
+                            <div class="filter-pill">Nearby</div>
+                            <div class="filter-pill">Favorites</div>
+                        </div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="outlets-content">
+                            <div class="outlet-card">
+                                <div><h3>Sarnies Raffles Place</h3><span class="outlet-distance">1.2km away</span></div>
+                                <div class="outlet-address"><i class="lucide-map-pin"></i><span>1 Raffles Place, #01-23, Singapore 048616</span></div>
+                                <button class="primary-btn">GET DIRECTIONS</button>
+                            </div>
+                            <div class="outlet-card">
+                                <div><h3>Sarnies Marina Bay</h3><span class="outlet-distance">1.5km away</span></div>
+                                <div class="outlet-address"><i class="lucide-map-pin"></i><span>12 Marina Boulevard, #01-05, Singapore 018982</span></div>
+                                <button class="primary-btn">GET DIRECTIONS</button>
+                            </div>
+                            <div class="outlet-card">
+                                <div><h3>Sarnies Tanjong Pagar</h3><span class="outlet-distance">1.8km away</span></div>
+                                <div class="outlet-address"><i class="lucide-map-pin"></i><span>78 Tanjong Pagar Road, Singapore 088498</span></div>
+                                <button class="primary-btn">GET DIRECTIONS</button>
+                            </div>
+                            <div class="outlet-card">
+                                <div><h3>Sarnies Orchard</h3><span class="outlet-distance">2.3km away</span></div>
+                                <div class="outlet-address"><i class="lucide-map-pin"></i><span>391 Orchard Road, #B1-12, Singapore 238872</span></div>
+                                <button class="primary-btn">GET DIRECTIONS</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- QR CODE -->
+                <div class="screen-view qr-screen" data-screen="qr-code">
+                    <div class="qr-header">
+                        <div class="qr-close" onclick="goTo('home')"><i class="lucide-x"></i></div>
+                    </div>
+                    <div class="success-banner">
+                        <i class="lucide-circle-check"></i>
+                        <span>Voucher redeemed successfully</span>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="qr-content">
+                            <div class="qr-card">
+                                <h3>Free Coffee</h3>
+                                <p>Show this QR code to staff to use your voucher</p>
+                                <div class="qr-placeholder"><i class="lucide-qr-code"></i></div>
+                                <div class="qr-timer">
+                                    <span class="label">EXPIRES IN</span>
+                                    <span class="value" id="qr-countdown">9:58</span>
+                                </div>
+                            </div>
+                            <div class="status-card">
+                                <div class="status-dot"></div>
+                                <div class="status-info">
+                                    <h4>WAITING FOR SCAN</h4>
+                                    <p>Show this QR code to staff at checkout</p>
+                                </div>
+                            </div>
+                            <div class="tips-card">
+                                <div class="tips-header"><i class="lucide-lightbulb"></i><span>TIPS</span></div>
+                                <div class="tips-list">
+                                    <span>• Turn screen brightness to 100%</span>
+                                    <span>• Hold device 15-20cm from scanner</span>
+                                    <span>• Keep screen flat and steady</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="qr-footer">
+                        <button class="primary-btn" onclick="goTo('vouchers')">Cancel Redemption</button>
+                    </div>
+                </div>
+
+                <!-- NEWS -->
+                <div class="screen-view news-screen" data-screen="news">
+                    <div class="detail-header">
+                        <div class="back-btn" onclick="goTo('profile')"><i class="lucide-chevron-left"></i><span>Back</span></div>
+                        <h2>News</h2>
+                        <div style="width:50px"></div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="news-content">
+                            <div class="featured-news" onclick="goTo('announcement')">
+                                <div class="featured-news-image"></div>
+                                <div class="featured-news-content">
+                                    <span class="news-badge new">NEW PRODUCT</span>
+                                    <h3>New: Cantina Sea Bream Aguachile</h3>
+                                    <span class="date">Jan 13, 2026</span>
+                                </div>
+                            </div>
+                            <div class="section-title">RECENT</div>
+                            <div class="news-list">
+                                <div class="news-row" onclick="goTo('announcement')">
+                                    <div class="news-thumb"></div>
+                                    <div class="news-row-content">
+                                        <span class="category">PROMOTION</span>
+                                        <h4>Guayabazo Sour Cocktail</h4>
+                                        <span class="date">Jan 10, 2026</span>
+                                    </div>
+                                    <i class="lucide-chevron-right"></i>
+                                </div>
+                                <div class="news-row" onclick="goTo('announcement')">
+                                    <div class="news-thumb"></div>
+                                    <div class="news-row-content">
+                                        <span class="category new">NEW PRODUCT</span>
+                                        <h4>Tropical Pineapple Dessert</h4>
+                                        <span class="date">Jan 8, 2026</span>
+                                    </div>
+                                    <i class="lucide-chevron-right"></i>
+                                </div>
+                                <div class="news-row" onclick="goTo('announcement')">
+                                    <div class="news-thumb"></div>
+                                    <div class="news-row-content">
+                                        <span class="category seasonal">SEASONAL</span>
+                                        <h4>Lamb Tostada — Back by Demand</h4>
+                                        <span class="date">Jan 5, 2026</span>
+                                    </div>
+                                    <i class="lucide-chevron-right"></i>
+                                </div>
+                                <div class="news-row" onclick="goTo('announcement')">
+                                    <div class="news-thumb"></div>
+                                    <div class="news-row-content">
+                                        <span class="category announcement">ANNOUNCEMENT</span>
+                                        <h4>The Complete Guide to Sarnies Loyalty</h4>
+                                        <span class="date">Jan 3, 2026</span>
+                                    </div>
+                                    <i class="lucide-chevron-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item active" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- ANNOUNCEMENT DETAIL -->
+                <div class="screen-view announcement-screen" data-screen="announcement">
+                    <div class="detail-header">
+                        <div class="back-btn" onclick="goTo('news')"><i class="lucide-chevron-left"></i><span>Back</span></div>
+                        <h2></h2>
+                        <div style="width:50px"></div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="announcement-image"></div>
+                        <div class="announcement-content">
+                            <span class="announcement-badge">COMPANY UPDATE</span>
+                            <h2>New Summer Menu Launch</h2>
+                            <span class="date">June 15, 2024</span>
+                            <p class="body">We're excited to announce our brand new summer menu featuring refreshing cold brews, tropical smoothies, and light bites perfect for the warm weather.<br><br>Visit any of our outlets to try the new items and let us know what you think!</p>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- INVITE FRIENDS -->
+                <div class="screen-view invite-screen" data-screen="invite">
+                    <div class="invite-header">
+                        <div class="back-btn" onclick="goTo('home')"><i class="lucide-arrow-left"></i></div>
+                        <h2>Invite Friends</h2>
+                        <div style="width:24px"></div>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="invite-content">
+                            <div class="invite-main-card">
+                                <div class="invite-main-header">
+                                    <div class="invite-main-icon"><i class="lucide-gift"></i></div>
+                                    <h3>Invite Friends</h3>
+                                    <p>Share your code and both get rewarded!</p>
+                                </div>
+                                <div class="reward-box">
+                                    <div class="reward-item">
+                                        <span class="label">You get</span>
+                                        <span class="value">500 pts</span>
+                                    </div>
+                                    <div class="reward-divider"></div>
+                                    <div class="reward-item">
+                                        <span class="label">They get</span>
+                                        <span class="value">500 pts</span>
+                                    </div>
+                                </div>
+                                <div class="invite-code-section">
+                                    <span class="invite-code-label">Your referral code</span>
+                                    <div class="invite-code-box">
+                                        <span class="code">SARAH500</span>
+                                        <div class="invite-copy-btn" onclick="alert('Code copied!')"><i class="lucide-copy"></i>Copy</div>
+                                    </div>
+                                </div>
+                                <div class="share-section">
+                                    <span class="share-label">Share via</span>
+                                    <div class="share-buttons">
+                                        <div class="share-btn whatsapp"><i class="lucide-message-circle"></i></div>
+                                        <div class="share-btn sms"><i class="lucide-smartphone"></i></div>
+                                        <div class="share-btn email"><i class="lucide-mail"></i></div>
+                                        <div class="share-btn more"><i class="lucide-more-horizontal"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+
+                <!-- NOTIFICATIONS -->
+                <div class="screen-view notifications-screen" data-screen="notifications">
+                    <div class="notif-header">
+                        <div class="back-btn" onclick="goTo('home')"><i class="lucide-chevron-left"></i><span>Back</span></div>
+                        <h2>Notifications</h2>
+                        <span class="mark-read">Mark all read</span>
+                    </div>
+                    <div class="scroll-content">
+                        <div class="notif-content">
+                            <div class="notif-item unread" onclick="goTo('activity')">
+                                <div class="notif-icon points"><i class="lucide-star"></i></div>
+                                <div class="notif-info">
+                                    <h4>Points Earned!</h4>
+                                    <p>You earned 10 points from your coffee purchase at Raffles Place</p>
+                                    <span class="time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="notif-item unread" onclick="goTo('vouchers')">
+                                <div class="notif-icon voucher"><i class="lucide-ticket"></i></div>
+                                <div class="notif-info">
+                                    <h4>New Voucher Available</h4>
+                                    <p>Limited time: Free pastry with any coffee purchase!</p>
+                                    <span class="time">5 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="notif-item unread" onclick="goTo('news')">
+                                <div class="notif-icon news"><i class="lucide-newspaper"></i></div>
+                                <div class="notif-info">
+                                    <h4>New Menu Item</h4>
+                                    <p>Check out our new Cantina Sea Bream Aguachile!</p>
+                                    <span class="time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="notif-item" onclick="goTo('referrals')">
+                                <div class="notif-icon"><i class="lucide-users"></i></div>
+                                <div class="notif-info">
+                                    <h4>Referral Success!</h4>
+                                    <p>Alice Smith joined using your code. You earned 100 points!</p>
+                                    <span class="time">3 days ago</span>
+                                </div>
+                            </div>
+                            <div class="notif-item" onclick="goTo('rewards')">
+                                <div class="notif-icon"><i class="lucide-trophy"></i></div>
+                                <div class="notif-info">
+                                    <h4>Tier Upgrade</h4>
+                                    <p>Congratulations! You've reached Gold Member status!</p>
+                                    <span class="time">1 week ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active" onclick="goTo('home')"><i class="lucide-house"></i><span>HOME</span></div>
+                        <div class="nav-item" onclick="goTo('vouchers')"><i class="lucide-ticket"></i><span>VOUCHERS</span></div>
+                        <div class="nav-item" onclick="goTo('activity')"><i class="lucide-history"></i><span>HISTORY</span></div>
+                        <div class="nav-item" onclick="goTo('profile')"><i class="lucide-user"></i><span>PROFILE</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-panel">
+            <h1>Sarnies Loyalty</h1>
+            <p class="subtitle">Interactive prototype. Click elements to navigate between screens.</p>
+            <div class="screen-list" id="screenList"></div>
+            <div class="nav-hint"><kbd>←</kbd> <kbd>→</kbd> Arrow keys to navigate</div>
+        </div>
+    </div>
+
+    <script>
+        const screens = ['splash','login','register1','register2','register3','home','vouchers','voucher-detail','activity','profile','rewards','referrals','outlets','qr-code','news','announcement','invite','notifications'];
+        const screenNames = ['Splash','Login','Register 1','Register 2','Register 3','Home','Vouchers','Voucher Detail','Activity','Profile','Rewards','Referrals','Outlets','QR Code','News','Announcement','Invite Friends','Notifications'];
+        let currentIndex = 0;
+
+        function renderNav() {
+            const list = document.getElementById('screenList');
+            list.innerHTML = screens.map((s, i) => `
+                <div class="screen-item ${i === currentIndex ? 'active' : ''}" onclick="goToIndex(${i})">
+                    <div class="num">${i + 1}</div>
+                    <span>${screenNames[i]}</span>
+                </div>
+            `).join('');
+        }
+
+        function goTo(screenId) {
+            document.querySelectorAll('.screen-view').forEach(s => s.classList.remove('active'));
+            document.querySelector(`[data-screen="${screenId}"]`).classList.add('active');
+            currentIndex = screens.indexOf(screenId);
+            renderNav();
+        }
+
+        function goToIndex(index) {
+            currentIndex = index;
+            goTo(screens[index]);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToIndex((currentIndex + 1) % screens.length);
+            if (e.key === 'ArrowLeft') goToIndex((currentIndex - 1 + screens.length) % screens.length);
+        });
+
+        // QR Code countdown timer
+        let qrTime = 598; // 9:58 in seconds
+        setInterval(() => {
+            if (qrTime > 0) {
+                qrTime--;
+                const mins = Math.floor(qrTime / 60);
+                const secs = qrTime % 60;
+                const el = document.getElementById('qr-countdown');
+                if (el) el.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+
+        renderNav();
+    </script>
+</body>
+</html>

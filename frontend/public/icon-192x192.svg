@@ -1,0 +1,27 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- Dark background -->
+  <rect width="192" height="192" fill="#1a1a1a" rx="32"/>
+
+  <!-- White coffee cup -->
+  <g transform="translate(96, 96)">
+    <!-- Steam lines - white -->
+    <path d="M -25 -50 Q -25 -60, -20 -65" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <path d="M -10 -55 Q -10 -65, -5 -70" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <path d="M 5 -50 Q 5 -60, 10 -65" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Coffee cup body - white -->
+    <path d="M -35 -25 L -30 25 Q -30 35, -20 35 L 20 35 Q 30 35, 30 25 L 35 -25 Z"
+          fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"/>
+
+    <!-- Cup handle - white -->
+    <path d="M 35 -10 Q 50 -10, 50 5 Q 50 20, 35 20"
+          fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- Coffee liquid - dark to show contrast -->
+    <ellipse cx="0" cy="-25" rx="32" ry="8" fill="#1a1a1a" opacity="0.3"/>
+  </g>
+
+  <!-- SARNIES text - white -->
+  <text x="96" y="170" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" letter-spacing="1">SARNIES</text>
+</svg>
