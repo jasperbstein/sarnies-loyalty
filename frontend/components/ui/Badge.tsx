@@ -1,77 +1,333 @@
-import React from "react";
+'use client';
+
+/**
+ * Badge Component
+ * Sarnies Design System v2.0
+ *
+ * Versatile badge/tag component for status, labels, and categories.
+ */
+
+import React from 'react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, Star, Flame } from 'lucide-react';
 
 type BadgeVariant =
-  | "neutral"
-  | "freeItem"
-  | "discount"
-  | "promotion"
-  | "featured"
-  | "statusActive"
-  | "statusInactive"
-  // Legacy variants
-  | "default"
-  | "primary"
-  | "success"
-  | "warning"
-  | "danger"
-  | "info";
+  // Status badges
+  | 'active'
+  | 'pending'
+  | 'used'
+  | 'expired'
+  | 'featured'
+  // Semantic badges
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info'
+  | 'neutral'
+  // Solid variants
+  | 'solid-accent'
+  | 'solid-success'
+  | 'solid-error'
+  // Outline variants
+  | 'outline'
+  | 'outline-success'
+  | 'outline-warning'
+  | 'outline-error'
+  // Special badges
+  | 'expiry'
+  | 'points'
+  // Voucher types
+  | 'freeItem'
+  | 'discount'
+  | 'promotion'
+  // Legacy (backwards compatibility)
+  | 'default'
+  | 'primary'
+  | 'danger'
+  | 'statusActive'
+  | 'statusInactive';
+
+type BadgeSize = 'sm' | 'md' | 'lg';
 
 interface BadgeProps {
   label?: string;
   children?: React.ReactNode;
   variant?: BadgeVariant;
+  size?: BadgeSize;
+  icon?: React.ReactNode;
+  showIcon?: boolean;
   className?: string;
+  // For expiry badge
+  daysUntilExpiry?: number;
 }
 
-const base = "inline-flex items-center h-[22px] px-2.5 rounded-full text-xs font-semibold transition-all duration-100";
+const sizeClasses: Record<BadgeSize, string> = {
+  sm: 'h-5 px-2 text-[10px]',
+  md: 'h-[22px] px-2.5 text-xs',
+  lg: 'h-7 px-3 text-sm',
+};
 
-const variantClasses: Record<BadgeVariant, string> = {
-  neutral: "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-200",
-  freeItem: "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200",
-  discount: "bg-gradient-to-r from-yellow-50 to-amber-50 text-yellow-700 border border-yellow-200",
-  promotion: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200",
-  featured: "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-300 shadow-sm",
-  statusActive: "",
-  statusInactive: "",
-  // Legacy
-  default: "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border border-gray-200",
-  primary: "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200",
-  success: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200",
-  warning: "bg-gradient-to-r from-yellow-50 to-amber-50 text-yellow-700 border border-yellow-200",
-  danger: "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border border-red-200",
-  info: "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border border-blue-200",
+const variantConfig: Record<
+  BadgeVariant,
+  { bg: string; text: string; border?: string; icon?: React.ReactNode }
+> = {
+  // Status badges
+  active: {
+    bg: 'bg-success-light',
+    text: 'text-success',
+    border: 'border border-success/20',
+    icon: <CheckCircle className="w-3 h-3" />,
+  },
+  pending: {
+    bg: 'bg-warning-light',
+    text: 'text-warning',
+    border: 'border border-warning/20',
+    icon: <Clock className="w-3 h-3" />,
+  },
+  used: {
+    bg: 'bg-stone-100',
+    text: 'text-stone-500',
+    border: 'border border-stone-200',
+    icon: <CheckCircle className="w-3 h-3" />,
+  },
+  expired: {
+    bg: 'bg-error-light',
+    text: 'text-error',
+    border: 'border border-error/20',
+    icon: <XCircle className="w-3 h-3" />,
+  },
+  featured: {
+    bg: 'bg-gradient-to-r from-amber-500 to-orange-500',
+    text: 'text-white',
+    icon: <Star className="w-3 h-3 fill-current" />,
+  },
+
+  // Semantic badges
+  success: {
+    bg: 'bg-success-light',
+    text: 'text-success',
+  },
+  warning: {
+    bg: 'bg-warning-light',
+    text: 'text-warning',
+  },
+  error: {
+    bg: 'bg-error-light',
+    text: 'text-error',
+  },
+  info: {
+    bg: 'bg-info-light',
+    text: 'text-info',
+  },
+  neutral: {
+    bg: 'bg-stone-100',
+    text: 'text-stone-600',
+  },
+
+  // Solid variants
+  'solid-accent': {
+    bg: 'bg-accent',
+    text: 'text-white',
+  },
+  'solid-success': {
+    bg: 'bg-success',
+    text: 'text-white',
+  },
+  'solid-error': {
+    bg: 'bg-error',
+    text: 'text-white',
+  },
+
+  // Outline variants
+  outline: {
+    bg: 'bg-transparent',
+    text: 'text-text-secondary',
+    border: 'border border-current',
+  },
+  'outline-success': {
+    bg: 'bg-transparent',
+    text: 'text-success',
+    border: 'border border-success',
+  },
+  'outline-warning': {
+    bg: 'bg-transparent',
+    text: 'text-warning',
+    border: 'border border-warning',
+  },
+  'outline-error': {
+    bg: 'bg-transparent',
+    text: 'text-error',
+    border: 'border border-error',
+  },
+
+  // Special badges
+  expiry: {
+    bg: 'bg-gradient-to-r from-error to-red-700',
+    text: 'text-white',
+    icon: <Flame className="w-3 h-3" />,
+  },
+  points: {
+    bg: 'bg-accent-muted',
+    text: 'text-accent',
+    icon: <Star className="w-3 h-3 fill-current" />,
+  },
+
+  // Voucher types
+  freeItem: {
+    bg: 'bg-info-light',
+    text: 'text-info',
+  },
+  discount: {
+    bg: 'bg-warning-light',
+    text: 'text-warning',
+  },
+  promotion: {
+    bg: 'bg-success-light',
+    text: 'text-success',
+  },
+
+  // Legacy (backwards compatibility)
+  default: {
+    bg: 'bg-stone-100',
+    text: 'text-stone-600',
+  },
+  primary: {
+    bg: 'bg-info-light',
+    text: 'text-info',
+  },
+  danger: {
+    bg: 'bg-error-light',
+    text: 'text-error',
+  },
+  statusActive: {
+    bg: '',
+    text: '',
+  },
+  statusInactive: {
+    bg: '',
+    text: '',
+  },
 };
 
 export const Badge: React.FC<BadgeProps> = ({
   label,
   children,
-  variant = "neutral",
-  className = "",
+  variant = 'neutral',
+  size = 'md',
+  icon,
+  showIcon = false,
+  className = '',
+  daysUntilExpiry,
 }) => {
   const content = label || children;
+  const config = variantConfig[variant];
+  const sizeClass = sizeClasses[size];
 
-  if (variant === "statusActive" || variant === "statusInactive") {
-    const isActive = variant === "statusActive";
+  // Handle status dot variants (legacy)
+  if (variant === 'statusActive' || variant === 'statusInactive') {
+    const isActive = variant === 'statusActive';
     return (
-      <span className={`inline-flex items-center text-sm font-semibold ${className}`}>
+      <span className={`inline-flex items-center text-sm font-medium ${className}`}>
         <span
-          className={`inline-block w-2 h-2 rounded-full mr-2 transition-all duration-100 ${
-            isActive ? "bg-green-500 shadow-sm shadow-green-300" : "bg-gray-300"
+          className={`inline-block w-2 h-2 rounded-full mr-2 ${
+            isActive ? 'bg-success shadow-sm shadow-success/30' : 'bg-stone-300'
           }`}
         />
-        <span className={isActive ? "text-gray-900" : "text-gray-500"}>
+        <span className={isActive ? 'text-text-primary' : 'text-text-tertiary'}>
           {content}
         </span>
       </span>
     );
   }
 
+  // Special handling for expiry badge with days
+  if (variant === 'expiry' && daysUntilExpiry !== undefined) {
+    const urgencyText =
+      daysUntilExpiry <= 1
+        ? 'Expires today!'
+        : daysUntilExpiry <= 3
+        ? `${daysUntilExpiry}d left`
+        : `${daysUntilExpiry} days`;
+
+    return (
+      <span
+        className={`
+          inline-flex items-center gap-1 rounded-full font-semibold uppercase tracking-wide
+          ${sizeClass}
+          ${config.bg}
+          ${config.text}
+          animate-pulse
+          ${className}
+        `}
+      >
+        <Flame className="w-3 h-3" />
+        {urgencyText}
+      </span>
+    );
+  }
+
+  const displayIcon = icon || (showIcon && config.icon);
+
   return (
-    <span className={`${base} ${variantClasses[variant]} ${className}`}>
+    <span
+      className={`
+        inline-flex items-center gap-1 rounded-full font-semibold uppercase tracking-wide
+        ${sizeClass}
+        ${config.bg}
+        ${config.text}
+        ${config.border || ''}
+        ${className}
+      `}
+    >
+      {displayIcon}
       {content}
     </span>
   );
 };
 
-// Default export for backwards compatibility
+// Convenience components for common badge types
+export const StatusBadge: React.FC<{
+  status: 'active' | 'pending' | 'used' | 'expired';
+  label?: string;
+  className?: string;
+}> = ({ status, label, className }) => {
+  const defaultLabels = {
+    active: 'Active',
+    pending: 'Pending',
+    used: 'Used',
+    expired: 'Expired',
+  };
+
+  return (
+    <Badge
+      variant={status}
+      label={label || defaultLabels[status]}
+      showIcon
+      className={className}
+    />
+  );
+};
+
+export const ExpiryBadge: React.FC<{
+  daysUntilExpiry: number;
+  className?: string;
+}> = ({ daysUntilExpiry, className }) => {
+  // Only show for items expiring within 7 days
+  if (daysUntilExpiry > 7) return null;
+
+  return (
+    <Badge variant="expiry" daysUntilExpiry={daysUntilExpiry} className={className} />
+  );
+};
+
+export const PointsBadge: React.FC<{
+  points: number;
+  className?: string;
+}> = ({ points, className }) => {
+  return (
+    <Badge variant="points" showIcon className={className}>
+      {points} pts
+    </Badge>
+  );
+};
+
 export default Badge;

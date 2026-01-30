@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/AdminLayout';
+import StaffLayout from '@/components/StaffLayout';
 import CustomerPreviewCard from '@/components/CustomerPreviewCard';
 import VoucherVerificationCard from '@/components/VoucherVerificationCard';
 import api, { transactionsAPI } from '@/lib/api';
@@ -37,10 +37,11 @@ export default function SimulatorPage() {
   const [mode, setMode] = useState<SimMode>('select');
   const [users, setUsers] = useState<TestUser[]>([]);
   const [vouchers, setVouchers] = useState<TestVoucher[]>([]);
+  const [outlets, setOutlets] = useState<{ id: number; name: string }[]>([]);
   const [selectedUser, setSelectedUser] = useState<TestUser | null>(null);
   const [selectedVoucher, setSelectedVoucher] = useState<TestVoucher | null>(null);
   const [amount, setAmount] = useState('');
-  const [outlet, setOutlet] = useState('Sukhumvit');
+  const [outlet, setOutlet] = useState('');
   const [loading, setLoading] = useState(false);
   const [simType, setSimType] = useState<'earn' | 'redeem'>('earn');
 
@@ -50,12 +51,19 @@ export default function SimulatorPage() {
 
   const fetchTestData = async () => {
     try {
-      const [usersRes, vouchersRes] = await Promise.all([
+      const [usersRes, vouchersRes, outletsRes] = await Promise.all([
         api.get('/users?limit=10'),
-        api.get('/vouchers')
+        api.get('/vouchers'),
+        api.get('/outlets')
       ]);
       setUsers(usersRes.data || []);
       setVouchers(vouchersRes.data.vouchers || []);
+      const outletsList = outletsRes.data || [];
+      setOutlets(outletsList);
+      // Set default outlet if available
+      if (outletsList.length > 0 && !outlet) {
+        setOutlet(outletsList[0].name);
+      }
     } catch (error) {
       console.error('Failed to load test data:', error);
       toast.error('Failed to load test data');
@@ -145,7 +153,7 @@ export default function SimulatorPage() {
   };
 
   return (
-    <AdminLayout>
+    <StaffLayout>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg p-6 text-white">
@@ -353,9 +361,10 @@ export default function SimulatorPage() {
                       onChange={(e) => setOutlet(e.target.value)}
                       required
                     >
-                      <option value="Sukhumvit">Sarnies Sukhumvit</option>
-                      <option value="Old Town">Sarnies Old Town</option>
-                      <option value="Roastery">Sarnies Roastery</option>
+                      <option value="">-- Select Outlet --</option>
+                      {outlets.map((o) => (
+                        <option key={o.id} value={o.name}>{o.name}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -433,6 +442,6 @@ export default function SimulatorPage() {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </StaffLayout>
   );
 }

@@ -11,8 +11,10 @@ import {
   Gift,
   Clock,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
+import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 
 interface ReferralStats {
@@ -35,6 +37,7 @@ interface Referral {
 }
 
 export default function ReferralsPage() {
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [referralCode, setReferralCode] = useState('');
   const [shareUrl, setShareUrl] = useState('');
@@ -42,6 +45,8 @@ export default function ReferralsPage() {
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [copied, setCopied] = useState(false);
+  const [enteredCode, setEnteredCode] = useState('');
+  const [applyingCode, setApplyingCode] = useState(false);
 
   useEffect(() => {
     fetchReferralData();
@@ -89,6 +94,50 @@ export default function ReferralsPage() {
       }
     } else {
       copyCode();
+    }
+  };
+
+  const handleApplyCode = async () => {
+    const code = enteredCode.trim().toUpperCase();
+    if (!code) {
+      toast.error('Please enter a referral code');
+      return;
+    }
+
+    if (code === referralCode) {
+      toast.error("You can't use your own referral code");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error('Please log in to apply a referral code');
+      return;
+    }
+
+    setApplyingCode(true);
+    try {
+      // First validate the code
+      const validateRes = await referralsAPI.validateCode(code);
+      if (!validateRes.data.valid) {
+        toast.error(validateRes.data.message || 'Invalid referral code');
+        return;
+      }
+
+      // Apply the code
+      await referralsAPI.applyCode({
+        referee_user_id: user.id,
+        referral_code: code
+      });
+
+      toast.success('Referral code applied successfully!');
+      setEnteredCode('');
+      // Refresh stats
+      fetchReferralData();
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to apply referral code';
+      toast.error(message);
+    } finally {
+      setApplyingCode(false);
     }
   };
 
@@ -208,6 +257,38 @@ export default function ReferralsPage() {
               )}
             </div>
           )}
+
+          {/* Enter a Referral Code */}
+          <div className="bg-white rounded-xl p-4 border border-neutral-100">
+            <h3 className="font-semibold text-neutral-900 mb-3">Have a referral code?</h3>
+            <p className="text-sm text-neutral-500 mb-3">
+              Enter a friend's code to link your account
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter code"
+                value={enteredCode}
+                onChange={(e) => setEnteredCode(e.target.value.toUpperCase())}
+                maxLength={10}
+                className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleApplyCode}
+                disabled={applyingCode || !enteredCode.trim()}
+                className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {applyingCode ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Applying
+                  </>
+                ) : (
+                  'Apply'
+                )}
+              </button>
+            </div>
+          </div>
 
           {/* How It Works */}
           <div className="bg-white rounded-xl p-4 border border-neutral-100">

@@ -28,6 +28,7 @@ function RegisterPageContent() {
   const [loading, setLoading] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
+  const [outlets, setOutlets] = useState<{ id: number; name: string }[]>([]);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -49,6 +50,19 @@ function RegisterPageContent() {
       router.push('/app/dashboard');
     }
   }, [user, router]);
+
+  // Fetch outlets on mount
+  useEffect(() => {
+    const fetchOutlets = async () => {
+      try {
+        const response = await api.get('/outlets');
+        setOutlets(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch outlets:', error);
+      }
+    };
+    fetchOutlets();
+  }, []);
 
   // Check company eligibility when email changes
   useEffect(() => {
@@ -360,9 +374,9 @@ function RegisterPageContent() {
                     onChange={(e) => handleChange('preferred_outlet', e.target.value)}
                   >
                     <option value="">Select your favorite location</option>
-                    <option value="Sukhumvit">Sarnies Sukhumvit</option>
-                    <option value="Old Town">Sarnies Old Town</option>
-                    <option value="Roastery">Sarnies Roastery</option>
+                    {outlets.map((o) => (
+                      <option key={o.id} value={o.name}>{o.name}</option>
+                    ))}
                   </select>
                   <p className="text-xs text-gray-500 mt-2">
                     We'll use this to personalize your experience and notify you of outlet-specific offers

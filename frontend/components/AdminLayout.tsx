@@ -2,23 +2,92 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import { Users, Gift, LogOut, LayoutDashboard, Receipt, Menu, X, Megaphone } from 'lucide-react';
+import { isAdminUser } from '@/lib/authUtils';
+import { Users, Gift, LogOut, LayoutDashboard, Receipt, Menu, X, Megaphone, Building2, UserCog, MapPin, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, hasHydrated } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(false);
 
-  // TEMP: Login disabled for development
-  // useEffect(() => {
-  //   if (!user || user.role !== 'admin') {
-  //     router.push('/login');
-  //   }
-  // }, [user, router]);
+  const isAdmin = isAdminUser(user);
 
-  // if (!user || user.role !== 'admin') return null;
+  useEffect(() => {
+    if (hasHydrated && !isAdmin && !redirectAttempted) {
+      setRedirectAttempted(true);
+      router.push('/login');
+
+      // If redirect doesn't work after 2.5 seconds, show recovery UI
+      const timeout = setTimeout(() => {
+        setShowRecovery(true);
+      }, 2500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isAdmin, router, hasHydrated, redirectAttempted]);
+
+  const handleLogoutAndRetry = () => {
+    logout();
+    // Clear any cached state
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth-storage');
+      localStorage.removeItem('sarnies_login_mode');
+    }
+    window.location.href = '/login';
+  };
+
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stone-900"></div>
+      </div>
+    );
+  }
+
+  // Show recovery UI if auth is invalid and redirect didn't work
+  if (!isAdmin && showRecovery) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="max-w-sm w-full text-center">
+          <div className="w-16 h-16 bg-error-light rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-error" />
+          </div>
+          <h2 className="text-xl font-bold text-text-primary mb-2">
+            Admin Access Required
+          </h2>
+          <p className="text-sm text-text-tertiary mb-6">
+            Your session has expired or you don't have admin access. Please log in with an admin account.
+          </p>
+          <button
+            onClick={handleLogoutAndRetry}
+            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-stone-900 text-white rounded-xl font-semibold text-sm hover:bg-stone-800 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            Log Out and Try Again
+          </button>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="mt-3 text-xs text-text-tertiary hover:text-text-primary"
+          >
+            Go to Login Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    // Still trying to redirect, show loading
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stone-900"></div>
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     logout();
@@ -28,6 +97,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: Users, label: 'Users', path: '/admin/users' },
+    { icon: UserCog, label: 'Staff', path: '/admin/staff' },
+    { icon: Building2, label: 'Companies', path: '/admin/companies' },
+    { icon: MapPin, label: 'Outlets', path: '/admin/outlets' },
     { icon: Gift, label: 'Vouchers', path: '/admin/vouchers' },
     { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
     { icon: Receipt, label: 'Transactions', path: '/admin/transactions' },
@@ -55,31 +127,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* EXACT SPEC: 240px width, 48px logo, 44px rows, 20px padding-left */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-60 bg-white border-r border-[#E5E7EB] transition-transform duration-300 z-40 ${
+        className={`fixed top-0 left-0 h-screen w-60 bg-white border-r border-border-light transition-transform duration-300 z-40 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 flex flex-col`}
       >
         {/* Logo Section - 48x48 logo, 20px padding */}
-        <div className="pl-5 pt-6 pb-4 border-b border-[#E5E7EB]">
+        <div className="pl-5 pt-6 pb-4 border-b border-border-light">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-brand-primary flex items-center justify-center">
+            <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-stone-900 flex items-center justify-center">
               <span className="text-lg font-bold text-white">S</span>
             </div>
-            <span className="font-ui text-base font-medium text-[#1B1B1B]">Sarnies Admin</span>
+            <span className="font-ui text-base font-medium text-text-primary">Sarnies Admin</span>
           </div>
         </div>
 
         {/* User Block */}
-        <div className="pl-5 py-4 border-b border-[#E5E7EB]">
+        <div className="pl-5 py-4 border-b border-border-light">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[#F5F5F5] flex items-center justify-center">
-              <span className="text-xs font-semibold text-[#1B1B1B]">{user?.name?.charAt(0) || 'D'}</span>
+            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-surface-muted flex items-center justify-center">
+              <span className="text-xs font-semibold text-text-primary">{user?.name?.charAt(0) || 'D'}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-ui text-sm font-medium text-[#1B1B1B] truncate" title={user?.name || 'Dev User'}>
+              <p className="font-ui text-sm font-medium text-text-primary truncate" title={user?.name || 'Dev User'}>
                 {user?.name || 'Dev User'}
               </p>
-              <p className="font-ui text-xs text-[#6F6F6F]">Administrator</p>
+              <p className="font-ui text-xs text-text-tertiary">Administrator</p>
             </div>
           </div>
         </div>
@@ -100,8 +172,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   }}
                   className={`w-full h-11 flex items-center gap-3 pr-3 rounded-lg font-ui text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-[#F5F5F5] text-[#1B1B1B]'
-                      : 'text-[#6F6F6F] hover:bg-[#F5F5F5] hover:text-[#1B1B1B]'
+                      ? 'bg-surface-muted text-text-primary'
+                      : 'text-text-tertiary hover:bg-surface-muted hover:text-text-primary'
                   }`}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
@@ -113,10 +185,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Logout */}
-        <div className="pl-5 pb-5 border-t border-[#E5E7EB] pt-4">
+        <div className="pl-5 pb-5 border-t border-border-light pt-4">
           <button
             onClick={handleLogout}
-            className="w-full h-11 flex items-center gap-3 pr-3 text-[#6F6F6F] hover:bg-red-50 hover:text-red-600 rounded-lg font-ui text-sm font-medium transition-colors"
+            className="w-full h-11 flex items-center gap-3 pr-3 text-text-tertiary hover:bg-error-light hover:text-error rounded-lg font-ui text-sm font-medium transition-colors"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
             <span>Logout</span>

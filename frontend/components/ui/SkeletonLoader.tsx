@@ -120,3 +120,187 @@ export const SkeletonProfile: React.FC<{ className?: string }> = ({ className = 
     </div>
   );
 };
+
+// ========================================
+// PAGE-SPECIFIC SKELETONS
+// ========================================
+
+/**
+ * HomePageSkeleton - Matches the home page layout
+ * Member card, points card, quick actions, referral, featured rewards
+ */
+export const HomePageSkeleton: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-[#FAFAF8]">
+      <div className="px-5 pt-4 pb-6 space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Skeleton variant="text" width={100} height={24} />
+          <Skeleton variant="circular" width={40} height={40} />
+        </div>
+
+        {/* Member Hero Card Skeleton */}
+        <div className="w-full h-[200px] rounded-2xl overflow-hidden relative bg-[#E5E5E5]">
+          <div className="absolute inset-0 p-6 flex items-end justify-between">
+            <div className="space-y-2">
+              <Skeleton variant="text" width={80} height={12} className="bg-[#D4D4D4]" />
+              <Skeleton variant="text" width={150} height={24} className="bg-[#D4D4D4]" />
+              <Skeleton variant="text" width={100} height={14} className="bg-[#D4D4D4]" />
+            </div>
+            <Skeleton variant="rectangular" width={56} height={56} className="rounded-lg bg-white/50" />
+          </div>
+        </div>
+
+        {/* Points Progress Card Skeleton */}
+        <div className="w-full bg-white rounded-md p-6 border border-[#F0F0F0]">
+          <div className="flex items-center justify-between mb-3">
+            <Skeleton variant="text" width={100} height={14} />
+            <Skeleton variant="rectangular" width={100} height={28} className="rounded" />
+          </div>
+          <Skeleton variant="text" width={120} height={40} className="mb-4" />
+          <div className="space-y-2">
+            <Skeleton variant="rectangular" height={4} className="rounded-sm" />
+            <div className="flex items-center justify-between">
+              <Skeleton variant="text" width={80} height={14} />
+              <Skeleton variant="text" width={100} height={14} />
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Skeleton */}
+        <div className="space-y-2">
+          <Skeleton variant="text" width={120} height={14} />
+          <div className="flex gap-3">
+            <div className="flex-1 flex flex-col items-center gap-2">
+              <Skeleton variant="rectangular" width={56} height={56} className="rounded-2xl" />
+              <Skeleton variant="text" width={40} height={12} />
+            </div>
+            <div className="flex-1 flex flex-col items-center gap-2">
+              <Skeleton variant="rectangular" width={56} height={56} className="rounded-2xl" />
+              <Skeleton variant="text" width={50} height={12} />
+            </div>
+          </div>
+        </div>
+
+        {/* Referral Card Skeleton */}
+        <Skeleton variant="rectangular" height={88} className="rounded-2xl" />
+
+        {/* Featured Rewards Skeleton */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Skeleton variant="text" width={140} height={14} />
+            <Skeleton variant="text" width={60} height={16} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <RewardCardSkeleton />
+            <RewardCardSkeleton />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * RewardCardSkeleton - Single reward card skeleton
+ */
+export const RewardCardSkeleton: React.FC = () => {
+  return (
+    <div className="w-full bg-white rounded-md overflow-hidden border border-[#F0F0F0]">
+      <Skeleton variant="rectangular" height={100} className="rounded-none" />
+      <div className="p-3 space-y-2">
+        <div>
+          <Skeleton variant="text" width="80%" height={16} className="mb-1" />
+          <Skeleton variant="text" width="60%" height={14} />
+        </div>
+        <div className="flex items-center justify-between">
+          <Skeleton variant="text" width={60} height={14} />
+          <Skeleton variant="text" width={40} height={12} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * VoucherCardSkeleton - Voucher card skeleton for vouchers page
+ */
+export const VoucherCardSkeleton: React.FC = () => {
+  return (
+    <div className="w-full bg-white rounded-xl border border-[#F0F0F0] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden">
+      {/* Image placeholder */}
+      <Skeleton variant="rectangular" className="w-full aspect-[4/3] rounded-none" />
+      {/* Content */}
+      <div className="p-3">
+        <Skeleton variant="text" width="80%" height={16} className="mb-1" />
+        <Skeleton variant="text" width="60%" height={14} className="mb-2" />
+        <div className="flex items-center justify-between">
+          <Skeleton variant="text" width={60} height={16} />
+          <Skeleton variant="text" width={40} height={12} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * VouchersPageSkeleton - Full vouchers page skeleton
+ */
+export const VouchersPageSkeleton: React.FC = () => {
+  return (
+    <div className="flex flex-col min-h-screen bg-[#FAFAF8]">
+      {/* Header */}
+      <div className="bg-[#FAFAF8] px-5 pt-4 pb-0">
+        {/* Title Row */}
+        <div className="flex items-center justify-between mb-1">
+          <div>
+            <Skeleton variant="text" width={120} height={28} className="mb-1" />
+            <Skeleton variant="text" width={100} height={16} />
+          </div>
+          <Skeleton variant="rectangular" width={70} height={36} className="rounded-md" />
+        </div>
+
+        {/* Search */}
+        <Skeleton variant="rectangular" height={44} className="rounded-lg mt-4" />
+
+        {/* Category Tabs */}
+        <div className="flex gap-2 mt-4 pb-4">
+          <Skeleton variant="rectangular" width={50} height={36} className="rounded-full" />
+          <Skeleton variant="rectangular" width={60} height={36} className="rounded-full" />
+          <Skeleton variant="rectangular" width={50} height={36} className="rounded-full" />
+          <Skeleton variant="rectangular" width={75} height={36} className="rounded-full" />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 px-5 pb-24 space-y-6">
+        {/* Featured Section */}
+        <div>
+          <Skeleton variant="text" width={80} height={14} className="mb-3" />
+          <div className="grid grid-cols-2 gap-3">
+            <VoucherCardSkeleton />
+            <VoucherCardSkeleton />
+          </div>
+        </div>
+
+        {/* Drinks Section */}
+        <div>
+          <Skeleton variant="text" width={130} height={14} className="mb-3" />
+          <div className="grid grid-cols-2 gap-3">
+            <VoucherCardSkeleton />
+            <VoucherCardSkeleton />
+          </div>
+        </div>
+
+        {/* Discounts Section */}
+        <div>
+          <Skeleton variant="text" width={140} height={14} className="mb-3" />
+          <div className="grid grid-cols-2 gap-3">
+            <VoucherCardSkeleton />
+            <VoucherCardSkeleton />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

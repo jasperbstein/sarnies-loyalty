@@ -68,6 +68,63 @@ export default function RootLayout({
                   }
                 });
               }
+
+              // Auth recovery: detect stuck loading states
+              // If user is on a protected route but auth is invalid, clear and redirect
+              (function() {
+                try {
+                  var path = window.location.pathname;
+                  var isProtectedRoute = path.startsWith('/app/') || path.startsWith('/staff/') || path.startsWith('/admin/');
+
+                  if (isProtectedRoute) {
+                    var authData = localStorage.getItem('auth-storage');
+                    var hasValidAuth = false;
+
+                    if (authData) {
+                      try {
+                        var parsed = JSON.parse(authData);
+                        var user = parsed.state && parsed.state.user;
+                        var token = parsed.state && parsed.state.token;
+
+                        // Check if auth looks valid
+                        if (user && token && (user.type || user.user_type)) {
+                          // For staff routes, verify staff/employee type
+                          if (path.startsWith('/staff/')) {
+                            hasValidAuth = user.type === 'staff' || user.user_type === 'staff' || user.user_type === 'employee';
+                          }
+                          // For admin routes, verify admin role
+                          else if (path.startsWith('/admin/')) {
+                            hasValidAuth = user.role === 'admin';
+                          }
+                          // For app routes, any valid user
+                          else {
+                            hasValidAuth = true;
+                          }
+                        }
+                      } catch (e) {
+                        hasValidAuth = false;
+                      }
+                    }
+
+                    // If no valid auth, clear everything and redirect after a delay
+                    // This gives React a chance to handle it, but if stuck, this kicks in
+                    if (!hasValidAuth) {
+                      setTimeout(function() {
+                        // Check if still on same page (not redirected by React)
+                        if (window.location.pathname === path) {
+                          localStorage.removeItem('auth-storage');
+                          localStorage.removeItem('sarnies_login_mode');
+                          document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                          document.cookie = 'user-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                          window.location.href = '/login';
+                        }
+                      }, 2500);
+                    }
+                  }
+                } catch (e) {
+                  console.error('Auth recovery error:', e);
+                }
+              })();
             `,
           }}
         />

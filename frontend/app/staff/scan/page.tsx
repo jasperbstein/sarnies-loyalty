@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import AdminLayout from '@/components/AdminLayout';
+import StaffLayout from '@/components/StaffLayout';
 import QRScanner, { QRScannerRef } from '@/components/QRScanner';
 import CustomerPreviewCard from '@/components/CustomerPreviewCard';
 import EligibleRewardsCard from '@/components/EligibleRewardsCard';
@@ -30,6 +30,7 @@ export default function StaffScanPage() {
   const [pendingReward, setPendingReward] = useState<{ id: number; title: string } | null>(null);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [outlets, setOutlets] = useState<{ id: number; name: string }[]>([]);
   const qrScannerRef = useRef<QRScannerRef>(null);
 
   // Initialize client-side only state
@@ -39,6 +40,19 @@ export default function StaffScanPage() {
       setOutlet(user.branch);
     }
   }, [user?.branch]);
+
+  // Fetch outlets on mount
+  useEffect(() => {
+    const fetchOutlets = async () => {
+      try {
+        const response = await api.get('/outlets');
+        setOutlets(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch outlets:', error);
+      }
+    };
+    fetchOutlets();
+  }, []);
 
   // Update time every second - only on client side
   useEffect(() => {
@@ -144,11 +158,6 @@ export default function StaffScanPage() {
     setLoading(true);
     setErrorMessage('');
 
-    console.log('=== QR SCAN DEBUG ===');
-    console.log('Raw scanned data:', scannedData);
-    console.log('Data type:', typeof scannedData);
-    console.log('Data length:', scannedData.length);
-
     try {
       let parsedData;
       let isJWT = false;
@@ -156,16 +165,13 @@ export default function StaffScanPage() {
       // Try to parse as JSON first
       try {
         parsedData = JSON.parse(scannedData);
-        console.log('Parsed as JSON:', parsedData);
       } catch {
         // Not JSON, try to decode as JWT
         try {
           const decoded: any = jwtDecode(scannedData);
           parsedData = decoded;
           isJWT = true;
-          console.log('Decoded as JWT:', parsedData);
         } catch (jwtError) {
-          console.error('JWT decode error:', jwtError);
           throw new Error('Invalid QR code format');
         }
       }
@@ -190,7 +196,6 @@ export default function StaffScanPage() {
         let userId = parsedData.id || parsedData.customer_id || parsedData.userId;
 
         if (!userId) {
-          console.error('Parsed QR data:', parsedData);
           throw new Error('Customer ID not found in QR code');
         }
 
@@ -199,7 +204,6 @@ export default function StaffScanPage() {
           userId = parseInt(userId, 10);
         }
 
-        console.log('Fetching user with ID:', userId);
         const response = await api.get(`/users/${userId}`);
         const userData = response.data;
 
@@ -404,8 +408,8 @@ export default function StaffScanPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="max-w-3xl mx-auto">
+    <StaffLayout>
+      <div className="max-w-3xl mx-auto p-4 lg:p-6">
         {/* Top Status Bar - Fixed Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex items-center justify-between">
@@ -619,9 +623,9 @@ export default function StaffScanPage() {
                       required
                     >
                       <option value="">-- Select Outlet --</option>
-                      <option value="Sukhumvit">Sarnies Sukhumvit</option>
-                      <option value="Old Town">Sarnies Old Town</option>
-                      <option value="Roastery">Sarnies Roastery</option>
+                      {outlets.map((o) => (
+                        <option key={o.id} value={o.name}>{o.name}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -890,6 +894,6 @@ export default function StaffScanPage() {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </StaffLayout>
   );
 }

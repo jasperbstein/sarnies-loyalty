@@ -3,6 +3,7 @@
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AlertProvider } from '@/components/ui/AlertStack';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 export default function ClientProviders({
   children,
@@ -12,6 +13,7 @@ export default function ClientProviders({
   return (
     <AlertProvider position="top-right" maxAlerts={3}>
       <ErrorBoundary>
+        <OfflineBanner />
         {children}
       </ErrorBoundary>
       <Toaster

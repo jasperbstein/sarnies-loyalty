@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, AlertTriangle } from 'lucide-react';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -32,19 +32,14 @@ export default function QRModal({
       const expiry = new Date(expiresAt).getTime();
       const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
       setTimeRemaining(remaining);
-
-      if (remaining === 0) {
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      }
+      // No auto-close - let user see the expiry message and close manually
     };
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, onClose]);
+  }, [expiresAt]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -107,9 +102,18 @@ export default function QRModal({
                 </p>
               </div>
             ) : (
-              <p className="text-lg font-semibold text-red-600">
-                QR Code Expired
-              </p>
+              <div className="py-2">
+                <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <p className="text-lg font-semibold">QR Code Expired</p>
+                </div>
+                <p className="text-sm text-gray-500">
+                  If your voucher was scanned, it may take a moment to process.
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Close this and check your voucher history for status updates.
+                </p>
+              </div>
             )}
           </div>
         )}

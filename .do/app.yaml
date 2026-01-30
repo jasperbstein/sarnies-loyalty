@@ -1,0 +1,181 @@
+name: sarnies-loyalty
+
+# DigitalOcean App Platform specification
+# Documentation: https://docs.digitalocean.com/products/app-platform/reference/app-spec/
+
+region: sgp
+
+# Database component - PostgreSQL
+databases:
+  - name: loyalty-db
+    engine: PG
+    production: true
+    cluster_name: loyalty-db-cluster
+    db_name: loyalty_db
+    db_user: loyalty_user
+
+# Services
+services:
+  # Backend API Service (Node.js/Express)
+  - name: backend
+    github:
+      repo: ${GITHUB_REPO}
+      branch: main
+      deploy_on_push: true
+    source_dir: /backend
+    dockerfile_path: backend/Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+
+    # Health check endpoint
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 10
+      period_seconds: 30
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+    # Environment variables for backend
+    envs:
+      # Database - automatically injected by DigitalOcean
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${loyalty-db.DATABASE_URL}
+
+      # Server configuration
+      - key: NODE_ENV
+        scope: RUN_AND_BUILD_TIME
+        value: production
+      - key: PORT
+        scope: RUN_TIME
+        value: "3000"
+
+      # JWT Authentication (use App Platform secrets)
+      - key: JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${JWT_SECRET}
+      - key: JWT_EXPIRES_IN
+        scope: RUN_TIME
+        value: "7d"
+
+      # Frontend URL for CORS (references the frontend service)
+      - key: FRONTEND_URL
+        scope: RUN_TIME
+        value: ${APP_URL}
+      - key: CORS_ORIGINS
+        scope: RUN_TIME
+        value: ${APP_URL}
+
+      # Demo mode - disable in production
+      - key: DEMO_MODE
+        scope: RUN_TIME
+        value: "false"
+
+      # Email service (Resend)
+      - key: RESEND_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: ${RESEND_API_KEY}
+      - key: RESEND_FROM_EMAIL
+        scope: RUN_TIME
+        value: ${RESEND_FROM_EMAIL}
+
+      # SMS service (Twilio) - Optional
+      - key: TWILIO_ACCOUNT_SID
+        scope: RUN_TIME
+        type: SECRET
+        value: ${TWILIO_ACCOUNT_SID}
+      - key: TWILIO_AUTH_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: ${TWILIO_AUTH_TOKEN}
+      - key: TWILIO_PHONE_NUMBER
+        scope: RUN_TIME
+        value: ${TWILIO_PHONE_NUMBER}
+
+      # OTP Configuration
+      - key: OTP_EXPIRY_MINUTES
+        scope: RUN_TIME
+        value: "5"
+
+      # QR Code Configuration
+      - key: QR_TOKEN_EXPIRY_SECONDS
+        scope: RUN_TIME
+        value: "120"
+
+      # Points Configuration
+      - key: POINTS_PER_100_THB
+        scope: RUN_TIME
+        value: "1"
+
+  # Frontend Service (Next.js)
+  - name: frontend
+    github:
+      repo: ${GITHUB_REPO}
+      branch: main
+      deploy_on_push: true
+    source_dir: /frontend
+    dockerfile_path: frontend/Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+
+    # Health check for frontend
+    health_check:
+      http_path: /
+      initial_delay_seconds: 15
+      period_seconds: 30
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+    # Build-time arguments for Next.js
+    envs:
+      - key: NODE_ENV
+        scope: RUN_AND_BUILD_TIME
+        value: production
+
+      # API URL - references the backend service internal URL
+      - key: NEXT_PUBLIC_API_URL
+        scope: BUILD_TIME
+        value: ${backend.PUBLIC_URL}/api
+
+    # Route all traffic to frontend by default
+    routes:
+      - path: /
+
+# Ingress rules for routing
+ingress:
+  rules:
+    # API routes go to backend
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: backend
+    - match:
+        path:
+          prefix: /health
+      component:
+        name: backend
+    # WebSocket support for backend
+    - match:
+        path:
+          prefix: /socket.io
+      component:
+        name: backend
+    # All other routes go to frontend
+    - match:
+        path:
+          prefix: /
+      component:
+        name: frontend
+
+# Alerts (optional but recommended)
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  - rule: DEPLOYMENT_LIVE

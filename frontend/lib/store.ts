@@ -9,7 +9,7 @@ interface User {
   email?: string;
   role?: string;
   points_balance?: number;
-  type: 'customer' | 'staff';
+  type: 'customer' | 'staff' | 'employee';
   branch?: string; // For staff users
   user_type?: 'customer' | 'employee' | 'staff' | 'investor' | 'media';
   total_spend?: number;
@@ -33,6 +33,16 @@ interface AuthState {
   setHasHydrated: (state: boolean) => void;
 }
 
+// Track if we've attempted hydration to avoid duplicate attempts
+let hydrationAttempted = false;
+
+// Force hydration to complete - call this if stuck
+export const forceHydration = () => {
+  if (!useAuthStore.getState().hasHydrated) {
+    useAuthStore.getState().setHasHydrated(true);
+  }
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -41,11 +51,27 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
 
       setAuth: (user, token) => {
-        set({ user, token });
+        // Normalize user_type to a single field (single source of truth)
+        const normalizedUser = {
+          ...user,
+          user_type: user.user_type || user.type || 'customer',
+        };
+        set({ user: normalizedUser, token });
+        // Also set cookie for middleware auth check (client-side only)
+        if (typeof document !== 'undefined') {
+          const userType = normalizedUser.user_type;
+          document.cookie = `auth-token=true; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+          document.cookie = `user-type=${userType}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+        }
       },
 
       logout: () => {
         set({ user: null, token: null });
+        // Clear auth cookies (client-side only)
+        if (typeof document !== 'undefined') {
+          document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'user-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        }
       },
 
       updateUser: (userData) => {
@@ -64,8 +90,28 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+        hydrationAttempted = true;
+        // Ensure hydration happens even if state is somehow undefined
+        if (state) {
+          state.setHasHydrated(true);
+        } else {
+          // Fallback: manually set hydrated after a short delay
+          setTimeout(() => {
+            useAuthStore.getState().setHasHydrated(true);
+          }, 100);
+        }
       },
     }
   )
 );
+
+// Auto-force hydration after 500ms if it hasn't happened yet
+// This is a safety net for mobile Safari and other edge cases
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    if (!useAuthStore.getState().hasHydrated) {
+      console.warn('[Auth Store] Forcing hydration after timeout');
+      useAuthStore.getState().setHasHydrated(true);
+    }
+  }, 500);
+}

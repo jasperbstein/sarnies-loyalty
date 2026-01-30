@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import QRModal from '@/components/QRModal';
 import { useAuthStore } from '@/lib/store';
 import { vouchersAPI } from '@/lib/api';
-import { ArrowLeft, Gift, Clock, MapPin, AlertCircle, Star, Wallet, DollarSign, Calendar, Store, Sparkles, CheckCircle, Coffee, QrCode } from 'lucide-react';
+import { ArrowLeft, Star, Clock, MapPin, AlertCircle, Wallet, Calendar, Store, Sparkles, CheckCircle, QrCode, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSwipeBack } from '@/hooks/useSwipeBack';
 import { io, Socket } from 'socket.io-client';
@@ -55,6 +55,8 @@ export default function VoucherDetailPage() {
   } | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
+  const isEmployee = user?.user_type === 'employee';
+
   useEffect(() => {
     if (params.id) {
       fetchVoucher();
@@ -90,9 +92,7 @@ export default function VoucherDetailPage() {
     }) => {
       console.log('🎉 [Voucher Detail] Voucher redeemed event received:', data);
 
-      // Small delay for better UX - let scanning animation complete
       setTimeout(() => {
-        // Close the QR modal and show success
         setShowQRModal(false);
         setRedeemedVoucherData({
           voucher_title: data.voucher_title,
@@ -101,7 +101,6 @@ export default function VoucherDetailPage() {
         });
         setShowSuccessModal(true);
 
-        // Also show a toast
         toast.success(`${data.voucher_title} redeemed successfully!`, {
           duration: 4000,
           icon: '✅'
@@ -125,7 +124,6 @@ export default function VoucherDetailPage() {
       const response = await vouchersAPI.getOne(Number(params.id));
       setVoucher(response.data);
 
-      // Check if user has redeemed this voucher today (for daily limit vouchers)
       if (response.data.max_redemptions_per_user_per_day && user) {
         await checkTodayRedemption(response.data.id);
       }
@@ -159,11 +157,9 @@ export default function VoucherDetailPage() {
       const response = await vouchersAPI.redeem(voucher.id, user.id);
       const { voucher_instance } = response.data;
 
-      // Update user points balance
       const newBalance = (user.points_balance || 0) - voucher.points_required;
       updateUser({ ...user, points_balance: newBalance });
 
-      // Show QR modal
       setVoucherQR(voucher_instance.qr_code_data);
       setQrExpiresAt(voucher_instance.expires_at);
       setShowConfirmModal(false);
@@ -178,6 +174,7 @@ export default function VoucherDetailPage() {
   };
 
   const canRedeem = () => {
+    if (isEmployee) return true; // Employees don't need points
     return (user?.points_balance || 0) >= (voucher?.points_required || 0);
   };
 
@@ -198,15 +195,29 @@ export default function VoucherDetailPage() {
     return '';
   };
 
+  const getEmoji = () => {
+    if (!voucher) return '🎫';
+    if (voucher.voucher_type === 'free_item') {
+      const title = voucher.title.toLowerCase();
+      if (title.includes('coffee') || title.includes('drink') || title.includes('latte')) return '☕';
+      if (title.includes('cake') || title.includes('birthday')) return '🎂';
+      if (title.includes('snack') || title.includes('food') || title.includes('sandwich')) return '🥪';
+      return '🎁';
+    }
+    if (voucher.voucher_type === 'discount_amount' || voucher.voucher_type === 'percentage_discount') return '💰';
+    if (voucher.voucher_type === 'merch') return '👕';
+    return '🎫';
+  };
+
   if (loading) {
     return (
       <AppLayout>
-        <div className="bg-white min-h-screen">
-          <div className="animate-pulse space-y-4 p-6">
-            <div className="h-8 bg-black/5 rounded w-1/4" />
-            <div className="aspect-[16/9] bg-black/5 rounded-2xl" />
-            <div className="h-6 bg-black/5 rounded w-3/4" />
-            <div className="h-20 bg-black/5 rounded-xl" />
+        <div className="min-h-screen bg-[#FAFAF9]">
+          <div className="animate-pulse p-4 space-y-4">
+            <div className="h-10 bg-[#E7E5E4] rounded-xl w-1/3" />
+            <div className="aspect-[4/3] bg-[#E7E5E4] rounded-xl" />
+            <div className="h-6 bg-[#E7E5E4] rounded-xl w-3/4" />
+            <div className="h-32 bg-[#E7E5E4] rounded-xl" />
           </div>
         </div>
       </AppLayout>
@@ -219,140 +230,149 @@ export default function VoucherDetailPage() {
 
   return (
     <AppLayout>
-      <div className="bg-white min-h-screen pb-6">
-        {/* Header with Back Button */}
-        <div className="bg-white border-b border-black/10 sticky top-0 z-40 px-6 py-4">
+      <div className="min-h-screen bg-[#FAFAF9] pb-6">
+        {/* Header */}
+        <header className="bg-[#FAFAF9] px-4 pt-4 pb-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-black/50 hover:text-black transition-colors"
+            className="flex items-center gap-2 text-[#78716C]"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="sarnies-subhead">Back to Vouchers</span>
+            <div className="w-10 h-10 rounded-xl bg-white border border-[#E7E5E4] flex items-center justify-center">
+              <ArrowLeft className="w-5 h-5 text-[#1C1917]" />
+            </div>
+            <span className="text-[14px]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              Back
+            </span>
           </button>
-        </div>
+        </header>
 
-        <div className="px-6 py-6">
-          {/* Conditional Hero Image - Only for vouchers with actual product images */}
-          {voucher.voucher_type !== 'percentage_discount' && voucher.voucher_type !== 'discount_amount' && voucher.image_url && (
-            <div className="relative aspect-[16/9] bg-black/5 rounded-2xl overflow-hidden mb-6">
+        <div className="px-4 space-y-4">
+          {/* Hero Image or Emoji */}
+          <div className="relative w-full aspect-[4/3] bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
+            {voucher.image_url ? (
               <Image
                 src={voucher.image_url}
                 alt={voucher.title}
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 512px, (max-width: 1024px) 768px, 1280px"
+                sizes="(max-width: 768px) 100vw, 512px"
                 priority
               />
-
-              {/* Value Badge - Bottom Right */}
-              <div className="absolute bottom-4 right-4">
-                <div className="bg-white px-4 py-2 rounded-full shadow-lg">
-                  <span className="sarnies-subhead text-black">฿{Number(voucher.cash_value).toFixed(2)}</span>
-                </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-[#F5F5F4]">
+                <span className="text-[72px]">{getEmoji()}</span>
               </div>
+            )}
 
-              {/* Featured Badge - Top Left */}
-              {voucher.is_featured && (
-                <div className="absolute top-4 left-4">
-                  <div className="bg-black text-white px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <Star className="w-3.5 h-3.5 fill-white" />
-                    <span className="sarnies-caption">FEATURED</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Hero Header with Badges - For discount vouchers without product images */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              {voucher.is_featured && (
-                <div className="bg-black text-white px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                  <Star className="w-3.5 h-3.5 fill-white" />
-                  <span className="sarnies-caption">FEATURED</span>
-                </div>
-              )}
-              <div className="bg-black/5 px-4 py-1.5 rounded-full border border-black/10">
-                <span className="sarnies-subhead text-black">฿{Number(voucher.cash_value).toFixed(2)}</span>
+            {/* Featured Badge */}
+            {voucher.is_featured && (
+              <div className="absolute top-3 left-3 px-2.5 py-1 bg-[#1C1917] rounded-lg flex items-center gap-1">
+                <Star className="w-3 h-3 text-white fill-white" />
+                <span className="text-[10px] font-semibold text-white uppercase tracking-wide" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                  Featured
+                </span>
               </div>
-            </div>
+            )}
 
-            {/* Title & Description */}
-            <h1 className="sarnies-title-md text-black mb-3">{voucher.title.toUpperCase()}</h1>
-            <p className="sarnies-body text-black/60">{voucher.description}</p>
+            {/* Value Badge */}
+            {voucher.cash_value > 0 && (
+              <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-white rounded-lg border border-[#E7E5E4]">
+                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                  ฿{Number(voucher.cash_value).toFixed(0)} value
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Details Card with Icons - Compact 56px rows */}
-          <div className="bg-white rounded-2xl border border-black/10 p-6 mb-6">
-            <h2 className="sarnies-headline text-black mb-4">REWARD DETAILS</h2>
+          {/* Title & Description */}
+          <div>
+            <h1 className="text-[20px] font-semibold text-[#1C1917] mb-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              {voucher.title}
+            </h1>
+            <p className="text-[14px] text-[#78716C] leading-relaxed" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              {voucher.description}
+            </p>
+          </div>
 
-            <div className="space-y-0">
+          {/* Details Card */}
+          <div className="bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#E7E5E4]">
+              <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Details
+              </p>
+            </div>
+
+            <div className="divide-y divide-[#E7E5E4]">
               {/* Points Required */}
-              <div className="flex items-center justify-between h-14 border-b border-black/10">
+              <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-black/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Star className="w-4 h-4 text-black" />
+                  <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
+                    <Star className="w-4 h-4 text-[#1C1917]" />
                   </div>
-                  <span className="sarnies-footnote text-black/60">Points Required</span>
+                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                    {isEmployee ? 'Cost' : 'Points Required'}
+                  </span>
                 </div>
-                <span className="sarnies-subhead text-black">{voucher.points_required} pts</span>
+                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                  {isEmployee ? 'FREE' : `${voucher.points_required} pts`}
+                </span>
               </div>
 
-              {/* Your Points */}
-              <div className="flex items-center justify-between h-14 border-b border-black/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-black/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Wallet className="w-4 h-4 text-black" />
+              {/* Your Points - Only for customers */}
+              {!isEmployee && (
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
+                      <Wallet className="w-4 h-4 text-[#1C1917]" />
+                    </div>
+                    <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                      Your Points
+                    </span>
                   </div>
-                  <span className="sarnies-footnote text-black/60">Your Points</span>
+                  <span className={`text-[14px] font-semibold ${canRedeem() ? 'text-[#16A34A]' : 'text-[#DC2626]'}`} style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                    {user?.points_balance || 0} pts
+                  </span>
                 </div>
-                <span className="sarnies-subhead text-black">{user?.points_balance || 0} pts</span>
-              </div>
-
-              {/* Value */}
-              <div className="flex items-center justify-between h-14 border-b border-black/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-black/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <DollarSign className="w-4 h-4 text-black" />
-                  </div>
-                  <span className="sarnies-footnote text-black/60">Value</span>
-                </div>
-                <span className="sarnies-subhead text-black">฿{Number(voucher.cash_value).toFixed(2)}</span>
-              </div>
+              )}
 
               {/* Expiry */}
-              <div className="flex items-center justify-between h-14 border-b border-black/10">
+              <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-black/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-4 h-4 text-black" />
+                  <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-[#1C1917]" />
                   </div>
-                  <span className="sarnies-footnote text-black/60">Expiry</span>
+                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                    Expiry
+                  </span>
                 </div>
-                <span className="sarnies-footnote text-black text-right">
+                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
                   {formatExpiry() || 'No expiry'}
                 </span>
               </div>
 
               {/* Valid Stores */}
-              <div className="flex items-center justify-between min-h-14 py-3">
+              <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-black/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Store className="w-4 h-4 text-black" />
+                  <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
+                    <Store className="w-4 h-4 text-[#1C1917]" />
                   </div>
-                  <span className="sarnies-footnote text-black/60">Valid Stores</span>
+                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                    Valid At
+                  </span>
                 </div>
-                <div className="flex flex-wrap gap-2 justify-end max-w-[55%]">
+                <div className="flex flex-wrap gap-1.5 justify-end max-w-[50%]">
                   {voucher.valid_stores && voucher.valid_stores.length > 0 ? (
                     voucher.valid_stores.map((store, index) => (
                       <span
                         key={index}
-                        className="inline-block px-2.5 py-1 bg-black/5 text-black text-xs font-medium rounded-full border border-black/10"
+                        className="px-2 py-0.5 bg-[#F5F5F4] text-[#1C1917] text-[11px] font-medium rounded-md"
+                        style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                       >
                         {store}
                       </span>
                     ))
                   ) : (
-                    <span className="inline-block px-2.5 py-1 bg-black text-white text-xs font-medium rounded-full">
+                    <span className="px-2 py-0.5 bg-[#1C1917] text-white text-[11px] font-medium rounded-md" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
                       All Stores
                     </span>
                   )}
@@ -361,148 +381,123 @@ export default function VoucherDetailPage() {
             </div>
           </div>
 
-          {/* Rules */}
-          {voucher.rules && (
-            <div className="bg-black/5 border border-black/10 rounded-xl p-5 mb-4">
+          {/* Rules & Limitations */}
+          {(voucher.rules || voucher.limitations) && (
+            <div className="bg-[#FEF3C7] rounded-xl border border-[#FCD34D] p-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-black/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 text-black" />
+                <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Info className="w-4 h-4 text-[#D97706]" />
                 </div>
-                <div>
-                  <h3 className="sarnies-subhead text-black mb-1.5">Rules</h3>
-                  <p className="sarnies-footnote text-black/60">{voucher.rules}</p>
+                <div className="space-y-2">
+                  {voucher.rules && (
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#92400E] mb-0.5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                        Rules
+                      </p>
+                      <p className="text-[13px] text-[#92400E]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                        {voucher.rules}
+                      </p>
+                    </div>
+                  )}
+                  {voucher.limitations && (
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#92400E] mb-0.5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                        Limitations
+                      </p>
+                      <p className="text-[13px] text-[#92400E]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                        {voucher.limitations}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Limitations */}
-          {voucher.limitations && (
-            <div className="bg-black/5 border border-black/10 rounded-xl p-5 mb-6">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-black/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 text-black" />
-                </div>
-                <div>
-                  <h3 className="sarnies-subhead text-black mb-1.5">Limitations</h3>
-                  <p className="sarnies-footnote text-black/60">{voucher.limitations}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Already Redeemed Today Message */}
+          {/* Already Redeemed Today */}
           {redeemedToday && voucher.max_redemptions_per_user_per_day && (
-            <div className="mb-4 p-4 bg-black/5 border border-black/10 rounded-xl">
-              <div className="flex items-center gap-2 text-black/70">
-                <Clock className="w-5 h-5" />
+            <div className="bg-[#F5F5F4] rounded-xl border border-[#E7E5E4] p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-[#78716C]" />
+                </div>
                 <div>
-                  <p className="sarnies-subhead text-black">Already Redeemed Today</p>
-                  <p className="sarnies-footnote text-black/50">Come back tomorrow for your next {voucher.title.toLowerCase()}</p>
+                  <p className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                    Already Redeemed Today
+                  </p>
+                  <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                    Come back tomorrow for your next {voucher.title.toLowerCase()}
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Redeem Button - Employee uses mustard, Customer uses black */}
-          {user?.user_type === 'employee' ? (
-            <button
-              onClick={() => setShowConfirmModal(true)}
-              disabled={redeeming || redeemedToday}
-              className={`w-full h-14 rounded-xl font-semibold text-base transition-all flex items-center justify-center gap-2 ${
-                !redeeming && !redeemedToday
-                  ? 'bg-mustard text-black hover:bg-mustard-dark active:scale-[0.98]'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {redeeming ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <span>Redeeming...</span>
-                </>
-              ) : redeemedToday ? (
-                <span>Already Redeemed Today</span>
-              ) : (
-                <>
-                  <QrCode className="w-5 h-5" />
-                  <span>Tap to Redeem</span>
-                </>
-              )}
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowConfirmModal(true)}
-              disabled={!canRedeem() || redeeming || redeemedToday}
-              className={`w-full h-14 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                canRedeem() && !redeeming && !redeemedToday
-                  ? 'bg-black text-white hover:bg-black/90 active:scale-[0.98]'
-                  : 'bg-black/20 text-black/40 cursor-not-allowed'
-              }`}
-            >
-              {redeeming ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="sarnies-subhead">Redeeming...</span>
-                </>
-              ) : redeemedToday ? (
-                <span className="sarnies-subhead">Already Redeemed Today</span>
-              ) : canRedeem() ? (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  <span className="sarnies-subhead">REDEEM NOW</span>
-                </>
-              ) : (
-                <span className="sarnies-subhead">Need {voucher.points_required - (user?.points_balance || 0)} more points</span>
-              )}
-            </button>
-          )}
+          {/* Redeem Button */}
+          <button
+            onClick={() => setShowConfirmModal(true)}
+            disabled={!canRedeem() || redeeming || redeemedToday}
+            className={`w-full h-14 rounded-xl font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
+              canRedeem() && !redeeming && !redeemedToday
+                ? isEmployee
+                  ? 'bg-[#D97706] text-white active:scale-[0.98]'
+                  : 'bg-[#1C1917] text-white active:scale-[0.98]'
+                : 'bg-[#E7E5E4] text-[#A8A29E] cursor-not-allowed'
+            }`}
+            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+          >
+            {redeeming ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Redeeming...</span>
+              </>
+            ) : redeemedToday ? (
+              <span>Already Redeemed Today</span>
+            ) : canRedeem() ? (
+              <>
+                <QrCode className="w-5 h-5" />
+                <span>Redeem Now</span>
+              </>
+            ) : (
+              <span>Need {voucher.points_required - (user?.points_balance || 0)} more points</span>
+            )}
+          </button>
 
-          {/* How It Works - Structured Stepper */}
-          <div className="mt-8 bg-white rounded-2xl border border-black/10 p-6">
-            <h3 className="sarnies-headline text-black mb-6">HOW TO REDEEM</h3>
-            <div className="space-y-4">
-              {/* Step 1 */}
-              <div className="flex gap-4 pb-4 border-b border-black/10 last:border-0 last:pb-0">
-                <div className="flex-shrink-0 w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  1
-                </div>
-                <div className="flex-1 pt-1">
-                  <h4 className="sarnies-subhead text-black mb-1">Step 1 — Redeem</h4>
-                  <p className="sarnies-footnote text-black/50">Tap "Redeem Now" to generate a QR code</p>
-                </div>
-              </div>
+          {/* How It Works */}
+          <div className="bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#E7E5E4]">
+              <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                How to Redeem
+              </p>
+            </div>
 
-              {/* Step 2 */}
-              <div className="flex gap-4 pb-4 border-b border-black/10 last:border-0 last:pb-0">
-                <div className="flex-shrink-0 w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  2
+            <div className="p-4 space-y-4">
+              {[
+                { step: 1, title: 'Tap Redeem', desc: 'Generate a QR code for your voucher' },
+                { step: 2, title: 'Show QR', desc: 'Present the code to staff at checkout' },
+                { step: 3, title: 'Enjoy!', desc: 'Staff will scan and apply your reward' },
+              ].map(({ step, title, desc }) => (
+                <div key={step} className="flex gap-3">
+                  <div className="w-8 h-8 bg-[#1C1917] rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-[12px] font-bold text-white">{step}</span>
+                  </div>
+                  <div className="pt-0.5">
+                    <p className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                      {title}
+                    </p>
+                    <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                      {desc}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 pt-1">
-                  <h4 className="sarnies-subhead text-black mb-1">Step 2 — Show QR</h4>
-                  <p className="sarnies-footnote text-black/50">Present the code to staff at checkout</p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex gap-4 pb-4 border-b border-black/10 last:border-0 last:pb-0">
-                <div className="flex-shrink-0 w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  3
-                </div>
-                <div className="flex-1 pt-1">
-                  <h4 className="sarnies-subhead text-black mb-1">Step 3 — Scan</h4>
-                  <p className="sarnies-footnote text-black/50">Staff will scan and apply your reward instantly</p>
-                </div>
-              </div>
+              ))}
 
               {/* Expiration Warning */}
-              <div className="flex gap-4 mt-4 bg-black/5 rounded-xl p-4 border border-black/10">
-                <div className="flex-shrink-0 w-10 h-10 bg-black/10 rounded-full flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-black" />
-                </div>
-                <div className="flex-1 pt-1">
-                  <h4 className="sarnies-subhead text-black mb-1">Expiration — 10 minutes</h4>
-                  <p className="sarnies-footnote text-black/50">Use your voucher immediately after redemption</p>
-                </div>
+              <div className="flex gap-3 bg-[#F5F5F4] rounded-lg p-3 mt-2">
+                <Clock className="w-4 h-4 text-[#78716C] flex-shrink-0 mt-0.5" />
+                <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                  QR codes expire after 10 minutes. Use immediately after redeeming.
+                </p>
               </div>
             </div>
           </div>
@@ -512,42 +507,60 @@ export default function VoucherDetailPage() {
       {/* Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-7 border border-black/10">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-black" />
+          <div className="bg-white rounded-xl max-w-sm w-full p-6 border border-[#E7E5E4]">
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 bg-[#F5F5F4] rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-[32px]">{getEmoji()}</span>
               </div>
-              <h2 className="sarnies-title-sm text-black mb-2">REDEEM VOUCHER?</h2>
-              <p className="sarnies-footnote text-black/50">{voucher.title}</p>
+              <h2 className="text-[18px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Redeem Voucher?
+              </h2>
+              <p className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                {voucher.title}
+              </p>
             </div>
 
-            <div className="bg-black/5 rounded-xl p-4 mb-6 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="sarnies-footnote text-black/60">Points to deduct</span>
-                <span className="sarnies-subhead text-black">{voucher.points_required} pts</span>
+            {!isEmployee && (
+              <div className="bg-[#F5F5F4] rounded-xl p-4 mb-5 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Points to deduct</span>
+                  <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{voucher.points_required} pts</span>
+                </div>
+                <div className="border-t border-[#E7E5E4]" />
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Current balance</span>
+                  <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{user?.points_balance || 0} pts</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>New balance</span>
+                  <span className="text-[14px] font-semibold text-[#16A34A]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{(user?.points_balance || 0) - voucher.points_required} pts</span>
+                </div>
               </div>
-              <div className="border-t border-black/10"></div>
-              <div className="flex justify-between items-center">
-                <span className="sarnies-footnote text-black/60">Current balance</span>
-                <span className="sarnies-subhead text-black">{user?.points_balance || 0} pts</span>
+            )}
+
+            {isEmployee && (
+              <div className="bg-[#FEF3C7] rounded-xl p-4 mb-5 text-center">
+                <p className="text-[14px] font-semibold text-[#D97706]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                  Employee Perk - No Points Required
+                </p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="sarnies-footnote text-black/60">New balance</span>
-                <span className="sarnies-subhead text-black">{(user?.points_balance || 0) - voucher.points_required} pts</span>
-              </div>
-            </div>
+            )}
 
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="flex-1 bg-white border-2 border-black/10 text-black py-3.5 rounded-xl font-semibold hover:bg-black/5 transition-colors"
+                className="flex-1 h-12 bg-white border border-[#E7E5E4] text-[#1C1917] rounded-xl font-semibold text-[14px] active:scale-[0.98] transition-transform"
+                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleRedeem}
                 disabled={redeeming}
-                className="flex-1 bg-black text-white py-3.5 rounded-xl font-semibold hover:bg-black/90 transition-colors disabled:opacity-50"
+                className={`flex-1 h-12 rounded-xl font-semibold text-[14px] transition-all disabled:opacity-50 ${
+                  isEmployee ? 'bg-[#D97706] text-white' : 'bg-[#1C1917] text-white'
+                }`}
+                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
               >
                 {redeeming ? 'Redeeming...' : 'Confirm'}
               </button>
@@ -569,7 +582,7 @@ export default function VoucherDetailPage() {
         description="Show this QR code to staff to use your voucher"
       />
 
-      {/* Voucher Redeemed Success Modal */}
+      {/* Success Modal */}
       {showSuccessModal && redeemedVoucherData && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
@@ -579,39 +592,43 @@ export default function VoucherDetailPage() {
           }}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-300"
+            className="bg-white rounded-xl p-6 max-w-sm w-full text-center border border-[#E7E5E4]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Success Icon */}
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-12 h-12 text-green-600" />
+            <div className="w-16 h-16 rounded-full bg-[#DCFCE7] flex items-center justify-center mx-auto mb-5">
+              <CheckCircle className="w-8 h-8 text-[#16A34A]" />
             </div>
 
-            {/* Title */}
-            <h2 className="sarnies-title-sm text-black mb-2">VOUCHER REDEEMED!</h2>
+            <h2 className="text-[18px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              Voucher Redeemed!
+            </h2>
 
-            {/* Voucher Name */}
-            <p className="sarnies-headline text-black mb-1">{redeemedVoucherData.voucher_title}</p>
+            <p className="text-[15px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              {redeemedVoucherData.voucher_title}
+            </p>
 
-            {/* Location */}
-            <p className="sarnies-body text-black/50 mb-6">at {redeemedVoucherData.outlet}</p>
+            <p className="text-[13px] text-[#78716C] mb-5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              at {redeemedVoucherData.outlet}
+            </p>
 
-            {/* Value Badge */}
             {redeemedVoucherData.cash_value > 0 && (
-              <div className="inline-flex items-center gap-2 bg-black/5 rounded-full px-4 py-2 mb-6">
-                <span className="sarnies-subhead text-black">฿{redeemedVoucherData.cash_value} Value</span>
+              <div className="inline-flex items-center gap-2 bg-[#F5F5F4] rounded-lg px-4 py-2 mb-5">
+                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                  ฿{redeemedVoucherData.cash_value} Value
+                </span>
               </div>
             )}
 
-            {/* Dismiss Button */}
             <button
               onClick={() => {
                 setShowSuccessModal(false);
                 router.push('/app/vouchers');
               }}
-              className="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-black/90 transition-colors active:scale-[0.98]"
+              className="w-full h-12 bg-[#1C1917] text-white rounded-xl font-semibold text-[14px] active:scale-[0.98] transition-transform"
+              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
             >
-              <span className="sarnies-subhead">DONE</span>
+              Done
             </button>
           </div>
         </div>

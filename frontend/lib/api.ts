@@ -1,4 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import toast from 'react-hot-toast';
+import { getErrorMessage, ERROR_MESSAGES, isTechnicalError } from './errorMessages';
 
 // Use relative URL for API calls - this will use the same protocol (HTTPS) and domain as the frontend
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -10,6 +12,57 @@ const api = axios.create({
   },
   withCredentials: true,
 });
+
+// Track if we've shown network error toast recently to avoid spam
+let lastNetworkErrorToast = 0;
+const NETWORK_ERROR_TOAST_COOLDOWN = 5000; // 5 seconds
+
+/**
+ * Check if an error is a network error (no response from server)
+ */
+export function isNetworkError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const axiosError = error as AxiosError;
+
+  // Axios sets code to 'ERR_NETWORK' for network errors
+  if (axiosError.code === 'ERR_NETWORK') return true;
+
+  // Check for network error message
+  if (axiosError.message === 'Network Error') return true;
+
+  // No response typically means network error (but could also be CORS)
+  if (axiosError.isAxiosError && !axiosError.response) return true;
+
+  return false;
+}
+
+/**
+ * Get user-friendly error message from API error
+ * Uses the centralized error message utility for consistent messaging
+ */
+export function getApiErrorMessage(error: unknown, defaultMessage = 'Something went wrong'): string {
+  if (isNetworkError(error)) {
+    return ERROR_MESSAGES['network_error'] || 'No internet connection. Please check your network and try again.';
+  }
+
+  // Use the centralized error message utility
+  return getErrorMessage(error, defaultMessage);
+}
+
+/**
+ * Show network error toast (with cooldown to prevent spam)
+ */
+function showNetworkErrorToast() {
+  const now = Date.now();
+  if (now - lastNetworkErrorToast > NETWORK_ERROR_TOAST_COOLDOWN) {
+    lastNetworkErrorToast = now;
+    toast.error('No internet connection. Please check your network.', {
+      duration: 4000,
+      id: 'network-error', // Use static ID to prevent duplicates
+    });
+  }
+}
 
 // Add token to requests
 api.interceptors.request.use((config) => {
@@ -30,10 +83,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle errors (auth errors, network errors)
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: AxiosError) => {
+    // Handle network errors
+    if (isNetworkError(error)) {
+      showNetworkErrorToast();
+      return Promise.reject(error);
+    }
+
     // Only redirect on 401 if it's an auth-related endpoint failure
     // Don't logout on every 401 - only when token is actually invalid
     if (error.response?.status === 401) {
@@ -48,6 +107,9 @@ api.interceptors.response.use(
       const authStorage = localStorage.getItem('auth-storage');
       if (!isLoginPage && !isAuthEndpoint && authStorage) {
         localStorage.removeItem('auth-storage');
+        // Clear auth cookies to stay in sync with localStorage
+        document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'user-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         window.location.href = '/login';
       }
     }
@@ -81,6 +143,10 @@ export const authAPI = {
 
   verifyMagicLink: (token: string) =>
     api.get(`/auth/magic-link/verify/${token}`),
+
+  // Biometric login for employees (device verified, backend validates trusted device)
+  biometricLogin: (email: string) =>
+    api.post('/auth/biometric-login', { email }),
 };
 
 // Users API
@@ -290,6 +356,14 @@ export const settingsAPI = {
 
   create: (data: { key: string; value: any; type: string; description?: string; editable?: boolean }) =>
     api.post('/settings', data),
+
+  // Public endpoint for tier thresholds
+  getTiers: () =>
+    api.get('/settings/tiers'),
+
+  // Admin endpoint for system config
+  getAdminConfig: () =>
+    api.get('/settings/admin'),
 };
 
 // Notifications API

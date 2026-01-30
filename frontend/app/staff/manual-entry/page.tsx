@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/AdminLayout';
+import StaffLayout from '@/components/StaffLayout';
 import CustomerPreviewCard from '@/components/CustomerPreviewCard';
 import api from '@/lib/api';
 import { Keyboard, CheckCircle, AlertCircle, ArrowRight, Camera } from 'lucide-react';
@@ -92,7 +92,7 @@ export default function ManualEntryPage() {
   };
 
   return (
-    <AdminLayout>
+    <StaffLayout>
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg p-6 text-white">
@@ -284,6 +284,6 @@ export default function ManualEntryPage() {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </StaffLayout>
   );
 }

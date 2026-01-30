@@ -1,7 +1,27 @@
 'use client';
 
-import { Gift, Coffee, Percent, Cookie, Star, Clock, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { Gift, Coffee, Percent, Cookie, Star, Clock, CheckCircle, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { getApiUrl } from '@/lib/config';
+
+interface VoucherFromApi {
+  id: number;
+  title: string;
+  description: string;
+  image_url?: string;
+  points_required: number;
+  cash_value?: number;
+  voucher_type: string;
+  benefit_type?: string;
+  benefit_value?: number;
+  is_featured: boolean;
+  is_active: boolean;
+  expiry_date?: string;
+  can_afford: boolean;
+  eligibility_reason: string;
+  user_total_redemptions: number;
+  user_today_redemptions: number;
+}
 
 interface Reward {
   id: number;
@@ -23,57 +43,138 @@ interface EligibleRewardsCardProps {
   onApplyReward?: (rewardId: number, rewardTitle: string) => void;
 }
 
+// Helper function to map voucher_type to Reward type
+function mapVoucherTypeToRewardType(voucherType: string): Reward['type'] {
+  switch (voucherType) {
+    case 'free_item':
+      return 'free_item';
+    case 'discount_amount':
+    case 'percentage_discount':
+      return 'discount';
+    case 'merch':
+      return 'voucher';
+    default:
+      return 'voucher';
+  }
+}
+
+// Helper function to format the value display
+function formatValue(voucher: VoucherFromApi): string {
+  if (voucher.voucher_type === 'percentage_discount' && voucher.benefit_value) {
+    return `${voucher.benefit_value}% OFF`;
+  }
+  if (voucher.voucher_type === 'discount_amount' && voucher.benefit_value) {
+    return `฿${voucher.benefit_value} OFF`;
+  }
+  if (voucher.cash_value) {
+    return `฿${voucher.cash_value}`;
+  }
+  if (voucher.points_required > 0) {
+    return `${voucher.points_required} pts`;
+  }
+  return 'FREE';
+}
+
+// Helper function to check if voucher is expiring soon (within 24 hours)
+function isExpiringSoon(expiryDate?: string): boolean {
+  if (!expiryDate) return false;
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  const hoursUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60);
+  return hoursUntilExpiry > 0 && hoursUntilExpiry <= 24;
+}
+
+// Helper function to format expiry date
+function formatExpiryDate(expiryDate?: string): string | undefined {
+  if (!expiryDate) return undefined;
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  const hoursUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (hoursUntilExpiry <= 24) {
+    if (hoursUntilExpiry <= 1) {
+      return 'Expires in less than 1 hour';
+    }
+    return `Expires in ${Math.ceil(hoursUntilExpiry)} hours`;
+  }
+  return `Expires ${expiry.toLocaleDateString()}`;
+}
+
+// Convert API voucher to Reward format
+function convertVoucherToReward(voucher: VoucherFromApi): Reward {
+  return {
+    id: voucher.id,
+    type: mapVoucherTypeToRewardType(voucher.voucher_type),
+    title: voucher.title,
+    description: voucher.description || '',
+    value: formatValue(voucher),
+    pointsCost: voucher.points_required > 0 ? voucher.points_required : undefined,
+    discountValue: voucher.voucher_type === 'percentage_discount' && voucher.benefit_value
+      ? `${voucher.benefit_value}%`
+      : undefined,
+    expiresAt: formatExpiryDate(voucher.expiry_date),
+    isExpiring: isExpiringSoon(voucher.expiry_date),
+    status: voucher.can_afford ? 'available' : 'expired',
+    eligibilityReason: voucher.eligibility_reason
+  };
+}
+
 export default function EligibleRewardsCard({
   customerId,
   pointsBalance,
   onApplyReward
 }: EligibleRewardsCardProps) {
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock rewards data - in production, fetch from API
-  const mockRewards: Reward[] = [
-    {
-      id: 1,
-      type: 'voucher' as const,
-      title: 'Free Coffee',
-      description: 'Any size hot coffee',
-      value: '฿150',
-      status: 'available' as const,
-      isExpiring: true,
-      expiresAt: 'Today at 11:59 PM',
-      eligibilityReason: 'Daily staff voucher'
-    },
-    {
-      id: 2,
-      type: 'employee_perk' as const,
-      title: 'Staff Discount',
-      description: 'All menu items',
-      value: '20% OFF',
-      status: 'available' as const,
-      discountValue: '20%',
-      eligibilityReason: 'Employee benefit'
-    },
-    {
-      id: 3,
-      type: 'free_item' as const,
-      title: 'Free Pastry',
-      description: 'Any pastry from display',
-      value: '25 pts',
-      pointsCost: 25,
-      status: pointsBalance >= 25 ? ('available' as const) : ('expired' as const),
-      eligibilityReason: pointsBalance >= 25 ? 'Earned reward' : `Need ${25 - pointsBalance} more points`
-    },
-    {
-      id: 4,
-      type: 'partner_perk' as const,
-      title: 'Partner Discount',
-      description: 'Valid at all branches',
-      value: '15% OFF',
-      status: 'available' as const,
-      discountValue: '15%',
-      eligibilityReason: 'Partner program member'
-    }
-  ].filter(reward => reward.status !== 'expired' || reward.pointsCost);
+  // Fetch customer's available vouchers on mount and when customerId/pointsBalance changes
+  useEffect(() => {
+    const fetchAvailableVouchers = async () => {
+      if (!customerId) {
+        setLoading(false);
+        setRewards([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${getApiUrl()}/vouchers/customer/${customerId}/available`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setRewards([]);
+            return;
+          }
+          throw new Error('Failed to fetch vouchers');
+        }
+
+        const data = await response.json();
+        const vouchers: VoucherFromApi[] = data.vouchers || [];
+
+        // Convert API vouchers to Reward format
+        const convertedRewards = vouchers.map(convertVoucherToReward);
+        setRewards(convertedRewards);
+      } catch (err) {
+        console.error('Error fetching available vouchers:', err);
+        setError('Failed to load rewards');
+        setRewards([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAvailableVouchers();
+  }, [customerId, pointsBalance]);
 
   const getRewardIcon = (type: Reward['type']) => {
     switch (type) {
@@ -121,20 +222,61 @@ export default function EligibleRewardsCard({
     }
   };
 
-  const handleApply = (reward: Reward) => {
+  const handleApply = async (reward: Reward) => {
     if (reward.status !== 'available') return;
     setProcessingId(reward.id);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
       if (onApplyReward) {
         onApplyReward(reward.id, reward.title);
       }
+    } finally {
       setProcessingId(null);
-    }, 500);
+    }
   };
 
-  if (mockRewards.length === 0) {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+            <Gift className="w-5 h-5 text-green-700" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-lg text-gray-900">Eligible Rewards & Discounts</h3>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+          <span className="ml-3 text-gray-500">Loading rewards...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-red-700" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-lg text-gray-900">Eligible Rewards & Discounts</h3>
+          </div>
+        </div>
+        <div className="text-center py-8 bg-red-50 rounded-xl border border-red-200">
+          <AlertCircle className="w-12 h-12 text-red-300 mx-auto mb-3" />
+          <p className="text-red-600 font-medium">{error}</p>
+          <p className="text-sm text-red-500 mt-1">Please try again later</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (rewards.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
@@ -161,13 +303,13 @@ export default function EligibleRewardsCard({
         </div>
         <div className="flex-1">
           <h3 className="font-bold text-lg text-gray-900">Eligible Rewards & Discounts</h3>
-          <p className="text-xs text-gray-500 mt-0.5">{mockRewards.length} reward{mockRewards.length !== 1 ? 's' : ''} available</p>
+          <p className="text-xs text-gray-500 mt-0.5">{rewards.length} reward{rewards.length !== 1 ? 's' : ''} available</p>
         </div>
       </div>
 
       {/* Voucher Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockRewards.map((reward) => {
+        {rewards.map((reward) => {
           const Icon = getRewardIcon(reward.type);
           const isAvailable = reward.status === 'available';
           const isProcessing = processingId === reward.id;

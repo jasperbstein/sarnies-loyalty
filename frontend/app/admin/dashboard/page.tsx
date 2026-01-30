@@ -6,7 +6,7 @@ import { DashboardStatsCards } from "@/components/dashboard/DashboardStatsCards"
 import { RecentTransactionsPanel } from "@/components/dashboard/RecentTransactionsPanel";
 import { SystemConfigPanel } from "@/components/dashboard/SystemConfigPanel";
 import { Transaction } from "@/components/transactions/types";
-import { transactionsAPI, vouchersAPI, usersAPI } from "@/lib/api";
+import { transactionsAPI, vouchersAPI, usersAPI, settingsAPI } from "@/lib/api";
 import { TrendingUp, Users, Gift, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -29,6 +29,11 @@ export default function DashboardPage() {
     activeUsers: 0,
     newUsersThisMonth: 0,
   });
+  const [configRows, setConfigRows] = useState([
+    { id: "points", label: "Points per 100 THB", value: "..." },
+    { id: "qrExpiry", label: "QR token expiry", value: "..." },
+    { id: "otpExpiry", label: "OTP expiry", value: "..." },
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -112,6 +117,23 @@ export default function DashboardPage() {
         console.error('Failed to fetch user stats:', error);
       }
 
+      // Fetch system config
+      try {
+        const configRes = await settingsAPI.getAdminConfig();
+        const configData = configRes.data || [];
+        if (Array.isArray(configData) && configData.length > 0) {
+          setConfigRows(configData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch system config:', error);
+        // Keep showing default/fallback values on error
+        setConfigRows([
+          { id: "points", label: "Points per 100 THB", value: "1 point" },
+          { id: "qrExpiry", label: "QR token expiry", value: "120 seconds" },
+          { id: "otpExpiry", label: "OTP expiry", value: "5 minutes" },
+        ]);
+      }
+
       // Transform recent transactions
       const transformed: Transaction[] = data.slice(0, 10).map((tx: any) => {
         const userName = tx.user_name || `User ${tx.user_id}`;
@@ -178,12 +200,6 @@ export default function DashboardPage() {
       label: "Points redeemed",
       value: loading ? "..." : stats.totalPointsRedeemed.toLocaleString(),
     },
-  ];
-
-  const configRows = [
-    { id: "points", label: "Points per 100 THB", value: "1 point" },
-    { id: "qrExpiry", label: "QR token expiry", value: "120 seconds" },
-    { id: "otpExpiry", label: "OTP expiry", value: "5 minutes" },
   ];
 
   return (

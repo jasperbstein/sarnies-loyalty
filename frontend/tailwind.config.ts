@@ -19,8 +19,26 @@ const config: Config = {
          COLORS
          ======================================== */
       colors: {
+        // Core
         black: 'var(--color-black)',
         white: 'var(--color-white)',
+        cream: 'var(--color-cream)',
+
+        // Stone palette (primary neutrals)
+        stone: {
+          50: 'var(--color-stone-50)',
+          100: 'var(--color-stone-100)',
+          200: 'var(--color-stone-200)',
+          300: 'var(--color-stone-300)',
+          400: 'var(--color-stone-400)',
+          500: 'var(--color-stone-500)',
+          600: 'var(--color-stone-600)',
+          700: 'var(--color-stone-700)',
+          800: 'var(--color-stone-800)',
+          900: 'var(--color-stone-900)',
+        },
+
+        // Gray (alias for stone)
         gray: {
           50: 'var(--color-gray-50)',
           100: 'var(--color-gray-100)',
@@ -33,27 +51,81 @@ const config: Config = {
           800: 'var(--color-gray-800)',
           900: 'var(--color-gray-900)',
         },
+
+        // Accent (amber/orange)
         accent: {
           DEFAULT: 'var(--color-accent)',
+          light: 'var(--color-accent-light)',
+          hover: 'var(--color-accent-hover)',
+          pressed: 'var(--color-accent-pressed)',
           muted: 'var(--color-accent-muted)',
-          text: 'var(--color-accent-text)',
+          subtle: 'var(--color-accent-subtle)',
         },
+
+        // Amber
+        amber: {
+          50: 'var(--color-amber-50)',
+          100: 'var(--color-amber-100)',
+          500: 'var(--color-amber-500)',
+          600: 'var(--color-amber-600)',
+        },
+
+        // Status colors
         success: {
           DEFAULT: 'var(--color-success)',
-          bg: 'var(--color-success-bg)',
+          light: 'var(--color-success-light)',
         },
         warning: {
           DEFAULT: 'var(--color-warning)',
-          bg: 'var(--color-warning-bg)',
+          light: 'var(--color-warning-light)',
         },
         error: {
           DEFAULT: 'var(--color-error)',
-          bg: 'var(--color-error-bg)',
+          light: 'var(--color-error-light)',
         },
+        info: {
+          DEFAULT: 'var(--color-info)',
+          light: 'var(--color-info-light)',
+        },
+
+        // Employee brand
         mustard: {
           DEFAULT: 'var(--color-mustard)',
           dark: 'var(--color-mustard-dark)',
           muted: 'var(--color-mustard-muted)',
+        },
+
+        // Semantic backgrounds
+        bg: {
+          primary: 'var(--color-bg-primary)',
+          secondary: 'var(--color-bg-secondary)',
+          inverse: 'var(--color-bg-inverse)',
+        },
+
+        // Semantic surfaces
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          elevated: 'var(--color-surface-elevated)',
+          muted: 'var(--color-surface-muted)',
+          subtle: 'var(--color-surface-subtle)',
+        },
+
+        // Semantic text
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          tertiary: 'var(--color-text-tertiary)',
+          muted: 'var(--color-text-muted)',
+          inverse: 'var(--color-text-inverse)',
+        },
+
+        // Semantic borders
+        border: {
+          DEFAULT: 'var(--color-border)',
+          light: 'var(--color-border-light)',
+          muted: 'var(--color-border-muted)',
+          error: 'var(--color-border-error)',
+          focus: 'var(--color-border-focus)',
         },
       },
 

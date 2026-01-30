@@ -18,6 +18,9 @@ interface Company {
   is_active: boolean;
   allow_employee_self_registration: boolean;
   email_domain?: string;
+  allow_staff_self_registration: boolean;
+  staff_email_domain?: string;
+  staff_default_branch?: string;
   employee_count: number;
   total_points_awarded: number;
   created_at: string;
@@ -58,6 +61,9 @@ export default function AdminCompaniesPage() {
     contact_phone: '',
     email_domain: '',
     allow_employee_self_registration: false,
+    allow_staff_self_registration: false,
+    staff_email_domain: '',
+    staff_default_branch: '',
     is_active: true,
   });
 
@@ -115,6 +121,9 @@ export default function AdminCompaniesPage() {
         contact_phone: companyFormData.contact_phone || null,
         email_domain: companyFormData.email_domain || null,
         allow_employee_self_registration: companyFormData.allow_employee_self_registration,
+        allow_staff_self_registration: companyFormData.allow_staff_self_registration,
+        staff_email_domain: companyFormData.staff_email_domain || null,
+        staff_default_branch: companyFormData.staff_default_branch || null,
         is_active: companyFormData.is_active,
       };
 
@@ -231,6 +240,9 @@ export default function AdminCompaniesPage() {
       contact_phone: '',
       email_domain: '',
       allow_employee_self_registration: false,
+      allow_staff_self_registration: false,
+      staff_email_domain: '',
+      staff_default_branch: '',
       is_active: true,
     });
   };
@@ -255,6 +267,9 @@ export default function AdminCompaniesPage() {
       contact_phone: company.contact_phone || '',
       email_domain: company.email_domain || '',
       allow_employee_self_registration: company.allow_employee_self_registration,
+      allow_staff_self_registration: company.allow_staff_self_registration || false,
+      staff_email_domain: company.staff_email_domain || '',
+      staff_default_branch: company.staff_default_branch || '',
       is_active: company.is_active,
     });
     setShowCompanyForm(true);
@@ -443,7 +458,9 @@ export default function AdminCompaniesPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  {/* Employee Self-Registration */}
+                  <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-800 mb-3">Employee Self-Registration</h4>
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -459,7 +476,69 @@ export default function AdminCompaniesPage() {
                         Allow employee self-registration via email domain
                       </span>
                     </label>
+                  </div>
 
+                  {/* Staff Self-Registration */}
+                  <div className="space-y-3 p-4 bg-amber-50 rounded-lg">
+                    <h4 className="font-medium text-gray-800">Staff Self-Registration</h4>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={companyFormData.allow_staff_self_registration}
+                        onChange={(e) =>
+                          setCompanyFormData({
+                            ...companyFormData,
+                            allow_staff_self_registration: e.target.checked,
+                          })
+                        }
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        Allow staff self-registration via email domain
+                      </span>
+                    </label>
+
+                    {companyFormData.allow_staff_self_registration && (
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Staff Email Domain
+                          </label>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder="e.g., sarnies.com"
+                            value={companyFormData.staff_email_domain}
+                            onChange={(e) =>
+                              setCompanyFormData({
+                                ...companyFormData,
+                                staff_email_domain: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Default Branch
+                          </label>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder="e.g., Raffles Place"
+                            value={companyFormData.staff_default_branch}
+                            onChange={(e) =>
+                              setCompanyFormData({
+                                ...companyFormData,
+                                staff_default_branch: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Status */}
+                  <div className="space-y-2">
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"

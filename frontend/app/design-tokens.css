@@ -1,59 +1,141 @@
 /**
- * SARNIES DESIGN SYSTEM v1.2
- * Design Tokens - Single Source of Truth
- *
- * All values defined here, consumed by Tailwind and components.
+ * SARNIES DESIGN SYSTEM v2.0
+ * Design Tokens from Pencil Design File
+ * Single Source of Truth
  */
 
 :root {
   /* ========================================
-     1. COLORS
+     1. COLORS - From .pen file
      ======================================== */
 
-  /* Neutrals */
-  --color-black: #000000;
+  /* Stone Palette (Primary Neutrals) */
+  --color-stone-50: #FAFAF9;
+  --color-stone-100: #F5F5F4;
+  --color-stone-200: #E7E5E4;
+  --color-stone-300: #D6D3D1;
+  --color-stone-400: #A8A29E;
+  --color-stone-500: #78716C;
+  --color-stone-600: #57534E;
+  --color-stone-700: #44403C;
+  --color-stone-800: #292524;
+  --color-stone-900: #1C1917;
+
+  /* Gray Palette */
+  --color-gray-50: #FAFAF9;
+  --color-gray-100: #F5F5F4;
+  --color-gray-200: #E7E5E4;
+  --color-gray-300: #D6D3D1;
+  --color-gray-400: #A8A29E;
+  --color-gray-500: #78716C;
+  --color-gray-600: #57534E;
+  --color-gray-700: #44403C;
+  --color-gray-800: #292524;
+  --color-gray-900: #1C1917;
+
+  /* Core Colors */
+  --color-black: #1C1917;
+  --color-black-rich: #1A1A1A;
   --color-white: #FFFFFF;
-  --color-gray-900: #0E0E0E;
-  --color-gray-800: #1A1A1A;
-  --color-gray-700: #2A2A2A;
-  --color-gray-600: #4A4A4A;
-  --color-gray-500: #6F6F6F;
-  --color-gray-400: #9A9A9A;
-  --color-gray-300: #CFCFCF;
-  --color-gray-200: #E5E5E5;
-  --color-gray-100: #F5F5F5;
-  --color-gray-50: #FAFAFA;
+  --color-cream: #FAF7F2;
 
-  /* Brand Accent */
-  --color-accent: #D4A853;
-  --color-accent-muted: rgba(212, 168, 83, 0.15);
-  --color-accent-text: #8B6F36;
+  /* Accent - Amber/Orange */
+  --color-accent: #D97706;
+  --color-accent-light: #F59E0B;
+  --color-accent-hover: #B45309;
+  --color-accent-pressed: #92400E;
+  --color-accent-muted: #FEF3C7;
+  --color-accent-subtle: #FFFBEB;
 
-  /* Mustard - Employee Brand Color */
-  --color-mustard: #FFCE1B;
-  --color-mustard-dark: #E5B800;
-  --color-mustard-muted: rgba(255, 206, 27, 0.15);
+  /* Amber Palette */
+  --color-amber-50: #FFFBEB;
+  --color-amber-100: #FEF3C7;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
 
-  /* Status */
-  --color-success: #2D7A4F;
-  --color-success-bg: rgba(45, 122, 79, 0.1);
-  --color-warning: #B7791F;
-  --color-warning-bg: rgba(183, 121, 31, 0.1);
-  --color-error: #C53030;
-  --color-error-bg: rgba(197, 48, 48, 0.1);
+  /* Mustard - Employee Brand */
+  --color-mustard: #EAB308;
+  --color-mustard-dark: #CA8A04;
+  --color-mustard-muted: rgba(234, 179, 8, 0.15);
+
+  /* Status Colors */
+  --color-success: #059669;
+  --color-success-light: #D1FAE5;
+  --color-warning: #D97706;
+  --color-warning-light: #FEF3C7;
+  --color-error: #DC2626;
+  --color-error-light: #FEE2E2;
+  --color-info: #2563EB;
+  --color-info-light: #DBEAFE;
+
+  /* Semantic Colors */
+  --color-green-50: #F0FDF4;
+  --color-green-100: #DCFCE7;
+  --color-green-600: #059669;
+  --color-red-50: #FEF2F2;
+  --color-red-100: #FEE2E2;
+  --color-red-600: #DC2626;
+  --color-blue-100: #DBEAFE;
+  --color-blue-600: #2563EB;
+  --color-orange-100: #FFEDD5;
+  --color-orange-600: #EA580C;
+  --color-purple-100: #F3E8FF;
+  --color-purple-600: #9333EA;
+
+  /* Background Colors */
+  --color-bg: #FAFAF8;
+  --color-bg-primary: #FAFAF8;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-inverse: #1C1917;
+
+  /* Surface Colors */
+  --color-surface: #FFFFFF;
+  --color-surface-default: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-muted: #FAFAF9;
+  --color-surface-subtle: #FAFAF8;
+
+  /* Text Colors */
+  --color-text-primary: #1C1917;
+  --color-text-secondary: #57534E;
+  --color-text-tertiary: #78716C;
+  --color-text-muted: #737373;
+  --color-text-inverse: #FFFFFF;
+
+  /* Border Colors */
+  --color-border: #E5E5E5;
+  --color-border-default: #E5E5E5;
+  --color-border-light: #F0F0F0;
+  --color-border-muted: #F0F0F0;
+  --color-border-error: #DC2626;
+  --color-border-focus: #2563EB;
+
+  /* Special */
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-overlay-light: rgba(255, 255, 255, 0.8);
+  --color-overlay-dark: rgba(28, 25, 23, 0.6);
+  --color-gold-legendary: #D4AF37;
+  --color-skeleton: #E5E5E5;
+  --color-skeleton-shine: #F5F5F5;
+
+  /* Focus States */
+  --focus-ring: 0 0 0 3px rgba(217, 119, 6, 0.3);
+  --focus-ring-error: 0 0 0 3px rgba(220, 38, 38, 0.3);
+  --focus-ring-offset: 2px;
 
   /* ========================================
-     2. TYPOGRAPHY
+     2. TYPOGRAPHY - From .pen file
      ======================================== */
 
-  /* Font Family */
-  --font-sans: var(--font-inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  /* Font Families */
+  --font-title: 'Spline Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
 
   /* Font Sizes */
   --text-xs: 10px;
-  --text-sm: 11px;
-  --text-base: 13px;
+  --text-sm: 13px;
+  --text-base: 14px;
   --text-md: 15px;
   --text-lg: 18px;
   --text-xl: 21px;
@@ -65,26 +147,30 @@
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
+  --font-bold: 700;
 
   /* Letter Spacing */
-  --tracking-tight: -0.01em;
+  --tracking-tight: -0.3px;
+  --tracking-body: -0.1px;
   --tracking-normal: 0;
-  --tracking-wide: 0.1em;
-  --tracking-wider: 0.15em;
+  --tracking-wide: 2px;
+  --tracking-wider: 3px;
+  --tracking-caps: 2.5px;
   --tracking-widest: 0.2em;
 
   /* Line Heights */
   --leading-none: 1;
-  --leading-tight: 1.2;
+  --leading-tight: 1.25;
   --leading-snug: 1.4;
-  --leading-normal: 1.6;
-  --leading-relaxed: 1.7;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
 
   /* ========================================
-     3. SPACING (8px base)
+     3. SPACING - From .pen file
      ======================================== */
 
   --space-0: 0;
+  --space-0-5: 2px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -94,6 +180,7 @@
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
+  --space-14: 56px;
   --space-16: 64px;
   --space-20: 80px;
   --space-24: 96px;
@@ -108,46 +195,89 @@
   --header-height: 64px;
   --nav-height: 68px;
 
+  /* Page spacing - consistent across all pages */
+  --page-padding-x: 20px;
+  --page-padding-y: 24px;
+  --section-gap: 24px;
+  --card-padding: 16px;
+  --card-padding-lg: 20px;
+
+  /* Input heights */
+  --input-height-sm: 40px;
+  --input-height-md: 48px;
+  --input-height-lg: 56px;
+
+  /* Toggle dimensions */
+  --toggle-width: 44px;
+  --toggle-height: 24px;
+  --toggle-thumb-size: 20px;
+
   /* ========================================
-     5. BORDERS
+     5. BORDERS & RADIUS - From .pen file
      ======================================== */
 
   --radius-none: 0;
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
+  --radius-pill: 9999px;
 
-  --border-color: var(--color-gray-200);
+  --border-color: var(--color-border);
   --border-width: 1px;
 
   /* ========================================
-     6. SHADOWS
+     6. SHADOWS - From .pen file
      ======================================== */
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
+
+  /* Card Shadow */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   /* ========================================
-     7. TRANSITIONS
+     7. TRANSITIONS - From .pen file
      ======================================== */
 
   --duration-fast: 100ms;
-  --duration-normal: 150ms;
+  --duration-normal: 200ms;
   --duration-slow: 300ms;
   --ease-default: ease;
+  --ease-in-out: ease-in-out;
 
   /* ========================================
-     8. Z-INDEX
+     8. Z-INDEX - From .pen file
      ======================================== */
 
   --z-base: 0;
-  --z-dropdown: 10;
+  --z-dropdown: 100;
+  --z-tooltip: 200;
+  --z-toast: 300;
+  --z-modal: 400;
+  --z-backdrop: 500;
   --z-sticky: 20;
   --z-fixed: 30;
   --z-modal-backdrop: 40;
-  --z-modal: 50;
-  --z-toast: 60;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root.dark {
+    --color-bg-primary: #121212;
+    --color-bg-secondary: #1A1A1A;
+    --color-surface-default: #1A1A1A;
+    --color-surface-elevated: #2A2A2A;
+    --color-text-primary: #FAFAFA;
+    --color-text-secondary: #A3A3A3;
+    --color-text-tertiary: #737373;
+    --color-border-default: #3A3A3A;
+    --color-border-light: #2E2E2E;
+  }
 }

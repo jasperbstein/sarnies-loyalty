@@ -2,153 +2,301 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import AdminLayout from '@/components/AdminLayout';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import { Camera, Keyboard, List, QrCode, Clock, MapPin, AlertCircle } from 'lucide-react';
+import StaffLayout from '@/components/StaffLayout';
+import { Scan, Keyboard, History, CheckCircle, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function StaffHomePage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [shiftStart] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    setMounted(true);
   }, []);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-  };
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1C1917] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  const quickReminders = [
-    {
-      icon: QrCode,
-      title: 'Scan QR first',
-      description: 'Always verify customer identity before applying rewards',
-      color: 'bg-blue-50 border-blue-200'
-    },
-    {
-      icon: AlertCircle,
-      title: 'Points must match receipt',
-      description: 'Enter exact purchase amount from receipt',
-      color: 'bg-green-50 border-green-200'
-    },
-    {
-      icon: Clock,
-      title: 'Voucher expires in 10 minutes',
-      description: 'Check countdown timer before redeeming',
-      color: 'bg-amber-50 border-amber-200'
-    },
-    {
-      icon: MapPin,
-      title: 'Check branch restrictions',
-      description: 'Some vouchers are valid at specific outlets only',
-      color: 'bg-purple-50 border-purple-200'
-    }
+  const outletName = user?.branch || 'Raffles Place';
+  const staffName = user?.name;
+  const statusText = staffName ? `${staffName} • On duty` : 'Ready to scan';
+
+  const reminders = [
+    'Always scan QR before applying rewards',
+    'Check voucher expiry countdown',
+    'Verify points match receipt amount',
   ];
 
   return (
-    <AdminLayout>
-      <div className="max-w-3xl mx-auto">
-        {/* Top Status Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm">
-                {user?.name?.charAt(0)}
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900 text-base">{user?.name}</p>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-gray-600">Sukhumvit</span>
-                  <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                  <Clock className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-gray-600">Shift: {formatTime(shiftStart)}</span>
-                </div>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Time</p>
-              <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">
-                {formatTime(currentTime)}
-              </p>
-            </div>
+    <StaffLayout>
+      {/* Desktop Header - only visible on lg+ */}
+      <div className="hidden lg:block bg-white border-b border-[#E7E5E4]">
+        <div className="flex items-center justify-between px-10 py-5">
+          <div>
+            <h1
+              className="text-[24px] font-bold text-[#1C1917]"
+              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+            >
+              Staff Dashboard
+            </h1>
+            <p
+              className="text-[14px] text-[#78716C] mt-1"
+              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+            >
+              {outletName} • {statusText}
+            </p>
+          </div>
+          <button
+            onClick={() => router.push('/staff/settings')}
+            className="w-10 h-10 rounded-full bg-[#F5F5F4] flex items-center justify-center hover:bg-[#E7E5E4] transition-colors"
+          >
+            <Settings className="w-5 h-5 text-[#78716C]" />
+          </button>
+        </div>
+      </div>
+
+      <div className="min-h-screen bg-white lg:bg-[#FAFAF9]">
+        {/* Mobile Layout */}
+        <div className="lg:hidden px-5 pt-5 pb-6 space-y-5">
+          <LocationCard outletName={outletName} statusText={statusText} />
+          <ScanButton onClick={() => router.push('/staff/scan')} />
+          <SecondaryButtons router={router} />
+          <RemindersCard reminders={reminders} />
+        </div>
+
+        {/* Tablet Layout (md to lg) */}
+        <div className="hidden md:flex lg:hidden px-6 pt-6 pb-6 gap-6">
+          {/* Left Column */}
+          <div className="flex-1 space-y-5">
+            <LocationCard outletName={outletName} statusText={statusText} />
+            <ScanButton onClick={() => router.push('/staff/scan')} />
+            <SecondaryButtons router={router} />
+          </div>
+          {/* Right Column */}
+          <div className="w-[300px] space-y-5">
+            <RemindersCard reminders={reminders} />
+            <StatsCard />
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Quick Actions Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="font-bold text-gray-900 mb-4">Quick Actions</h3>
-
-            <div className="space-y-3">
-              {/* Primary Action */}
-              <button
-                onClick={() => router.push('/staff/scan')}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gray-900 text-white rounded-xl font-semibold text-base hover:bg-gray-800 transition-colors shadow-sm"
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex p-10 gap-8">
+          {/* Left/Main Content */}
+          <div className="flex-1">
+            <div className="bg-white rounded-2xl border border-[#E7E5E4] p-8">
+              <h2
+                className="text-[18px] font-bold text-[#1C1917] mb-6"
+                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
               >
-                <Camera size={24} />
-                Start Camera Scan
-              </button>
-
-              {/* Secondary Actions */}
-              <div className="grid grid-cols-2 gap-3">
+                Quick Actions
+              </h2>
+              <ScanButton onClick={() => router.push('/staff/scan')} />
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <button
                   onClick={() => router.push('/staff/manual-entry')}
-                  className="flex flex-col items-center justify-center gap-2 px-4 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-50 hover:border-gray-400 transition-all"
+                  className="flex flex-col items-center justify-center gap-2 px-4 py-5 bg-white rounded-xl border border-[#E7E5E4] hover:bg-[#FAFAF9] transition-colors"
                 >
-                  <Keyboard size={22} />
-                  <span>Manual Entry</span>
+                  <Keyboard className="w-6 h-6 text-[#1C1917]" />
+                  <span
+                    className="text-[14px] font-medium text-[#1C1917]"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    Manual Entry
+                  </span>
                 </button>
-
                 <button
                   onClick={() => router.push('/staff/transactions')}
-                  className="flex flex-col items-center justify-center gap-2 px-4 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-50 hover:border-gray-400 transition-all"
+                  className="flex flex-col items-center justify-center gap-2 px-4 py-5 bg-white rounded-xl border border-[#E7E5E4] hover:bg-[#FAFAF9] transition-colors"
                 >
-                  <List size={22} />
-                  <span>Transactions</span>
+                  <History className="w-6 h-6 text-[#1C1917]" />
+                  <span
+                    className="text-[14px] font-medium text-[#1C1917]"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    View Transactions
+                  </span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Quick Reminders Card */}
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-900">Quick Reminders</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {quickReminders.map((reminder, index) => {
-                const Icon = reminder.icon;
-                return (
-                  <div
-                    key={index}
-                    className="flex items-start gap-2.5 text-sm text-gray-700"
-                  >
-                    <Icon size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-gray-900 mb-0.5">{reminder.title}</p>
-                      <p className="text-xs text-gray-600">{reminder.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Right Sidebar */}
+          <div className="w-[320px] space-y-6">
+            <StatsCard />
+            <RemindersCard reminders={reminders} />
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </StaffLayout>
+  );
+}
+
+function LocationCard({ outletName, statusText }: { outletName: string; statusText: string }) {
+  return (
+    <div
+      className="relative h-[180px] rounded-2xl overflow-hidden cursor-pointer"
+      style={{
+        boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+      }}
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80)'
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 60%)'
+        }}
+      />
+      <div className="absolute inset-0 p-5 flex flex-col justify-end">
+        <p
+          className="text-[10px] font-bold tracking-[2px] text-white/60 mb-1"
+          style={{ fontFamily: 'Spline Sans, sans-serif' }}
+        >
+          YOU'RE AT
+        </p>
+        <p
+          className="text-[24px] font-bold text-white"
+          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+        >
+          {outletName}
+        </p>
+        <p
+          className="text-[13px] text-white/60 mt-1"
+          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+        >
+          {statusText}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ScanButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#1C1917] text-white rounded-2xl font-semibold text-[18px] hover:bg-[#292524] transition-colors"
+      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+    >
+      <Scan className="w-6 h-6" />
+      Scan Customer
+    </button>
+  );
+}
+
+function SecondaryButtons({ router }: { router: ReturnType<typeof useRouter> }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        onClick={() => router.push('/staff/manual-entry')}
+        className="flex flex-col items-center justify-center gap-2 px-4 py-5 bg-white rounded-xl border border-[#E7E5E4] hover:bg-[#FAFAF9] transition-colors"
+      >
+        <Keyboard className="w-6 h-6 text-[#1C1917]" />
+        <span
+          className="text-[13px] font-medium text-[#1C1917]"
+          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+        >
+          Manual Entry
+        </span>
+      </button>
+
+      <button
+        onClick={() => router.push('/staff/transactions')}
+        className="flex flex-col items-center justify-center gap-2 px-4 py-5 bg-white rounded-xl border border-[#E7E5E4] hover:bg-[#FAFAF9] transition-colors"
+      >
+        <History className="w-6 h-6 text-[#1C1917]" />
+        <span
+          className="text-[13px] font-medium text-[#1C1917]"
+          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+        >
+          Transactions
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function RemindersCard({ reminders }: { reminders: string[] }) {
+  return (
+    <div className="bg-white rounded-xl border border-[#E7E5E4] p-4 lg:p-6">
+      <div className="flex items-center gap-2 mb-3">
+        <CheckCircle className="w-[18px] h-[18px] text-[#78716C]" />
+        <p
+          className="text-[11px] font-bold tracking-[1.5px] text-[#78716C]"
+          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+        >
+          REMINDERS
+        </p>
+      </div>
+      <div className="space-y-2 lg:space-y-3">
+        {reminders.map((reminder, index) => (
+          <div
+            key={index}
+            className="flex items-start gap-3 p-3 bg-[#FAFAF9] rounded-lg"
+          >
+            <CheckCircle className="w-4 h-4 text-[#78716C] mt-0.5 flex-shrink-0" />
+            <p
+              className="text-[13px] text-[#57534E]"
+              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+            >
+              {reminder}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatsCard() {
+  return (
+    <div className="bg-white rounded-xl border border-[#E7E5E4] p-4 lg:p-6">
+      <p
+        className="text-[11px] font-bold tracking-[1.5px] text-[#78716C] mb-4"
+        style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+      >
+        TODAY'S STATS
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-[#F5F5F4] rounded-xl p-3 text-center">
+          <p
+            className="text-[24px] font-bold text-[#1C1917]"
+            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+          >
+            24
+          </p>
+          <p
+            className="text-[12px] text-[#78716C]"
+            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+          >
+            Scans
+          </p>
+        </div>
+        <div className="bg-[#F0FDF4] rounded-xl p-3 text-center">
+          <p
+            className="text-[24px] font-bold text-[#16A34A]"
+            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+          >
+            1,280
+          </p>
+          <p
+            className="text-[12px] text-[#16A34A]"
+            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+          >
+            Points Given
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

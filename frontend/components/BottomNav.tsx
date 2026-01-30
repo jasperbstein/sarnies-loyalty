@@ -27,7 +27,7 @@ function BottomNav({ currentTab }: BottomNavProps) {
       id: 'rewards',
       label: 'VOUCHERS',
       icon: Ticket,
-      href: '/app/rewards',
+      href: '/app/vouchers',
       isActive: pathname === '/app/rewards' || pathname.startsWith('/app/vouchers') || currentTab === 'rewards'
     },
     {
@@ -44,37 +44,38 @@ function BottomNav({ currentTab }: BottomNavProps) {
       href: '/app/profile',
       isActive: pathname === '/app/profile' || currentTab === 'profile'
     }
-  ], [pathname, currentTab, isEmployee]);
+  ], [pathname, currentTab]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-black/10 z-50 pb-safe">
-      <div className="max-w-screen-xl mx-auto px-4">
-        <div className="flex justify-between items-center h-20">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#F0F0F0] z-50 pb-safe">
+      <div className="max-w-screen-xl mx-auto">
+        <div className="flex justify-around items-center h-[68px]">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = tab.isActive;
+
             return (
               <Link
                 key={tab.id}
                 href={tab.href}
                 prefetch={true}
-                className={`relative flex flex-col items-center justify-center py-2 px-6 rounded-xl transition-all ${
-                  tab.isActive
-                    ? 'text-black'
-                    : 'text-black/40 hover:text-black/60'
-                }`}
+                className="relative flex flex-col items-center justify-center py-2 px-4 min-w-[72px] transition-colors"
               >
                 <Icon
-                  className={`w-6 h-6 mb-1.5 ${tab.isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`}
+                  className={`w-6 h-6 mb-1 transition-colors ${
+                    isActive
+                      ? isEmployee ? 'text-[#D97706]' : 'text-[#1C1917]'
+                      : 'text-[#78716C]'
+                  }`}
+                  strokeWidth={isActive ? 2.5 : 1.5}
                 />
-                <span className={`text-nav ${tab.isActive ? 'text-black' : 'text-black/40'}`}>
+                <span className={`text-[10px] font-medium uppercase tracking-[0.5px] transition-colors ${
+                  isActive
+                    ? isEmployee ? 'text-[#D97706]' : 'text-[#1C1917]'
+                    : 'text-[#78716C]'
+                }`}>
                   {tab.label}
                 </span>
-                {/* Active indicator dot - mustard for employees */}
-                {tab.isActive && (
-                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${
-                    isEmployee ? 'bg-mustard' : 'bg-black'
-                  }`} />
-                )}
               </Link>
             );
           })}

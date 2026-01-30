@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/AdminLayout';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import StaffLayout from '@/components/StaffLayout';
 import api from '@/lib/api';
-import { Clock, Award, Gift, CheckCircle, Calendar, User, Phone, DollarSign, XCircle } from 'lucide-react';
+import { ArrowLeft, Clock, Award, Gift, CheckCircle, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 interface Transaction {
@@ -18,13 +17,13 @@ interface Transaction {
   outlet?: string;
   created_at: string;
   user_name?: string;
-  user_phone?: string;
   voucher_title?: string;
 }
 
-type FilterType = 'all' | 'earn' | 'redeem' | 'use' | 'error';
+type FilterType = 'all' | 'earn' | 'redeem';
 
 export default function StaffTransactionsPage() {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
@@ -45,7 +44,7 @@ export default function StaffTransactionsPage() {
         params: {
           start_date: today.toISOString(),
           end_date: tomorrow.toISOString(),
-          limit: 100
+          limit: 50
         }
       });
 
@@ -68,295 +67,191 @@ export default function StaffTransactionsPage() {
     });
   };
 
-  const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'earn':
-        return <Award className="w-5 h-5 text-green-600" />;
+        return <Award className="w-5 h-5 text-[#16A34A]" />;
       case 'redeem':
-        return <Gift className="w-5 h-5 text-blue-600" />;
       case 'use':
-        return <CheckCircle className="w-5 h-5 text-purple-600" />;
+        return <Gift className="w-5 h-5 text-[#D97706]" />;
       default:
-        return <Clock className="w-5 h-5 text-gray-600" />;
-    }
-  };
-
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'earn':
-        return 'bg-green-50 border-green-200';
-      case 'redeem':
-        return 'bg-blue-50 border-blue-200';
-      case 'use':
-        return 'bg-purple-50 border-purple-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
+        return <Clock className="w-5 h-5 text-[#78716C]" />;
     }
   };
 
   const getTransactionLabel = (type: string) => {
     switch (type) {
       case 'earn':
-        return 'Earned Points';
+        return 'Points Earned';
       case 'redeem':
-        return 'Redeemed Reward';
       case 'use':
-        return 'Used Voucher';
+        return 'Voucher Redeemed';
       default:
         return 'Transaction';
     }
   };
 
   const filteredTransactions = transactions.filter(t =>
-    filter === 'all' ? true : t.type === filter
+    filter === 'all' ? true : t.type === filter || (filter === 'redeem' && t.type === 'use')
   );
-
-  // Group transactions by date
-  const groupTransactionsByDate = (txns: Transaction[]) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const groups: { [key: string]: Transaction[] } = {
-      Today: [],
-      Yesterday: [],
-      Older: []
-    };
-
-    txns.forEach(txn => {
-      const txnDate = new Date(txn.created_at);
-      txnDate.setHours(0, 0, 0, 0);
-
-      if (txnDate.getTime() === today.getTime()) {
-        groups.Today.push(txn);
-      } else if (txnDate.getTime() === yesterday.getTime()) {
-        groups.Yesterday.push(txn);
-      } else {
-        groups.Older.push(txn);
-      }
-    });
-
-    return groups;
-  };
-
-  const groupedTransactions = groupTransactionsByDate(filteredTransactions);
 
   const stats = {
     total: transactions.length,
     earned: transactions.filter(t => t.type === 'earn').length,
-    redeemed: transactions.filter(t => t.type === 'redeem').length,
-    used: transactions.filter(t => t.type === 'use').length,
-    totalPointsAwarded: transactions
+    redeemed: transactions.filter(t => t.type === 'redeem' || t.type === 'use').length,
+    totalPoints: transactions
       .filter(t => t.type === 'earn')
       .reduce((sum, t) => sum + (t.points_delta || 0), 0)
   };
 
   return (
-    <AdminLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
+    <StaffLayout>
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
+        <div className="px-5 pt-5 pb-4">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-[#78716C] mb-4"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-[14px] font-medium" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Back</span>
+          </button>
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-black mb-1">Today's Transactions</h2>
-              <p className="text-gray-600">
-                {formatDate(new Date().toISOString())} - Read-only view
+              <h1 className="text-[24px] font-bold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Transactions
+              </h1>
+              <p className="text-[14px] text-[#78716C] mt-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Today's activity
               </p>
             </div>
             <button
               onClick={fetchTodayTransactions}
-              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+              className="w-10 h-10 rounded-full bg-[#F5F5F4] flex items-center justify-center"
             >
-              Refresh
+              <RefreshCw className={`w-5 h-5 text-[#78716C] ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
+        </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <p className="text-sm text-gray-600 mb-1">Total Transactions</p>
-              <p className="text-3xl font-bold text-black">{stats.total}</p>
+        {/* Stats */}
+        <div className="px-5 pb-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-[#F5F5F4] rounded-xl p-3 text-center">
+              <p className="text-[24px] font-bold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                {stats.total}
+              </p>
+              <p className="text-[11px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Total
+              </p>
             </div>
-
-            <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-              <p className="text-sm text-green-700 mb-1">Points Earned</p>
-              <p className="text-3xl font-bold text-green-800">{stats.earned}</p>
-              <p className="text-xs text-green-600 mt-1">+{stats.totalPointsAwarded} pts</p>
+            <div className="bg-[#F0FDF4] rounded-xl p-3 text-center">
+              <p className="text-[24px] font-bold text-[#16A34A]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                {stats.earned}
+              </p>
+              <p className="text-[11px] text-[#16A34A]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Earned
+              </p>
             </div>
-
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-              <p className="text-sm text-blue-700 mb-1">Rewards Redeemed</p>
-              <p className="text-3xl font-bold text-blue-800">{stats.redeemed}</p>
-            </div>
-
-            <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-              <p className="text-sm text-purple-700 mb-1">Vouchers Used</p>
-              <p className="text-3xl font-bold text-purple-800">{stats.used}</p>
+            <div className="bg-[#FEF3C7] rounded-xl p-3 text-center">
+              <p className="text-[24px] font-bold text-[#D97706]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                {stats.redeemed}
+              </p>
+              <p className="text-[11px] text-[#D97706]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Redeemed
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Filter Chips */}
-        <Card padding="sm">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-bold text-sarnies-charcoal mr-2">Filter:</span>
+        {/* Filter Tabs */}
+        <div className="px-5 pb-4">
+          <div className="flex gap-2">
             {[
-              { value: 'all', label: 'All', icon: Calendar },
-              { value: 'earn', label: 'Earned Points', icon: Award },
-              { value: 'redeem', label: 'Redeemed Vouchers', icon: Gift },
-              { value: 'use', label: 'Vouchers Used', icon: CheckCircle },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.value}
-                  onClick={() => setFilter(item.value as FilterType)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-sarnies-button font-medium transition-all text-sm ${
-                    filter === item.value
-                      ? 'bg-sarnies-black text-white shadow-md'
-                      : 'bg-sarnies-lightgray text-sarnies-charcoal hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+              { value: 'all', label: 'All' },
+              { value: 'earn', label: 'Earned' },
+              { value: 'redeem', label: 'Redeemed' },
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setFilter(item.value as FilterType)}
+                className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
+                  filter === item.value
+                    ? 'bg-[#1C1917] text-white'
+                    : 'bg-[#F5F5F4] text-[#78716C]'
+                }`}
+                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-        </Card>
+        </div>
 
         {/* Transactions List */}
-        {loading ? (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-black mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading transactions...</p>
-          </div>
-        ) : filteredTransactions.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center border border-gray-200">
-            <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-black mb-2">No Transactions Yet</h3>
-            <p className="text-gray-600">
-              {filter === 'all'
-                ? 'No transactions recorded'
-                : `No ${filter} transactions found`}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Render grouped transactions */}
-            {Object.entries(groupedTransactions).map(([groupName, groupTxns]) => {
-              if (groupTxns.length === 0) return null;
-
-              return (
-                <div key={groupName}>
-                  {/* Date Group Header */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-lg font-bold text-sarnies-black">{groupName}</h3>
-                    <div className="flex-1 h-px bg-gray-200"></div>
-                    <span className="text-sm text-sarnies-midgray font-medium">
-                      {groupTxns.length} {groupTxns.length === 1 ? 'transaction' : 'transactions'}
-                    </span>
-                  </div>
-
-                  {/* Transactions in this group */}
-                  <div className="space-y-3">
-                    {groupTxns.map((transaction) => (
-              <div
-                key={transaction.id}
-                className={`${getTransactionColor(
-                  transaction.type
-                )} rounded-xl p-5 border-2 transition-all hover:shadow-md`}
-              >
-                <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className="mt-1">{getTransactionIcon(transaction.type)}</div>
-
-                  {/* Content */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-bold text-black text-lg">
-                          {getTransactionLabel(transaction.type)}
-                        </h4>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-sm text-gray-600 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {formatTime(transaction.created_at)}
-                          </span>
-                          {transaction.outlet && (
-                            <span className="px-2 py-0.5 bg-white rounded-full text-xs font-medium text-gray-700 border border-gray-300">
-                              {transaction.outlet}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Points Delta */}
-                      <div className="text-right">
-                        <span
-                          className={`text-2xl font-bold ${
-                            transaction.type === 'earn' ? 'text-green-700' : 'text-gray-700'
-                          }`}
-                        >
-                          {transaction.type === 'earn' ? '+' : '-'}
-                          {Math.abs(transaction.points_delta)} pts
-                        </span>
-                        {transaction.amount_value && (
-                          <p className="text-sm text-gray-600 mt-1 flex items-center justify-end gap-1">
-                            <DollarSign className="w-3.5 h-3.5" />
-                            ฿{Number(transaction.amount_value).toFixed(2)}
-                          </p>
-                        )}
-                      </div>
+        <div className="px-5 pb-24">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-[#1C1917] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <Clock className="w-12 h-12 text-[#E7E5E4] mx-auto mb-3" />
+              <p className="text-[16px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                No transactions yet
+              </p>
+              <p className="text-[14px] text-[#78716C] mt-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                Transactions will appear here
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredTransactions.map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className="bg-white rounded-xl border border-[#E7E5E4] p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      transaction.type === 'earn' ? 'bg-[#F0FDF4]' : 'bg-[#FEF3C7]'
+                    }`}>
+                      {getTransactionIcon(transaction.type)}
                     </div>
-
-                    {/* Customer Info */}
-                    {transaction.user_name && (
-                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <User className="w-4 h-4" />
-                          <span className="font-medium">{transaction.user_name}</span>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                            {getTransactionLabel(transaction.type)}
+                          </p>
+                          <p className="text-[12px] text-[#78716C] mt-0.5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                            {formatTime(transaction.created_at)}
+                            {transaction.outlet && ` • ${transaction.outlet}`}
+                          </p>
                         </div>
-                        {transaction.user_phone && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Phone className="w-4 h-4" />
-                            <span>{transaction.user_phone}</span>
-                          </div>
-                        )}
+                        <span className={`text-[16px] font-bold ${
+                          transaction.type === 'earn' ? 'text-[#16A34A]' : 'text-[#D97706]'
+                        }`} style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                          {transaction.type === 'earn' ? '+' : ''}{Math.abs(transaction.points_delta)} pts
+                        </span>
                       </div>
-                    )}
-
-                    {/* Voucher Info */}
-                    {transaction.voucher_title && (
-                      <div className="mt-2 p-2 bg-white rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <Gift className="w-4 h-4 text-gray-600" />
-                          <span className="text-sm font-medium text-gray-700">
-                            {transaction.voucher_title}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                      {transaction.user_name && (
+                        <p className="text-[13px] text-[#78716C] mt-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                          Customer: {transaction.user_name}
+                        </p>
+                      )}
+                      {transaction.voucher_title && (
+                        <p className="text-[13px] text-[#D97706] mt-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                          {transaction.voucher_title}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </AdminLayout>
+    </StaffLayout>
   );
 }
