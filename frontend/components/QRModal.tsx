@@ -32,7 +32,6 @@ export default function QRModal({
       const expiry = new Date(expiresAt).getTime();
       const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
       setTimeRemaining(remaining);
-      // No auto-close - let user see the expiry message and close manually
     };
 
     updateCountdown();
@@ -49,69 +48,77 @@ export default function QRModal({
 
   if (!isOpen) return null;
 
+  const isExpired = timeRemaining !== null && timeRemaining <= 0;
+  const isUrgent = timeRemaining !== null && timeRemaining > 0 && timeRemaining <= 60;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 relative">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-surface rounded-xl max-w-sm w-full p-6 relative border border-border">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-text-tertiary hover:bg-stone-200 transition-colors"
         >
-          <X className="w-6 h-6" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-black mb-2 pr-8">{title}</h2>
+        <h2 className="text-heading text-text-primary mb-1 pr-10">{title}</h2>
 
         {/* Description */}
         {description && (
-          <p className="text-sm text-gray-600 mb-6">{description}</p>
+          <p className="text-caption text-text-tertiary mb-5">{description}</p>
         )}
 
         {/* QR Code */}
-        <div className="flex justify-center mb-6 bg-white p-4 rounded-lg">
-          {loading ? (
-            <div className="w-[320px] h-[320px] flex items-center justify-center">
-              <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : qrDataUrl ? (
-            <img
-              src={qrDataUrl}
-              alt="QR Code"
-              className="w-[320px] h-[320px]"
-              style={{ imageRendering: 'crisp-edges' }}
-            />
-          ) : (
-            <div className="w-[320px] h-[320px] flex items-center justify-center bg-gray-100 rounded-lg">
-              <div className="text-center px-6">
-                <p className="text-gray-600 font-medium mb-2">QR Code Unavailable</p>
-                <p className="text-sm text-gray-500">Please try closing and reopening, or contact support</p>
+        <div className="flex justify-center mb-5">
+          <div className="bg-surface rounded-lg border border-border p-3">
+            {loading ? (
+              <div className="w-56 h-56 flex items-center justify-center">
+                <div className="w-10 h-10 border-3 border-stone-300 border-t-stone-900 rounded-full animate-spin" />
               </div>
-            </div>
-          )}
+            ) : qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt="QR Code"
+                className="w-56 h-56"
+                style={{ imageRendering: 'crisp-edges' }}
+              />
+            ) : (
+              <div className="w-56 h-56 flex items-center justify-center bg-surface-muted rounded-lg">
+                <div className="text-center px-4">
+                  <p className="text-subheading text-text-secondary mb-1">QR Code Unavailable</p>
+                  <p className="text-caption text-text-tertiary">Please try again or contact support</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Countdown */}
         {timeRemaining !== null && (
-          <div className="text-center mb-4">
-            {timeRemaining > 0 ? (
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Expires in</p>
-                <p className="text-3xl font-bold text-black">
+          <div className="text-center mb-5">
+            {!isExpired ? (
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+                isUrgent
+                  ? 'bg-amber-50 border border-amber-100'
+                  : 'bg-stone-100'
+              }`}>
+                <span className={`text-caption font-medium ${isUrgent ? 'text-warning' : 'text-text-tertiary'}`}>
+                  Expires in
+                </span>
+                <span className={`text-lg font-semibold tabular-nums ${isUrgent ? 'text-warning' : 'text-text-primary'}`}>
                   {formatTime(timeRemaining)}
-                </p>
+                </span>
               </div>
             ) : (
-              <div className="py-2">
-                <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
-                  <AlertTriangle className="w-5 h-5" />
-                  <p className="text-lg font-semibold">QR Code Expired</p>
+              <div className="bg-error-light border border-error rounded-lg p-4">
+                <div className="flex items-center justify-center gap-2 text-error mb-1.5">
+                  <AlertTriangle className="w-4 h-4" />
+                  <p className="text-subheading">QR Code Expired</p>
                 </div>
-                <p className="text-sm text-gray-500">
-                  If your voucher was scanned, it may take a moment to process.
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Close this and check your voucher history for status updates.
+                <p className="text-caption text-error">
+                  If scanned, it may take a moment to process. Check your voucher history for updates.
                 </p>
               </div>
             )}
@@ -119,22 +126,20 @@ export default function QRModal({
         )}
 
         {/* Instructions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p className="text-center text-sm font-semibold text-blue-900 mb-2">
+        <div className="bg-surface-muted rounded-lg p-3.5 mb-5">
+          <p className="text-center text-caption font-semibold text-text-secondary mb-2">
             Show this QR code to staff at checkout
           </p>
-          <div className="text-xs text-blue-800 space-y-1">
-            <p>💡 Turn screen brightness to 100%</p>
-            <p>📏 Hold device 15-20cm from scanner camera</p>
-            <p>📱 Keep screen flat and steady</p>
-            <p>🖥️ Scanning from computer screen? Tilt screen to avoid glare</p>
+          <div className="text-caption text-text-tertiary space-y-1">
+            <p>Turn screen brightness to maximum</p>
+            <p>Hold device 15-20cm from scanner</p>
           </div>
         </div>
 
         {/* Done button */}
         <button
           onClick={onClose}
-          className="w-full bg-black text-white py-3 rounded-md font-medium hover:bg-gray-800 transition-colors"
+          className="btn-primary w-full h-12 rounded-lg"
         >
           Done
         </button>

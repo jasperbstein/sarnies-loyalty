@@ -105,6 +105,20 @@ export function VoucherCard({
     return '🎫';
   };
 
+  const getEmojiGradient = () => {
+    const lowerTitle = title.toLowerCase();
+    if (voucherType === 'free_item') {
+      if (lowerTitle.includes('coffee') || lowerTitle.includes('drink') || lowerTitle.includes('latte'))
+        return 'bg-gradient-to-br from-amber-200 via-amber-100 to-orange-200';
+      return 'bg-gradient-to-br from-stone-200 via-stone-100 to-amber-200';
+    }
+    if (voucherType === 'discount_amount' || voucherType === 'percentage_discount')
+      return 'bg-gradient-to-br from-stone-300 via-stone-200 to-stone-100';
+    if (voucherType === 'merch')
+      return 'bg-gradient-to-br from-violet-200 via-purple-100 to-fuchsia-200';
+    return 'bg-gradient-to-br from-stone-200 to-stone-300';
+  };
+
   const getPriceLabel = () => {
     if (isEmployee) return 'FREE';
     if (pointsRequired === 0) return 'FREE';
@@ -114,10 +128,10 @@ export function VoucherCard({
   // Featured variant - larger card with use now button
   if (variant === 'featured') {
     return (
-      <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <div className="card overflow-hidden">
         {/* Image */}
         <div
-          className="h-28 w-full bg-stone-100 bg-cover bg-center relative"
+          className={`h-28 w-full bg-cover bg-center relative ${imageUrl ? 'bg-stone-100' : getEmojiGradient()}`}
           style={{
             backgroundImage: imageUrl
               ? `url(${imageUrl})`
@@ -142,7 +156,7 @@ export function VoucherCard({
               className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center transition-transform active:scale-90"
             >
               <Heart
-                className={`w-4 h-4 ${isFavorite ? 'fill-error text-error' : 'text-stone-400'}`}
+                className={`w-4 h-4 ${isFavorite ? 'fill-error text-error' : 'text-text-tertiary'}`}
               />
             </button>
           )}
@@ -151,17 +165,17 @@ export function VoucherCard({
         {/* Content */}
         <div className="p-4 space-y-3">
           <div>
-            <p className="text-base font-semibold text-text-primary">
+            <p className="text-subheading text-text-primary">
               {title}
             </p>
-            <p className="text-sm text-text-tertiary mt-1 line-clamp-2">
+            <p className="text-caption text-text-tertiary mt-1 line-clamp-2">
               {description}
             </p>
           </div>
           {onUseNow && (
             <button
               onClick={onUseNow}
-              className="w-full bg-stone-900 text-white py-3 rounded-xl font-medium text-sm active:bg-stone-800 transition-colors"
+              className="btn-primary w-full py-3 rounded-lg"
             >
               Use Now
             </button>
@@ -176,10 +190,10 @@ export function VoucherCard({
     return (
       <button
         onClick={handleClick}
-        className="w-full bg-white rounded-xl border border-stone-200 overflow-hidden text-left active:scale-[0.99] transition-transform flex"
+        className="w-full card overflow-hidden text-left active:scale-[0.99] transition-transform flex"
       >
         {/* Image */}
-        <div className="w-24 h-24 bg-stone-100 flex-shrink-0 relative">
+        <div className={`w-24 h-24 flex-shrink-0 relative ${imageUrl ? 'bg-stone-100' : getEmojiGradient()}`}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -195,8 +209,8 @@ export function VoucherCard({
           {/* Expiry indicator for list */}
           {isExpiringSoon && daysUntilExpiry !== null && daysUntilExpiry <= 3 && (
             <div className="absolute bottom-1 left-1">
-              <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-error rounded text-[9px] text-white font-medium">
-                <Flame className="w-2.5 h-2.5" />
+              <div className="badge-expiry text-[9px]">
+                <Flame className="w-2.5 h-2.5 mr-0.5" />
                 {daysUntilExpiry}d
               </div>
             </div>
@@ -205,18 +219,18 @@ export function VoucherCard({
 
         {/* Content */}
         <div className="p-3 flex-1 flex flex-col justify-center">
-          <p className="text-sm font-semibold text-text-primary line-clamp-1">
+          <p className="text-subheading text-text-primary line-clamp-1">
             {title}
           </p>
-          <p className="text-xs text-text-tertiary line-clamp-1 mt-0.5">
+          <p className="text-caption text-text-tertiary line-clamp-1 mt-0.5">
             {description}
           </p>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-sm font-semibold text-text-primary">
+            <span className="text-subheading text-text-primary">
               {getPriceLabel()}
             </span>
             {maxPerDay && remainingToday !== undefined && (
-              <span className="text-xs text-text-muted">
+              <span className="text-caption text-text-tertiary">
                 {remainingToday}/{maxPerDay} left
               </span>
             )}
@@ -231,7 +245,7 @@ export function VoucherCard({
               className="w-8 h-8 rounded-full flex items-center justify-center"
             >
               <Heart
-                className={`w-4 h-4 ${isFavorite ? 'fill-error text-error' : 'text-stone-300'}`}
+                className={`w-4 h-4 ${isFavorite ? 'fill-error text-error' : 'text-text-tertiary'}`}
               />
             </button>
           </div>
@@ -244,10 +258,10 @@ export function VoucherCard({
   return (
     <button
       onClick={handleClick}
-      className="w-full bg-white rounded-xl border border-stone-200 overflow-hidden text-left active:scale-[0.99] transition-transform"
+      className="w-full card overflow-hidden text-left active:scale-[0.99] transition-transform"
     >
       {/* Image */}
-      <div className="relative w-full aspect-[4/3] bg-stone-100">
+      <div className={`relative w-full aspect-[4/3] ${imageUrl ? 'bg-stone-100' : getEmojiGradient()}`}>
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -273,8 +287,8 @@ export function VoucherCard({
           {/* Featured badge or favorite button on right */}
           <div className="flex items-center gap-1.5">
             {isFeatured && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-md text-[10px] font-semibold text-white">
-                <Star className="w-3 h-3 fill-current" />
+              <div className="badge-solid-accent text-[10px]">
+                <Star className="w-3 h-3 fill-current mr-0.5" />
                 Featured
               </div>
             )}
@@ -284,7 +298,7 @@ export function VoucherCard({
                 className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center transition-transform active:scale-90"
               >
                 <Heart
-                  className={`w-3.5 h-3.5 ${isFavorite ? 'fill-error text-error' : 'text-stone-400'}`}
+                  className={`w-3.5 h-3.5 ${isFavorite ? 'fill-error text-error' : 'text-text-tertiary'}`}
                 />
               </button>
             )}
@@ -292,12 +306,12 @@ export function VoucherCard({
         </div>
       </div>
 
-      {/* Content - 16px padding */}
+      {/* Content */}
       <div className="p-4">
-        <h3 className="text-sm font-semibold text-text-primary line-clamp-1">
+        <h3 className="text-subheading text-text-primary line-clamp-1">
           {title}
         </h3>
-        <p className="text-xs text-text-tertiary line-clamp-1 mt-1">
+        <p className="text-caption text-text-tertiary line-clamp-1 mt-1">
           {description}
         </p>
         <div className="flex items-center justify-between mt-3">
@@ -305,12 +319,12 @@ export function VoucherCard({
             {pointsRequired > 0 && !isEmployee && (
               <Star className="w-3.5 h-3.5 text-accent fill-accent" />
             )}
-            <span className="text-sm font-semibold text-text-primary">
+            <span className="text-subheading text-text-primary">
               {getPriceLabel()}
             </span>
           </div>
           {maxPerDay && remainingToday !== undefined && (
-            <span className="text-xs text-text-muted">
+            <span className="text-caption text-text-tertiary">
               {remainingToday}/{maxPerDay} left
             </span>
           )}

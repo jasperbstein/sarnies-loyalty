@@ -7,11 +7,12 @@ import AppLayout from '@/components/AppLayout';
 import QRModal from '@/components/QRModal';
 import { useAuthStore } from '@/lib/store';
 import { vouchersAPI } from '@/lib/api';
-import { ArrowLeft, Star, Clock, MapPin, AlertCircle, Wallet, Calendar, Store, Sparkles, CheckCircle, QrCode, Info } from 'lucide-react';
+import { ArrowLeft, Star, Clock, Wallet, Calendar, Store, CheckCircle, QrCode, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSwipeBack } from '@/hooks/useSwipeBack';
 import { io, Socket } from 'socket.io-client';
 import { getWebSocketUrl } from '@/lib/config';
+import { isEmployeeUser } from '@/lib/authUtils';
 
 interface Voucher {
   id: number;
@@ -55,7 +56,7 @@ export default function VoucherDetailPage() {
   } | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  const isEmployee = user?.user_type === 'employee';
+  const isEmployee = isEmployeeUser(user);
 
   useEffect(() => {
     if (params.id) {
@@ -68,7 +69,6 @@ export default function VoucherDetailPage() {
     if (!user?.id || !token) return;
 
     const wsUrl = getWebSocketUrl();
-    console.log('🔌 [Voucher Detail] Connecting to WebSocket:', wsUrl);
 
     const socket = io(wsUrl, {
       transports: ['websocket', 'polling'],
@@ -78,8 +78,7 @@ export default function VoucherDetailPage() {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('✅ [Voucher Detail] WebSocket connected, authenticating user:', user.id);
-      socket.emit('authenticate', user.id);
+      socket.emit('authenticate', token);
     });
 
     socket.on('voucher_redeemed', (data: {
@@ -90,8 +89,6 @@ export default function VoucherDetailPage() {
       used_at: string;
       outlet: string;
     }) => {
-      console.log('🎉 [Voucher Detail] Voucher redeemed event received:', data);
-
       setTimeout(() => {
         setShowQRModal(false);
         setRedeemedVoucherData({
@@ -109,11 +106,10 @@ export default function VoucherDetailPage() {
     });
 
     socket.on('disconnect', () => {
-      console.log('❌ [Voucher Detail] WebSocket disconnected');
+      // Connection lost - will auto-reconnect
     });
 
     return () => {
-      console.log('🔌 [Voucher Detail] Cleaning up WebSocket connection');
       socket.disconnect();
       socketRef.current = null;
     };
@@ -174,7 +170,7 @@ export default function VoucherDetailPage() {
   };
 
   const canRedeem = () => {
-    if (isEmployee) return true; // Employees don't need points
+    if (isEmployee) return true;
     return (user?.points_balance || 0) >= (voucher?.points_required || 0);
   };
 
@@ -184,12 +180,12 @@ export default function VoucherDetailPage() {
     if (voucher.expiry_type === 'no_expiry') {
       return 'No expiry';
     } else if (voucher.expiry_type === 'days_after_redeem' && voucher.expiry_days) {
-      return `${voucher.expiry_days} days after redemption`;
+      return `${voucher.expiry_days}d after redeem`;
     } else if (voucher.expiry_type === 'fixed_date' && voucher.expiry_date) {
       return new Date(voucher.expiry_date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
       });
     }
     return '';
@@ -209,15 +205,30 @@ export default function VoucherDetailPage() {
     return '🎫';
   };
 
+  const getEmojiGradient = () => {
+    if (!voucher) return 'from-stone-200 to-stone-300';
+    const title = voucher.title.toLowerCase();
+    if (voucher.voucher_type === 'free_item') {
+      if (title.includes('coffee') || title.includes('drink') || title.includes('latte'))
+        return 'from-amber-200 via-amber-100 to-orange-200';
+      return 'from-stone-200 via-stone-100 to-amber-200';
+    }
+    if (voucher.voucher_type === 'discount_amount' || voucher.voucher_type === 'percentage_discount')
+      return 'from-stone-300 via-stone-200 to-stone-100';
+    if (voucher.voucher_type === 'merch')
+      return 'from-violet-200 via-purple-100 to-fuchsia-200';
+    return 'from-stone-200 to-stone-300';
+  };
+
   if (loading) {
     return (
       <AppLayout>
-        <div className="min-h-screen bg-[#FAFAF9]">
-          <div className="animate-pulse p-4 space-y-4">
-            <div className="h-10 bg-[#E7E5E4] rounded-xl w-1/3" />
-            <div className="aspect-[4/3] bg-[#E7E5E4] rounded-xl" />
-            <div className="h-6 bg-[#E7E5E4] rounded-xl w-3/4" />
-            <div className="h-32 bg-[#E7E5E4] rounded-xl" />
+        <div className="min-h-screen bg-bg-primary">
+          <div className="max-w-2xl lg:max-w-4xl mx-auto animate-pulse p-4 md:p-6 space-y-4">
+            <div className="h-10 bg-stone-200 rounded-lg w-1/3" />
+            <div className="h-48 bg-stone-200 rounded-lg" />
+            <div className="h-6 bg-stone-200 rounded-lg w-3/4" />
+            <div className="h-20 bg-stone-200 rounded-lg" />
           </div>
         </div>
       </AppLayout>
@@ -230,25 +241,10 @@ export default function VoucherDetailPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#FAFAF9] pb-6">
-        {/* Header */}
-        <header className="bg-[#FAFAF9] px-4 pt-4 pb-3">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-[#78716C]"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white border border-[#E7E5E4] flex items-center justify-center">
-              <ArrowLeft className="w-5 h-5 text-[#1C1917]" />
-            </div>
-            <span className="text-[14px]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-              Back
-            </span>
-          </button>
-        </header>
-
-        <div className="px-4 space-y-4">
-          {/* Hero Image or Emoji */}
-          <div className="relative w-full aspect-[4/3] bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
+      <div className="min-h-screen bg-bg-primary pb-24">
+        <div className="max-w-2xl lg:max-w-4xl mx-auto">
+          {/* Compact Hero with Overlay */}
+          <div className="relative h-48 w-full overflow-hidden">
             {voucher.image_url ? (
               <Image
                 src={voucher.image_url}
@@ -259,192 +255,165 @@ export default function VoucherDetailPage() {
                 priority
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-[#F5F5F4]">
-                <span className="text-[72px]">{getEmoji()}</span>
+              <div className={`w-full h-full bg-gradient-to-br ${getEmojiGradient()} flex items-center justify-center`}>
+                <span className="text-6xl">{getEmoji()}</span>
               </div>
             )}
+
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+            {/* Back button */}
+            <button
+              onClick={() => router.back()}
+              className="absolute top-4 left-4 w-10 h-10 rounded-lg bg-white/90 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-text-primary" />
+            </button>
 
             {/* Featured Badge */}
             {voucher.is_featured && (
-              <div className="absolute top-3 left-3 px-2.5 py-1 bg-[#1C1917] rounded-lg flex items-center gap-1">
-                <Star className="w-3 h-3 text-white fill-white" />
-                <span className="text-[10px] font-semibold text-white uppercase tracking-wide" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Featured
-                </span>
+              <div className="absolute top-4 right-4 badge bg-white/90 backdrop-blur-sm">
+                <Star className="w-3 h-3 text-accent fill-accent mr-1" />
+                Featured
               </div>
             )}
 
-            {/* Value Badge */}
-            {voucher.cash_value > 0 && (
-              <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-white rounded-lg border border-[#E7E5E4]">
-                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+            {/* Title overlaid on image */}
+            <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+              <h1 className="text-heading text-text-inverse mb-1">
+                {voucher.title}
+              </h1>
+              {voucher.cash_value > 0 && (
+                <span className="badge bg-white/20 backdrop-blur-sm text-white border-0">
                   ฿{Number(voucher.cash_value).toFixed(0)} value
                 </span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* Title & Description */}
-          <div>
-            <h1 className="text-[20px] font-semibold text-[#1C1917] mb-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-              {voucher.title}
-            </h1>
-            <p className="text-[14px] text-[#78716C] leading-relaxed" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+          <div className="px-4 md:px-6 space-y-4 mt-4">
+            {/* Description */}
+            <p className="text-body text-text-tertiary leading-relaxed">
               {voucher.description}
             </p>
-          </div>
 
-          {/* Details Card */}
-          <div className="bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#E7E5E4]">
-              <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                Details
-              </p>
-            </div>
-
-            <div className="divide-y divide-[#E7E5E4]">
-              {/* Points Required */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
-                    <Star className="w-4 h-4 text-[#1C1917]" />
-                  </div>
-                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    {isEmployee ? 'Cost' : 'Points Required'}
-                  </span>
-                </div>
-                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+            {/* Detail Chips */}
+            <div className="flex flex-wrap gap-2">
+              {/* Points chip */}
+              <div className="badge bg-surface border border-border">
+                <Star className="w-3.5 h-3.5 text-accent fill-accent mr-1" />
+                <span className="text-text-primary">
                   {isEmployee ? 'FREE' : `${voucher.points_required} pts`}
                 </span>
               </div>
 
-              {/* Your Points - Only for customers */}
+              {/* Your balance chip - customers only */}
               {!isEmployee && (
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
-                      <Wallet className="w-4 h-4 text-[#1C1917]" />
-                    </div>
-                    <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                      Your Points
-                    </span>
-                  </div>
-                  <span className={`text-[14px] font-semibold ${canRedeem() ? 'text-[#16A34A]' : 'text-[#DC2626]'}`} style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                <div className={`badge border ${
+                  canRedeem()
+                    ? 'bg-success-light border-success'
+                    : 'bg-error-light border-error'
+                }`}>
+                  <Wallet className="w-3.5 h-3.5 text-text-tertiary mr-1" />
+                  <span className={canRedeem() ? 'text-success' : 'text-error'}>
                     {user?.points_balance || 0} pts
                   </span>
                 </div>
               )}
 
-              {/* Expiry */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-[#1C1917]" />
-                  </div>
-                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    Expiry
+              {/* Expiry chip */}
+              {formatExpiry() && (
+                <div className="badge bg-surface border border-border">
+                  <Calendar className="w-3.5 h-3.5 text-text-tertiary mr-1" />
+                  <span className="text-text-secondary">
+                    {formatExpiry()}
                   </span>
                 </div>
-                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  {formatExpiry() || 'No expiry'}
-                </span>
-              </div>
+              )}
 
-              {/* Valid Stores */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-[#F5F5F4] rounded-lg flex items-center justify-center">
-                    <Store className="w-4 h-4 text-[#1C1917]" />
+              {/* Store chips */}
+              {voucher.valid_stores && voucher.valid_stores.length > 0 ? (
+                voucher.valid_stores.map((store, index) => (
+                  <div key={index} className="badge bg-surface border border-border">
+                    <Store className="w-3.5 h-3.5 text-text-tertiary mr-1" />
+                    <span className="text-text-secondary">{store}</span>
                   </div>
-                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    Valid At
-                  </span>
+                ))
+              ) : (
+                <div className="badge bg-text-primary text-text-inverse">
+                  <Store className="w-3.5 h-3.5 mr-1" />
+                  All Stores
                 </div>
-                <div className="flex flex-wrap gap-1.5 justify-end max-w-[50%]">
-                  {voucher.valid_stores && voucher.valid_stores.length > 0 ? (
-                    voucher.valid_stores.map((store, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-0.5 bg-[#F5F5F4] text-[#1C1917] text-[11px] font-medium rounded-md"
-                        style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                      >
-                        {store}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="px-2 py-0.5 bg-[#1C1917] text-white text-[11px] font-medium rounded-md" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                      All Stores
-                    </span>
-                  )}
+              )}
+            </div>
+
+            {/* Rules & Limitations */}
+            {(voucher.rules || voucher.limitations) && (
+              <div className="bg-warning-light rounded-lg border border-warning p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-surface rounded-md flex items-center justify-center flex-shrink-0">
+                    <Info className="w-4 h-4 text-warning" />
+                  </div>
+                  <div className="space-y-2">
+                    {voucher.rules && (
+                      <div>
+                        <p className="text-caption font-semibold text-amber-800 mb-0.5">
+                          Rules
+                        </p>
+                        <p className="text-body text-amber-800">
+                          {voucher.rules}
+                        </p>
+                      </div>
+                    )}
+                    {voucher.limitations && (
+                      <div>
+                        <p className="text-caption font-semibold text-amber-800 mb-0.5">
+                          Limitations
+                        </p>
+                        <p className="text-body text-amber-800">
+                          {voucher.limitations}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Already Redeemed Today */}
+            {redeemedToday && voucher.max_redemptions_per_user_per_day && (
+              <div className="bg-stone-100 rounded-lg border border-border p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-surface rounded-md flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-text-tertiary" />
+                  </div>
+                  <div>
+                    <p className="text-subheading text-text-primary">
+                      Already Redeemed Today
+                    </p>
+                    <p className="text-caption text-text-tertiary">
+                      Come back tomorrow for your next {voucher.title.toLowerCase()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
 
-          {/* Rules & Limitations */}
-          {(voucher.rules || voucher.limitations) && (
-            <div className="bg-[#FEF3C7] rounded-xl border border-[#FCD34D] p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Info className="w-4 h-4 text-[#D97706]" />
-                </div>
-                <div className="space-y-2">
-                  {voucher.rules && (
-                    <div>
-                      <p className="text-[12px] font-semibold text-[#92400E] mb-0.5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                        Rules
-                      </p>
-                      <p className="text-[13px] text-[#92400E]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                        {voucher.rules}
-                      </p>
-                    </div>
-                  )}
-                  {voucher.limitations && (
-                    <div>
-                      <p className="text-[12px] font-semibold text-[#92400E] mb-0.5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                        Limitations
-                      </p>
-                      <p className="text-[13px] text-[#92400E]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                        {voucher.limitations}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Already Redeemed Today */}
-          {redeemedToday && voucher.max_redemptions_per_user_per_day && (
-            <div className="bg-[#F5F5F4] rounded-xl border border-[#E7E5E4] p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-[#78716C]" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    Already Redeemed Today
-                  </p>
-                  <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    Come back tomorrow for your next {voucher.title.toLowerCase()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Redeem Button */}
+      {/* Sticky Redeem Button */}
+      <div className="fixed bottom-0 left-0 right-0 z-fixed">
+        <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 pb-4 pt-3 bg-gradient-to-t from-stone-50 via-stone-50/95 to-stone-50/0">
           <button
             onClick={() => setShowConfirmModal(true)}
             disabled={!canRedeem() || redeeming || redeemedToday}
-            className={`w-full h-14 rounded-xl font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
+            className={`btn w-full h-14 rounded-lg text-base ${
               canRedeem() && !redeeming && !redeemedToday
-                ? isEmployee
-                  ? 'bg-[#D97706] text-white active:scale-[0.98]'
-                  : 'bg-[#1C1917] text-white active:scale-[0.98]'
-                : 'bg-[#E7E5E4] text-[#A8A29E] cursor-not-allowed'
+                ? 'btn-primary'
+                : 'bg-stone-200 text-text-tertiary cursor-not-allowed'
             }`}
-            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
           >
             {redeeming ? (
               <>
@@ -462,85 +431,46 @@ export default function VoucherDetailPage() {
               <span>Need {voucher.points_required - (user?.points_balance || 0)} more points</span>
             )}
           </button>
-
-          {/* How It Works */}
-          <div className="bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#E7E5E4]">
-              <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                How to Redeem
-              </p>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {[
-                { step: 1, title: 'Tap Redeem', desc: 'Generate a QR code for your voucher' },
-                { step: 2, title: 'Show QR', desc: 'Present the code to staff at checkout' },
-                { step: 3, title: 'Enjoy!', desc: 'Staff will scan and apply your reward' },
-              ].map(({ step, title, desc }) => (
-                <div key={step} className="flex gap-3">
-                  <div className="w-8 h-8 bg-[#1C1917] rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-[12px] font-bold text-white">{step}</span>
-                  </div>
-                  <div className="pt-0.5">
-                    <p className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                      {title}
-                    </p>
-                    <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                      {desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Expiration Warning */}
-              <div className="flex gap-3 bg-[#F5F5F4] rounded-lg p-3 mt-2">
-                <Clock className="w-4 h-4 text-[#78716C] flex-shrink-0 mt-0.5" />
-                <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  QR codes expire after 10 minutes. Use immediately after redeeming.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl max-w-sm w-full p-6 border border-[#E7E5E4]">
+        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl max-w-sm w-full p-6 border border-border">
             <div className="text-center mb-5">
-              <div className="w-14 h-14 bg-[#F5F5F4] rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-[32px]">{getEmoji()}</span>
+              <div className="w-14 h-14 bg-stone-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">{getEmoji()}</span>
               </div>
-              <h2 className="text-[18px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              <h2 className="text-heading text-text-primary mb-1">
                 Redeem Voucher?
               </h2>
-              <p className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              <p className="text-caption text-text-tertiary">
                 {voucher.title}
               </p>
             </div>
 
             {!isEmployee && (
-              <div className="bg-[#F5F5F4] rounded-xl p-4 mb-5 space-y-2">
+              <div className="bg-stone-100 rounded-lg p-4 mb-5 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Points to deduct</span>
-                  <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{voucher.points_required} pts</span>
+                  <span className="text-body text-text-tertiary">Points to deduct</span>
+                  <span className="text-subheading text-text-primary">{voucher.points_required} pts</span>
                 </div>
-                <div className="border-t border-[#E7E5E4]" />
+                <div className="border-t border-border" />
                 <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Current balance</span>
-                  <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{user?.points_balance || 0} pts</span>
+                  <span className="text-body text-text-tertiary">Current balance</span>
+                  <span className="text-subheading text-text-primary">{user?.points_balance || 0} pts</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>New balance</span>
-                  <span className="text-[14px] font-semibold text-[#16A34A]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{(user?.points_balance || 0) - voucher.points_required} pts</span>
+                  <span className="text-body text-text-tertiary">New balance</span>
+                  <span className="text-subheading text-success">{(user?.points_balance || 0) - voucher.points_required} pts</span>
                 </div>
               </div>
             )}
 
             {isEmployee && (
-              <div className="bg-[#FEF3C7] rounded-xl p-4 mb-5 text-center">
-                <p className="text-[14px] font-semibold text-[#D97706]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              <div className="bg-amber-50 rounded-lg p-4 mb-5 text-center">
+                <p className="text-subheading text-accent">
                   Employee Perk - No Points Required
                 </p>
               </div>
@@ -549,18 +479,14 @@ export default function VoucherDetailPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="flex-1 h-12 bg-white border border-[#E7E5E4] text-[#1C1917] rounded-xl font-semibold text-[14px] active:scale-[0.98] transition-transform"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="btn-secondary flex-1 h-12 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRedeem}
                 disabled={redeeming}
-                className={`flex-1 h-12 rounded-xl font-semibold text-[14px] transition-all disabled:opacity-50 ${
-                  isEmployee ? 'bg-[#D97706] text-white' : 'bg-[#1C1917] text-white'
-                }`}
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="btn-primary flex-1 h-12 rounded-lg disabled:opacity-50"
               >
                 {redeeming ? 'Redeeming...' : 'Confirm'}
               </button>
@@ -585,36 +511,36 @@ export default function VoucherDetailPage() {
       {/* Success Modal */}
       {showSuccessModal && redeemedVoucherData && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => {
             setShowSuccessModal(false);
             router.push('/app/vouchers');
           }}
         >
           <div
-            className="bg-white rounded-xl p-6 max-w-sm w-full text-center border border-[#E7E5E4]"
+            className="bg-surface rounded-xl p-6 max-w-sm w-full text-center border border-border"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Success Icon */}
-            <div className="w-16 h-16 rounded-full bg-[#DCFCE7] flex items-center justify-center mx-auto mb-5">
-              <CheckCircle className="w-8 h-8 text-[#16A34A]" />
+            <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center mx-auto mb-5">
+              <CheckCircle className="w-8 h-8 text-success" />
             </div>
 
-            <h2 className="text-[18px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+            <h2 className="text-heading text-text-primary mb-1">
               Voucher Redeemed!
             </h2>
 
-            <p className="text-[15px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+            <p className="text-subheading text-text-primary mb-1">
               {redeemedVoucherData.voucher_title}
             </p>
 
-            <p className="text-[13px] text-[#78716C] mb-5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+            <p className="text-caption text-text-tertiary mb-5">
               at {redeemedVoucherData.outlet}
             </p>
 
             {redeemedVoucherData.cash_value > 0 && (
-              <div className="inline-flex items-center gap-2 bg-[#F5F5F4] rounded-lg px-4 py-2 mb-5">
-                <span className="text-[14px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+              <div className="badge-default rounded-lg px-4 py-2 mb-5 mx-auto">
+                <span className="text-subheading text-text-primary">
                   ฿{redeemedVoucherData.cash_value} Value
                 </span>
               </div>
@@ -625,8 +551,7 @@ export default function VoucherDetailPage() {
                 setShowSuccessModal(false);
                 router.push('/app/vouchers');
               }}
-              className="w-full h-12 bg-[#1C1917] text-white rounded-xl font-semibold text-[14px] active:scale-[0.98] transition-transform"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+              className="btn-primary w-full h-12 rounded-lg"
             >
               Done
             </button>

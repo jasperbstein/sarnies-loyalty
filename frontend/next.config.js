@@ -2,7 +2,88 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: true, // Disabled to prevent aggressive caching issues
+  disable: process.env.NODE_ENV === 'development', // Only enable PWA in production
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'google-fonts',
+        expiration: {
+          maxEntries: 4,
+          maxAgeSeconds: 365 * 24 * 60 * 60 // 1 year
+        }
+      }
+    },
+    {
+      urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-font-assets',
+        expiration: {
+          maxEntries: 4,
+          maxAgeSeconds: 7 * 24 * 60 * 60 // 1 week
+        }
+      }
+    },
+    {
+      urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-image-assets',
+        expiration: {
+          maxEntries: 64,
+          maxAgeSeconds: 24 * 60 * 60 // 1 day
+        }
+      }
+    },
+    {
+      urlPattern: /\.(?:js)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-js-assets',
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60 // 1 day
+        }
+      }
+    },
+    {
+      urlPattern: /\.(?:css|less)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-style-assets',
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60 // 1 day
+        }
+      }
+    },
+    {
+      urlPattern: /^https:\/\/api\..*$/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'api-cache',
+        networkTimeoutSeconds: 10,
+        expiration: {
+          maxEntries: 16,
+          maxAgeSeconds: 60 // 1 minute for API responses
+        }
+      }
+    },
+    {
+      urlPattern: /.*/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'others',
+        networkTimeoutSeconds: 10,
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60 // 1 day
+        }
+      }
+    }
+  ]
 });
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
@@ -28,6 +109,10 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'loyalty.sarnies.tech',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
       {
@@ -38,8 +123,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.pexels.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
     ],
-    domains: ['images.unsplash.com', 'picsum.photos', 'images.pexels.com'],
+    domains: ['loyalty.sarnies.tech', 'localhost', 'images.unsplash.com', 'picsum.photos', 'images.pexels.com'],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000, // 1 year for static assets
     deviceSizes: [640, 750, 828, 1080, 1200],

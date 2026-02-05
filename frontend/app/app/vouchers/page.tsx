@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';
 import { useAuthStore } from '@/lib/store';
 import { vouchersAPI } from '@/lib/api';
-import { ChevronDown, Search, X, Star } from 'lucide-react';
+import { ChevronDown, Search, X, Star, Gift, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { PullToRefresh } from '@/components/PullToRefresh';
 import { VouchersPageSkeleton } from '@/components/ui/SkeletonLoader';
 import { useTabSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { VoucherCard } from '@/components/ui/VoucherCard';
+import { isEmployeeUser } from '@/lib/authUtils';
 
 interface Voucher {
   id: number;
@@ -29,6 +30,7 @@ interface Voucher {
   max_redemptions_per_user?: number;
   max_redemptions_per_user_per_day?: number;
   redeemed_today?: number;
+  today_redemptions?: number;
   total_redemptions?: number;
 }
 
@@ -44,7 +46,7 @@ export default function VouchersPage() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const isEmployee = user?.user_type === 'employee';
+  const isEmployee = isEmployeeUser(user);
 
   useTabSwipeNavigation();
 
@@ -60,8 +62,16 @@ export default function VouchersPage() {
 
   const fetchVouchers = async () => {
     try {
-      const response = await vouchersAPI.getAll();
-      setVouchers(response.data.vouchers);
+      const currentUser = useAuthStore.getState().user;
+      const currentIsEmployee = isEmployeeUser(currentUser);
+
+      if (currentIsEmployee && currentUser?.id) {
+        const response = await vouchersAPI.getEmployeeVouchers(currentUser.id);
+        setVouchers(response.data.vouchers || []);
+      } else {
+        const response = await vouchersAPI.getAll();
+        setVouchers(response.data.vouchers || []);
+      }
     } catch (error) {
       console.error('Voucher fetch error:', error);
       if (user) {
@@ -78,17 +88,13 @@ export default function VouchersPage() {
 
   const filteredVouchers = useMemo(() => {
     if (!vouchers || !Array.isArray(vouchers)) return [];
-    // Filter vouchers based on user type
-    // - Employees see vouchers where target_user_types includes 'employee' OR is_staff_voucher is true
-    // - Customers see vouchers where target_user_types includes 'customer' OR is_staff_voucher is false/undefined
+
     let filtered = [...vouchers].filter(v => {
-      // Check target_user_types array if available (preferred method)
       if (v.target_user_types && Array.isArray(v.target_user_types) && v.target_user_types.length > 0) {
         return isEmployee
           ? v.target_user_types.includes('employee')
           : v.target_user_types.includes('customer');
       }
-      // Fall back to is_staff_voucher boolean
       return isEmployee ? v.is_staff_voucher === true : v.is_staff_voucher !== true;
     });
 
@@ -113,7 +119,6 @@ export default function VouchersPage() {
   }, [vouchers, searchQuery, categoryFilter, isEmployee]);
 
   const groups = useMemo(() => {
-    // For employees, just show all perks without complex grouping
     if (isEmployee) {
       return {
         featured: filteredVouchers.filter(v => v.is_featured),
@@ -123,7 +128,6 @@ export default function VouchersPage() {
       };
     }
 
-    // For customers, use the category grouping
     const featured = filteredVouchers.filter(v => v.is_featured);
     const featuredIds = new Set(featured.map(v => v.id));
 
@@ -142,7 +146,8 @@ export default function VouchersPage() {
     };
   }, [filteredVouchers, isEmployee]);
 
-  // Render voucher card using unified component
+  const getRedeemedToday = (voucher: Voucher) => voucher.today_redemptions ?? voucher.redeemed_today ?? 0;
+
   const renderVoucherCard = (voucher: Voucher) => (
     <VoucherCard
       key={voucher.id}
@@ -154,7 +159,7 @@ export default function VouchersPage() {
       pointsRequired={voucher.points_required}
       isFeatured={voucher.is_featured}
       isEmployee={isEmployee}
-      remainingToday={voucher.max_redemptions_per_user_per_day ? voucher.max_redemptions_per_user_per_day - (voucher.redeemed_today || 0) : undefined}
+      remainingToday={voucher.max_redemptions_per_user_per_day ? voucher.max_redemptions_per_user_per_day - getRedeemedToday(voucher) : undefined}
       maxPerDay={voucher.max_redemptions_per_user_per_day}
     />
   );
@@ -170,143 +175,154 @@ export default function VouchersPage() {
   return (
     <AppLayout>
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="flex flex-col min-h-screen bg-[#FAFAF9]">
-          {/* Header - 16px padding */}
-          <div className="bg-[#FAFAF9] px-4 pt-4 pb-0">
-            {/* Title Row */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-[20px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  {isEmployee ? 'Your Perks' : 'Vouchers'}
-                </h1>
-                {!isEmployee && (
-                  <p className="text-[13px] text-[#D97706] flex items-center gap-1 mt-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    <Star className="w-4 h-4 fill-current" />
-                    {user?.points_balance || 0} points
-                  </p>
-                )}
-                {isEmployee && (
-                  <p className="text-[13px] text-[#78716C] mt-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                    Available employee benefits
-                  </p>
+        <div className="flex flex-col min-h-screen bg-bg-primary">
+          <div className="max-w-2xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full">
+            {/* Header */}
+            <div className="bg-bg-primary px-4 md:px-6 pt-3 pb-0">
+              {/* Title Row */}
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h1 className="text-heading text-text-primary">
+                    {isEmployee ? 'Your Perks' : 'Vouchers'}
+                  </h1>
+                  {!isEmployee && (
+                    <p className="text-caption text-accent flex items-center gap-1 mt-0.5">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      {user?.points_balance || 0} points
+                    </p>
+                  )}
+                  {isEmployee && (
+                    <p className="text-caption text-text-tertiary mt-0.5">
+                      Available employee benefits
+                    </p>
+                  )}
+                </div>
+
+                {/* Sort Button */}
+                <button
+                  onClick={() => setShowSortMenu(!showSortMenu)}
+                  className="btn-ghost flex items-center gap-1 px-3 py-1.5 rounded-md border border-border text-caption text-text-secondary bg-surface"
+                >
+                  Sort
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+                <input
+                  type="text"
+                  placeholder="Search vouchers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-search h-10 pl-10 pr-10 rounded-lg"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 )}
               </div>
 
-              {/* Sort Button */}
-              <button
-                onClick={() => setShowSortMenu(!showSortMenu)}
-                className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[#E7E5E4] text-[13px] text-[#57534E] bg-white"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
-                Sort
-                <ChevronDown className={`w-4 h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
-              </button>
+              {/* Category Tabs */}
+              <div className="flex gap-2 mt-3 pb-3 overflow-x-auto scrollbar-hide">
+                {(['all', 'drinks', 'food', 'discounts'] as CategoryFilter[]).map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setCategoryFilter(category)}
+                    className={categoryFilter === category ? 'chip-active shadow-sm' : 'chip-default'}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
-              <input
-                type="text"
-                placeholder="Search vouchers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-10 pr-10 bg-white border border-[#E7E5E4] rounded-xl text-[14px] focus:outline-none focus:border-[#1C1917] transition-colors"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A8A29E]"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+            {/* Content */}
+            <div className="flex-1 px-4 md:px-6 pb-24 space-y-6">
+              {/* Featured Section */}
+              {groups.featured.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-4 bg-accent rounded-full" />
+                    <p className="text-label">
+                      Featured
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                    {groups.featured.map(renderVoucherCard)}
+                  </div>
+                </div>
+              )}
+
+              {/* Employee Perks Section */}
+              {groups.perks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-4 bg-stone-400 rounded-full" />
+                    <p className="text-label">
+                      Your Benefits
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                    {groups.perks.map(renderVoucherCard)}
+                  </div>
+                </div>
+              )}
+
+              {/* Drinks Section */}
+              {groups.drinks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-4 bg-accent-light rounded-full" />
+                    <p className="text-label">
+                      Drinks & Coffee
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                    {groups.drinks.map(renderVoucherCard)}
+                  </div>
+                </div>
+              )}
+
+              {/* Discounts Section */}
+              {groups.discounts.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-4 bg-stone-300 rounded-full" />
+                    <p className="text-label">
+                      Discounts & Deals
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                    {groups.discounts.map(renderVoucherCard)}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {filteredVouchers.length === 0 && (
+                <div className="empty-state">
+                  <div className="empty-state-icon">
+                    {isEmployee ? (
+                      <Gift className="w-7 h-7" />
+                    ) : (
+                      <span className="text-3xl">🎫</span>
+                    )}
+                  </div>
+                  <p className="empty-state-title">
+                    {isEmployee ? 'No perks available' : 'No vouchers found'}
+                  </p>
+                  <p className="empty-state-description">
+                    {isEmployee ? 'Check back soon for employee perks!' : 'Try adjusting your search or filters'}
+                  </p>
+                </div>
               )}
             </div>
-
-            {/* Category Tabs */}
-            <div className="flex gap-2 mt-4 pb-4 overflow-x-auto">
-              {(['all', 'drinks', 'food', 'discounts'] as CategoryFilter[]).map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setCategoryFilter(category)}
-                  className={`px-4 py-2 rounded-xl text-[13px] font-medium transition-colors whitespace-nowrap ${
-                    categoryFilter === category
-                      ? 'bg-[#1C1917] text-white'
-                      : 'bg-white text-[#57534E] border border-[#E7E5E4]'
-                  }`}
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Content - 24px section gaps */}
-          <div className="flex-1 px-4 pb-24 space-y-6">
-            {/* Featured Section */}
-            {groups.featured.length > 0 && (
-              <div>
-                <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] mb-3 uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Featured
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {groups.featured.map(renderVoucherCard)}
-                </div>
-              </div>
-            )}
-
-            {/* Employee Perks Section */}
-            {groups.perks.length > 0 && (
-              <div>
-                <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] mb-3 uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Your Benefits
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {groups.perks.map(renderVoucherCard)}
-                </div>
-              </div>
-            )}
-
-            {/* Drinks Section */}
-            {groups.drinks.length > 0 && (
-              <div>
-                <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] mb-3 uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Drinks & Coffee
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {groups.drinks.map(renderVoucherCard)}
-                </div>
-              </div>
-            )}
-
-            {/* Discounts Section */}
-            {groups.discounts.length > 0 && (
-              <div>
-                <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] mb-3 uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Discounts & Deals
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {groups.discounts.map(renderVoucherCard)}
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {filteredVouchers.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 rounded-xl bg-[#F5F5F4] flex items-center justify-center mb-4">
-                  <span className="text-[28px]">🎫</span>
-                </div>
-                <h3 className="text-[15px] font-semibold text-[#1C1917] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  No vouchers found
-                </h3>
-                <p className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Try adjusting your search or filters
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </PullToRefresh>
