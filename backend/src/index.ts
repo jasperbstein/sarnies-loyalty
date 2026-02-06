@@ -1,11 +1,15 @@
+// Load environment variables FIRST - before any imports that read process.env
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import helmet from 'helmet';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { initSocket } from './socket';
+import { verifyToken } from './utils/jwt';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -23,18 +27,19 @@ import mediaRoutes from './routes/media';
 import uploadRoutes from './routes/upload';
 import auditLogRoutes from './routes/auditLogs';
 import staffRoutes from './routes/staff';
+import referralRoutes from './routes/referrals';
+import rewardsRoutes from './routes/rewards';
+import lineAuthRoutes from './routes/lineAuth';
 
 // Import rate limiters
-import { apiLimiter, authLimiter, publicLimiter } from './middleware/rateLimiter';
-
-// Load environment variables
-dotenv.config();
+import { apiLimiter, authLimiter, publicLimiter, posLimiter } from './middleware/rateLimiter';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Trust proxy for rate limiting (when behind nginx/reverse proxy)
-app.set('trust proxy', true);
+// Use 1 (single proxy hop) instead of true to avoid rate limiter warnings
+app.set('trust proxy', 1);
 
 // Security headers middleware
 app.use(helmet({
@@ -90,7 +95,7 @@ app.use('/api/vouchers', apiLimiter, voucherRoutes);
 app.use('/api/transactions', apiLimiter, transactionRoutes);
 app.use('/api/qr', publicLimiter, qrRoutes);
 app.use('/api/announcements', publicLimiter, announcementRoutes);
-app.use('/api/pos', apiLimiter, posRoutes);
+app.use('/api/pos', posLimiter, posRoutes);
 app.use('/api/companies', apiLimiter, companyRoutes);
 app.use('/api/settings', apiLimiter, settingsRoutes);
 app.use('/api/outlets', apiLimiter, outletsRoutes);
@@ -98,6 +103,9 @@ app.use('/api/investors', apiLimiter, investorRoutes);
 app.use('/api/media', publicLimiter, mediaRoutes);
 app.use('/api/upload', apiLimiter, uploadRoutes);
 app.use('/api/audit-logs', apiLimiter, auditLogRoutes);
+app.use('/api/referrals', apiLimiter, referralRoutes);
+app.use('/api/rewards', apiLimiter, rewardsRoutes);
+app.use('/api/line', publicLimiter, lineAuthRoutes); // Use publicLimiter for LINE webhook compatibility
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -125,18 +133,42 @@ const io = new Server(httpServer, {
 // Initialize socket module
 initSocket(io);
 
-// Socket.IO connection handling
+// Socket.IO connection handling with JWT authentication
 io.on('connection', (socket) => {
   console.log(`🔌 Client connected: ${socket.id}`);
 
-  // Handle user authentication and join user-specific room
-  socket.on('authenticate', (userId: number) => {
-    socket.join(`user:${userId}`);
-    console.log(`✅ User ${userId} authenticated on socket ${socket.id}`);
+  // Handle user authentication with JWT token verification
+  socket.on('authenticate', (token: string) => {
+    try {
+      const payload = verifyToken(token);
+      if (payload && payload.id) {
+        socket.join(`user:${payload.id}`);
+        // Store user info on socket for later use
+        (socket as any).userId = payload.id;
+        (socket as any).userType = payload.type;
+        console.log(`✅ User ${payload.id} (${payload.type}) authenticated on socket ${socket.id}`);
+        socket.emit('authenticated', { success: true, userId: payload.id });
+      }
+    } catch (error) {
+      console.log(`❌ Socket auth failed for ${socket.id}: Invalid token`);
+      socket.emit('authenticated', { success: false, error: 'Invalid token' });
+    }
+  });
+
+  // Handle magic link session subscription (for WebSocket-based login)
+  socket.on('join_magic_link_session', (sessionId: string) => {
+    if (sessionId && typeof sessionId === 'string' && sessionId.length === 32) {
+      socket.join(`magic-link:${sessionId}`);
+      console.log(`🔗 Socket ${socket.id} joined magic-link session: ${sessionId}`);
+      socket.emit('magic_link_session_joined', { sessionId });
+    } else {
+      socket.emit('magic_link_session_error', { error: 'Invalid session ID' });
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log(`🔌 Client disconnected: ${socket.id}`);
+    const userId = (socket as any).userId;
+    console.log(`🔌 Client disconnected: ${socket.id}${userId ? ` (user ${userId})` : ''}`);
   });
 });
 

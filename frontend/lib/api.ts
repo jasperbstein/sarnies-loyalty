@@ -1,6 +1,24 @@
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { getErrorMessage, ERROR_MESSAGES, isTechnicalError } from './errorMessages';
+import type {
+  User,
+  UserParams,
+  UserUpdateData,
+  Voucher,
+  VoucherCreateData,
+  VoucherUpdateData,
+  TransactionParams,
+  AnnouncementCreateData,
+  AnnouncementUpdateData,
+  UserLocationUpdate,
+  SettingCreateData,
+  NotificationData,
+  BroadcastData,
+  NotificationPreferences,
+  ReferralApplyData,
+  POSKeyCreateData,
+} from './types';
 
 // Use relative URL for API calls - this will use the same protocol (HTTPS) and domain as the frontend
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -76,7 +94,7 @@ api.interceptors.request.use((config) => {
           config.headers.Authorization = `Bearer ${state.token}`;
         }
       } catch (e) {
-        console.error('Failed to parse auth storage:', e);
+        // Silently handle parse error
       }
     }
   }
@@ -119,45 +137,133 @@ api.interceptors.response.use(
 
 export default api;
 
+// Auth Identify Response Type
+export interface IdentifyResponse {
+  identifier_type: 'phone' | 'email';
+  user_type: 'customer' | 'employee' | 'partner' | 'staff' | 'admin' | 'new_staff' | 'unknown';
+  auth_method: 'otp' | 'magic_link' | 'password' | null;
+  existing_user: boolean;
+  registration_completed?: boolean;
+  is_verified?: boolean;
+  is_active?: boolean;
+  company?: {
+    id: number;
+    name: string;
+    logo_url?: string;
+    discount_percentage?: number;
+    default_branch?: string;
+  };
+  next_step: 'send_otp' | 'send_magic_link' | 'enter_password' | 'staff_register' | 'use_phone' | 'verify_email';
+  message?: string;
+}
+
+// LINE Login Response Type
+export interface LineAuthUrlResponse {
+  auth_url: string;
+  state: string;
+}
+
+export interface LineCallbackResponse {
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    surname?: string;
+    phone: string;
+    email?: string;
+    points_balance: number;
+    user_type: string;
+    registration_completed: boolean;
+    line_display_name?: string;
+    line_picture_url?: string;
+    type: string;
+  };
+  needs_registration: boolean;
+  referral_code?: string;
+  remember_me: string;
+}
+
 // Auth API
 export const authAPI = {
-  staffLogin: (email: string, password: string) =>
-    api.post('/auth/login', { email, password }),
+  // Unified identifier detection
+  identify: (identifier: string) =>
+    api.post<IdentifyResponse>('/auth/identify', { identifier }),
+
+  staffLogin: (email: string, password: string, remember_me?: string) =>
+    api.post('/auth/login', { email, password, remember_me }),
 
   sendOTP: (phone: string) =>
     api.post('/auth/otp/send', { phone }),
 
-  verifyOTP: (phone: string, otp: string) =>
-    api.post('/auth/otp/verify', { phone, otp }),
+  verifyOTP: (phone: string, otp: string, remember_me?: string) =>
+    api.post('/auth/otp/verify', { phone, otp, remember_me }),
 
-  // Email OTP for employees
+  // Email OTP for customers (alternative to SMS)
   sendEmailOTP: (email: string) =>
     api.post('/auth/otp/email/send', { email }),
 
-  verifyEmailOTP: (email: string, otp: string) =>
-    api.post('/auth/otp/email/verify', { email, otp }),
+  verifyEmailOTP: (email: string, otp: string, remember_me?: string) =>
+    api.post('/auth/otp/email/verify', { email, otp, remember_me }),
 
   // Magic link for employees
   sendMagicLink: (email: string) =>
     api.post('/auth/magic-link/send', { email }),
 
-  verifyMagicLink: (token: string) =>
-    api.get(`/auth/magic-link/verify/${token}`),
+  verifyMagicLink: (token: string, remember_me?: string) =>
+    api.get(`/auth/magic-link/verify/${token}${remember_me ? `?remember_me=${remember_me}` : ''}`),
 
   // Biometric login for employees (device verified, backend validates trusted device)
   biometricLogin: (email: string) =>
     api.post('/auth/biometric-login', { email }),
+
+  // Staff registration
+  staffCheckEmail: (email: string) =>
+    api.post('/auth/staff/check-email', { email }),
+
+  staffRegister: (data: { email: string; password: string; name: string; branch?: string }) =>
+    api.post('/auth/staff/register', data),
+
+  staffResendVerification: (email: string) =>
+    api.post('/auth/staff/resend-verification', { email }),
+
+  // Customer registration
+  register: (data: {
+    phone: string;
+    name: string;
+    surname?: string;
+    email?: string;
+    birthday?: string;
+    gender?: string;
+    company?: string;
+    email_consent?: boolean;
+    sms_consent?: boolean;
+    preferred_outlet?: string;
+  }) =>
+    api.post('/auth/register', data),
+
+  // LINE Login
+  getLineAuthUrl: (remember_me?: string, ref?: string) =>
+    api.get<LineAuthUrlResponse>('/line/auth-url', { params: { remember_me, ref } }),
+
+  lineCallback: (code: string, state?: string) =>
+    api.post<LineCallbackResponse>('/line/callback', { code, state }),
+
+  linkLine: (code: string, user_id: number) =>
+    api.post('/line/link', { code, user_id }),
+
+  unlinkLine: (user_id: number) =>
+    api.post('/line/unlink', { user_id }),
 };
 
 // Users API
 export const usersAPI = {
-  getAll: (params?: any) =>
+  getAll: (params?: UserParams) =>
     api.get('/users', { params }),
 
   getOne: (id: number) =>
     api.get(`/users/${id}`),
 
-  update: (id: number, data: any) =>
+  update: (id: number, data: UserUpdateData) =>
     api.put(`/users/${id}`, data),
 
   adjustPoints: (id: number, points: number, reason: string) =>
@@ -181,10 +287,10 @@ export const vouchersAPI = {
   getOne: (id: number) =>
     api.get(`/vouchers/${id}`),
 
-  create: (data: any) =>
+  create: (data: VoucherCreateData) =>
     api.post('/vouchers', data),
 
-  update: (id: number, data: any) =>
+  update: (id: number, data: VoucherUpdateData) =>
     api.patch(`/vouchers/${id}`, data),
 
   delete: (id: number) =>
@@ -195,6 +301,10 @@ export const vouchersAPI = {
 
   getInstances: (user_id: number, status?: string) =>
     api.get(`/vouchers/instances/${user_id}`, { params: { status } }),
+
+  // Employee vouchers with today's availability
+  getEmployeeVouchers: (userId: number) =>
+    api.get(`/vouchers/employee/${userId}/available`),
 };
 
 // Transactions API
@@ -205,7 +315,7 @@ export const transactionsAPI = {
   redeemVoucher: (user_id: number, voucher_id: number, outlet?: string) =>
     api.post('/transactions/redeem', { user_id, voucher_id, outlet }),
 
-  getAll: (params?: any) =>
+  getAll: (params?: TransactionParams) =>
     api.get('/transactions', { params }),
 };
 
@@ -232,10 +342,10 @@ export const announcementsAPI = {
   getById: (id: number) =>
     api.get(`/announcements/${id}`),
 
-  create: (data: any) =>
+  create: (data: AnnouncementCreateData) =>
     api.post('/announcements', data),
 
-  update: (id: number, data: any) =>
+  update: (id: number, data: AnnouncementUpdateData) =>
     api.patch(`/announcements/${id}`, data),
 
   delete: (id: number) =>
@@ -255,12 +365,7 @@ export const outletsAPI = {
   getOne: (id: number) =>
     api.get(`/outlets/${id}`),
 
-  updateUserLocation: (userId: number, data: {
-    latitude?: number;
-    longitude?: number;
-    location_enabled?: boolean;
-    notification_enabled?: boolean;
-  }) =>
+  updateUserLocation: (userId: number, data: UserLocationUpdate) =>
     api.put(`/outlets/${userId}/location`, data),
 };
 
@@ -348,13 +453,13 @@ export const settingsAPI = {
   getOne: (key: string) =>
     api.get(`/settings/${key}`),
 
-  update: (key: string, value: any) =>
+  update: (key: string, value: string | number | boolean | Record<string, unknown>) =>
     api.put(`/settings/${key}`, { value }),
 
-  bulkUpdate: (settings: { [key: string]: any }) =>
+  bulkUpdate: (settings: Record<string, string | number | boolean | Record<string, unknown>>) =>
     api.put('/settings', { settings }),
 
-  create: (data: { key: string; value: any; type: string; description?: string; editable?: boolean }) =>
+  create: (data: SettingCreateData) =>
     api.post('/settings', data),
 
   // Public endpoint for tier thresholds
@@ -383,7 +488,7 @@ export const notificationsAPI = {
   getPreferences: () =>
     api.get('/notifications/preferences'),
 
-  updatePreferences: (preferences: Record<string, boolean>) =>
+  updatePreferences: (preferences: NotificationPreferences) =>
     api.patch('/notifications/preferences', { preferences }),
 
   sendTest: () =>
@@ -393,10 +498,10 @@ export const notificationsAPI = {
     api.get('/notifications/history', { params }),
 
   // Admin endpoints
-  adminSend: (data: { user_ids: number[]; title: string; body: string; category?: string; data?: any }) =>
+  adminSend: (data: NotificationData) =>
     api.post('/notifications/admin/send', data),
 
-  adminBroadcast: (data: { title: string; body: string; category?: string; data?: any }) =>
+  adminBroadcast: (data: BroadcastData) =>
     api.post('/notifications/admin/broadcast', data),
 
   adminStats: () =>
@@ -417,7 +522,7 @@ export const referralsAPI = {
   validateCode: (code: string) =>
     api.get(`/referrals/validate/${code}`),
 
-  applyCode: (data: { referee_user_id: number; referral_code: string }) =>
+  applyCode: (data: ReferralApplyData) =>
     api.post('/referrals/apply', data),
 
   getAdminStats: () =>
@@ -429,7 +534,7 @@ export const posKeysAPI = {
   getAll: () =>
     api.get('/pos/keys'),
 
-  create: (data: { name: string; outlet_id?: number }) =>
+  create: (data: POSKeyCreateData) =>
     api.post('/pos/keys', data),
 
   revoke: (keyId: number) =>

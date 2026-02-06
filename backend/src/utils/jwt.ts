@@ -5,8 +5,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Reduced default from 30d to 7d for better security
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
+// In production, JWT_SECRET must be set - fail fast
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('FATAL: JWT_SECRET environment variable is required in production');
+}
+
 if (!JWT_SECRET) {
-  console.warn('WARNING: JWT_SECRET not set in environment. Using insecure default for development only.');
+  console.warn('WARNING: JWT_SECRET not set. Using insecure default for development only.');
 }
 
 const SECRET = JWT_SECRET || 'dev-only-insecure-secret-do-not-use-in-production';
@@ -15,6 +20,7 @@ export interface JWTPayload {
   id: number;
   email?: string;
   phone?: string;
+  line_id?: string;  // LINE Login user ID
   role?: string;
   type: 'staff' | 'customer' | 'employee' | 'investor' | 'media';
   jti?: string;  // JWT ID for blacklisting
@@ -22,10 +28,21 @@ export interface JWTPayload {
   iat?: number;  // Issued at timestamp
 }
 
-export const generateToken = (payload: JWTPayload): string => {
+// Remember me durations
+export const REMEMBER_ME_DURATIONS = {
+  '1d': '1 day',
+  '7d': '7 days',
+  '30d': '30 days',
+  '90d': '90 days',
+} as const;
+
+export type RememberMeDuration = keyof typeof REMEMBER_ME_DURATIONS;
+
+export const generateToken = (payload: JWTPayload, expiresIn?: string): string => {
   // Add unique JWT ID for blacklist support
   const jti = crypto.randomBytes(16).toString('hex');
-  return jwt.sign({ ...payload, jti }, SECRET, { expiresIn: JWT_EXPIRES_IN } as any);
+  const expiry = expiresIn || JWT_EXPIRES_IN;
+  return jwt.sign({ ...payload, jti }, SECRET, { expiresIn: expiry } as any);
 };
 
 export const verifyToken = (token: string): JWTPayload => {
