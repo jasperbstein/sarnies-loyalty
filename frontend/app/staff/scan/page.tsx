@@ -8,13 +8,13 @@ import EligibleRewardsCard from '@/components/EligibleRewardsCard';
 import VoucherVerificationCard from '@/components/VoucherVerificationCard';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import api, { transactionsAPI } from '@/lib/api';
-import { CheckCircle, X, Calculator, Store, AlertCircle, DollarSign, Camera, Edit3, MapPin, Info } from 'lucide-react';
+import api, { transactionsAPI, collabsAPI } from '@/lib/api';
+import { CheckCircle, X, Calculator, Store, AlertCircle, DollarSign, Camera, Edit3, MapPin, Info, UserPlus, Building2, Gift, Percent } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jwtDecode } from 'jwt-decode';
 import { useAuthStore } from '@/lib/store';
 
-type ScanMode = 'scan' | 'manual-entry' | 'add-points' | 'redeem-voucher' | 'success' | 'error';
+type ScanMode = 'scan' | 'manual-entry' | 'add-points' | 'redeem-voucher' | 'redeem-collab' | 'success' | 'error';
 
 export default function StaffScanPage() {
   const { user } = useAuthStore();
@@ -28,6 +28,8 @@ export default function StaffScanPage() {
   const [manualCustomerId, setManualCustomerId] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingReward, setPendingReward] = useState<{ id: number; title: string } | null>(null);
+  const [collabOfferDetails, setCollabOfferDetails] = useState<any>(null);
+  const [collabRedemptionToken, setCollabRedemptionToken] = useState<string>('');
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [outlets, setOutlets] = useState<{ id: number; name: string }[]>([]);
@@ -144,13 +146,11 @@ export default function StaffScanPage() {
   const handleScan = async (scannedData: string) => {
     // Ignore empty or very short scans (noise from scanner)
     if (!scannedData || scannedData.trim().length < 10) {
-      console.log('Ignoring short/empty scan:', scannedData);
       return;
     }
 
     // Prevent race conditions from rapid/duplicate scans
     if (processingRef.current) {
-      console.log('Already processing a scan, ignoring duplicate...');
       return;
     }
 
@@ -189,6 +189,22 @@ export default function StaffScanPage() {
         });
         setVoucherDetails(voucherResponse.data);
         setMode('redeem-voucher');
+        playSuccessSound();
+        triggerHaptic('success');
+      } else if (parsedData.type === 'collab_redemption') {
+        // Collab offer redemption QR
+        const response = await api.get(`/users/${parsedData.customer_id}`);
+        const offerResponse = await collabsAPI.getOffer(parsedData.offer_id);
+
+        setQrData({
+          type: 'collab_redemption',
+          user: response.data,
+          offer: offerResponse.data,
+          token: parsedData.token
+        });
+        setCollabOfferDetails(offerResponse.data);
+        setCollabRedemptionToken(parsedData.token);
+        setMode('redeem-collab');
         playSuccessSound();
         triggerHaptic('success');
       } else if (parsedData.type === 'loyalty_id' || isJWT) {
@@ -394,6 +410,56 @@ export default function StaffScanPage() {
     setPendingReward(null);
   };
 
+  const handleRedeemCollab = async () => {
+    if (!qrData || !collabRedemptionToken) return;
+
+    setLoading(true);
+    try {
+      await collabsAPI.verifyRedemption(collabRedemptionToken, outlet);
+
+      toast.success('Partner offer redeemed successfully!');
+      playSuccessSound();
+      triggerHaptic('success');
+
+      setMode('success');
+      setTimeout(() => resetScan(), 6000);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to redeem partner offer');
+      playErrorSound();
+      triggerHaptic('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCollabDiscountDisplay = (offer: any) => {
+    if (!offer) return '';
+    switch (offer.discount_type) {
+      case 'percentage':
+        return `${offer.discount_value}% off`;
+      case 'fixed':
+        return `$${offer.discount_value} off`;
+      case 'free_item':
+        return 'Free item';
+      default:
+        return '';
+    }
+  };
+
+  const getCollabDiscountIcon = (offer: any) => {
+    if (!offer) return <Gift className="w-5 h-5" />;
+    switch (offer.discount_type) {
+      case 'percentage':
+        return <Percent className="w-5 h-5" />;
+      case 'fixed':
+        return <DollarSign className="w-5 h-5" />;
+      case 'free_item':
+        return <Gift className="w-5 h-5" />;
+      default:
+        return <Gift className="w-5 h-5" />;
+    }
+  };
+
   const resetScan = () => {
     setMode('scan');
     setQrData(null);
@@ -401,65 +467,116 @@ export default function StaffScanPage() {
     setManualCustomerId('');
     // Don't reset outlet - keep staff's branch
     setVoucherDetails(null);
+    setCollabOfferDetails(null);
+    setCollabRedemptionToken('');
     setErrorMessage('');
     setShowConfirmModal(false);
     setPendingReward(null);
     processingRef.current = false;
   };
 
+  const formatDate = (date: Date | null) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const outletName = user?.branch || 'Sarnies';
+
   return (
     <StaffLayout>
-      <div className="max-w-3xl mx-auto p-4 lg:p-6">
-        {/* Top Status Bar - Fixed Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm">
-                {isMounted && user?.name?.charAt(0)}
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900 text-base">{isMounted ? user?.name : ''}</p>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-gray-600">{isMounted ? (outlet || user?.branch || 'Not Set') : 'Not Set'}</span>
-                  <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-green-700 font-medium text-xs">Active</span>
-                  </div>
-                </div>
-              </div>
+      <div className="max-w-xl mx-auto px-4 py-5">
+        {/* Hero Card - Premium Dark with Subtle Gradient */}
+        <div
+          className="rounded-3xl p-6 mb-5 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)'
+          }}
+        >
+          {/* Subtle shine effect */}
+          <div
+            className="absolute top-0 right-0 w-32 h-32 opacity-[0.03]"
+            style={{
+              background: 'radial-gradient(circle, white 0%, transparent 70%)'
+            }}
+          />
+
+          <div className="flex items-start justify-between mb-4 relative">
+            <div>
+              <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-[0.2em] mb-1.5">
+                Current Outlet
+              </p>
+              <h1 className="text-xl font-semibold text-white tracking-tight">
+                {isMounted ? outletName : '...'}
+              </h1>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Time</p>
-              <p className="text-xl font-bold text-gray-900 font-mono tabular-nums" suppressHydrationWarning>
+              <p className="text-3xl font-light text-white font-mono tabular-nums tracking-tight" suppressHydrationWarning>
                 {formatTime(currentTime)}
               </p>
+              <p className="text-[11px] text-stone-500 mt-1 tracking-wide" suppressHydrationWarning>
+                {formatDate(currentTime)}
+              </p>
+            </div>
+          </div>
+
+          {/* Staff Info - Refined */}
+          <div className="flex items-center gap-3 pt-4 border-t border-white/[0.06]">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm text-white"
+              style={{
+                background: 'linear-gradient(145deg, #44403c 0%, #292524 100%)',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)'
+              }}
+            >
+              {isMounted && user?.name?.charAt(0)}
+            </div>
+            <div className="flex-1">
+              <p className="text-[15px] font-medium text-white">{isMounted ? user?.name : ''}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span className="text-[11px] text-stone-500 tracking-wide">On shift</span>
+              </div>
             </div>
           </div>
         </div>
 
         {mode === 'scan' && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Primary Action Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">Scan Customer QR</h1>
-                <p className="text-sm text-gray-600">
-                  Use camera to scan or enter code manually
+            <div
+              className="bg-white rounded-3xl p-6"
+              style={{
+                boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)'
+              }}
+            >
+              <div className="text-center mb-8">
+                <h2 className="text-lg font-semibold text-stone-900 tracking-tight mb-1">
+                  Scan Customer QR
+                </h2>
+                <p className="text-sm text-stone-400">
+                  Camera scan or manual entry
                 </p>
               </div>
 
-              {/* Action Buttons - Primary/Secondary hierarchy */}
+              {/* Action Buttons - Premium styling */}
               <div className="space-y-3">
                 <button
                   type="button"
                   onClick={() => {
                     qrScannerRef.current?.startScanner();
                   }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gray-900 text-white rounded-xl font-semibold text-base hover:bg-gray-800 transition-colors shadow-sm"
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-semibold text-[15px] text-white active:scale-[0.98] transition-all"
+                  style={{
+                    background: 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1)'
+                  }}
                 >
-                  <Camera size={24} />
+                  <Camera size={20} />
                   Start Camera Scan
                 </button>
 
@@ -469,9 +586,9 @@ export default function StaffScanPage() {
                     setMode('manual-entry');
                     setManualCustomerId('');
                   }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold text-base hover:bg-gray-50 hover:border-gray-400 transition-all"
+                  className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-stone-50 hover:bg-stone-100 text-stone-600 rounded-2xl font-medium text-[15px] active:scale-[0.98] transition-all border border-stone-100"
                 >
-                  <Edit3 size={24} />
+                  <Edit3 size={18} />
                   Enter Code Manually
                 </button>
               </div>
@@ -479,58 +596,6 @@ export default function StaffScanPage() {
 
             {/* QR Scanner Component */}
             <QRScanner ref={qrScannerRef} onScan={handleScan} />
-
-            {/* Staff Verification Checklist */}
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <AlertCircle className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="font-bold text-gray-900">Verification Checklist</h3>
-              </div>
-              <ul className="space-y-2.5">
-                <li className="flex items-start gap-2.5 text-sm text-gray-700">
-                  <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Verify customer identity for high-value vouchers</span>
-                </li>
-                <li className="flex items-start gap-2.5 text-sm text-gray-700">
-                  <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Check voucher has not expired (10-minute timer)</span>
-                </li>
-                <li className="flex items-start gap-2.5 text-sm text-gray-700">
-                  <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Confirm outlet restrictions match current branch</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Scanning Tips */}
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
-                  <Info className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="font-bold text-gray-900">Scanning Tips</h3>
-              </div>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-600 font-bold">•</span>
-                  <span>Ask customer to increase screen brightness</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-600 font-bold">•</span>
-                  <span>Hold QR code 15–20 cm from camera</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-600 font-bold">•</span>
-                  <span>Keep the code centered and steady</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-600 font-bold">•</span>
-                  <span>Use manual entry if scanning fails</span>
-                </li>
-              </ul>
-            </div>
           </div>
         )}
 
@@ -551,32 +616,35 @@ export default function StaffScanPage() {
             />
 
             {/* Add Points Form */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-black">Add Points for Purchase</h3>
+            <div
+              className="bg-white rounded-3xl p-6"
+              style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-semibold text-stone-900 tracking-tight">Add Points</h3>
                 <button
                   onClick={resetScan}
-                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="w-9 h-9 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center hover:bg-stone-100 transition-colors"
                 >
-                  <X size={24} />
+                  <X size={18} className="text-stone-400" />
                 </button>
               </div>
 
               <form onSubmit={handleAddPoints} className="space-y-5">
                 {/* Receipt Amount */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Purchase Amount (฿) *
+                  <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-2">
+                    Purchase Amount
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg font-semibold">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-lg font-medium">
                       ฿
                     </div>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black text-lg font-semibold"
+                      className="w-full pl-10 pr-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl focus:ring-2 focus:ring-stone-900 focus:border-stone-900 focus:bg-white text-lg font-semibold text-stone-900 transition-all placeholder:text-stone-300"
                       placeholder="350.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -584,45 +652,52 @@ export default function StaffScanPage() {
                     />
                   </div>
 
-                  {/* Points Preview Card - Only show if amount entered */}
+                  {/* Points Preview Card */}
                   {amount && parseFloat(amount) > 0 && (
-                    <div className="mt-4 bg-gradient-to-br from-amber-50 via-amber-100 to-yellow-50 rounded-xl p-5 border-2 border-amber-300 shadow-sm">
-                      <div className="flex items-center justify-between mb-2">
+                    <div
+                      className="mt-4 rounded-2xl p-4"
+                      style={{
+                        background: 'linear-gradient(145deg, #fef3c7 0%, #fde68a 100%)',
+                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.12)'
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center"
+                            style={{
+                              background: 'linear-gradient(145deg, #f59e0b 0%, #d97706 100%)',
+                              boxShadow: '0 2px 6px rgba(217, 119, 6, 0.3)'
+                            }}
+                          >
                             <Calculator className="w-5 h-5 text-white" />
                           </div>
-                          <span className="font-bold text-base text-amber-900">Points to Award</span>
+                          <span className="text-sm font-semibold text-amber-900">Points to Award</span>
                         </div>
-                        <div className="bg-white px-4 py-2 rounded-lg border-2 border-amber-400 shadow-sm">
-                          <span className="text-2xl font-black text-amber-700">
-                            +{calculatePoints()}
-                          </span>
-                        </div>
+                        <span className="text-2xl font-bold text-amber-700">
+                          +{calculatePoints()}
+                        </span>
                       </div>
-                      <p className="text-sm text-amber-800 font-medium">
-                        Customer earns <strong>1 point per ฿100</strong> spent
-                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* Outlet */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Outlet Location *
+                  <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-2">
+                    Outlet Location
                   </label>
                   <div className="relative">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                      <Store className="w-5 h-5 text-gray-400" />
+                      <Store className="w-4 h-4 text-stone-400" />
                     </div>
                     <select
-                      className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black text-base font-medium appearance-none bg-white"
+                      className="w-full pl-11 pr-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl focus:ring-2 focus:ring-stone-900 focus:border-stone-900 focus:bg-white text-base font-medium appearance-none transition-all"
                       value={outlet}
                       onChange={(e) => setOutlet(e.target.value)}
                       required
                     >
-                      <option value="">-- Select Outlet --</option>
+                      <option value="">Select outlet</option>
                       {outlets.map((o) => (
                         <option key={o.id} value={o.name}>{o.name}</option>
                       ))}
@@ -631,22 +706,24 @@ export default function StaffScanPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    className={`flex-1 py-4 rounded-xl font-bold transition-all shadow-sm ${
-                      loading || !amount || parseFloat(amount) <= 0
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md'
-                    }`}
+                    className="flex-1 py-4 rounded-2xl font-semibold text-[15px] text-white active:scale-[0.98] transition-all disabled:opacity-50"
+                    style={{
+                      background: loading || !amount || parseFloat(amount) <= 0
+                        ? '#d6d3d1'
+                        : 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+                      boxShadow: loading || !amount || parseFloat(amount) <= 0 ? 'none' : '0 2px 8px rgba(0,0,0,0.15)'
+                    }}
                     disabled={loading || !amount || parseFloat(amount) <= 0}
                   >
-                    {loading ? 'Processing...' : amount && parseFloat(amount) > 0 ? `Confirm & Add ${calculatePoints()} Points` : 'Enter Amount to Continue'}
+                    {loading ? 'Processing...' : amount && parseFloat(amount) > 0 ? `Add ${calculatePoints()} Points` : 'Enter Amount'}
                   </button>
                   <button
                     type="button"
                     onClick={resetScan}
-                    className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="px-6 py-4 bg-stone-50 hover:bg-stone-100 text-stone-500 rounded-2xl font-medium transition-colors border border-stone-100 disabled:opacity-50"
                     disabled={loading}
                   >
                     Cancel
@@ -668,11 +745,11 @@ export default function StaffScanPage() {
 
             {qrData.type === 'employee_vouchers' ? (
               /* Employee Vouchers List */
-              <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Employee Benefits Available</h3>
+              <div className="bg-white rounded-2xl p-5">
+                <h3 className="text-lg font-semibold text-stone-900 mb-4">Employee Perks</h3>
 
                 {qrData.vouchers && qrData.vouchers.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {qrData.vouchers.map((voucher: any) => (
                       <button
                         key={voucher.id}
@@ -684,54 +761,52 @@ export default function StaffScanPage() {
                           });
                         }}
                         disabled={voucher.available_today === 0}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border transition-all ${
                           voucher.available_today === 0
-                            ? 'bg-gray-100 border-gray-300 opacity-60 cursor-not-allowed'
+                            ? 'bg-stone-50 border-stone-200 opacity-50 cursor-not-allowed'
                             : voucherDetails?.id === voucher.id
-                            ? 'bg-green-50 border-green-500'
-                            : 'bg-white border-gray-200 hover:border-green-400'
+                            ? 'bg-green-50 border-green-400'
+                            : 'bg-white border-stone-200 hover:border-stone-300'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{voucher.title}</h4>
-                            <p className="text-sm text-gray-600 mt-1">{voucher.description}</p>
-                            <div className="flex items-center gap-4 mt-2">
-                              <span className={`text-sm font-medium ${
-                                voucher.available_today > 0 ? 'text-green-600' : 'text-gray-500'
-                              }`}>
-                                Available today: {voucher.available_today}/{voucher.max_redemptions_per_user_per_day || '∞'}
-                              </span>
-                            </div>
+                            <h4 className="font-medium text-stone-900">{voucher.title}</h4>
+                            <p className="text-sm text-stone-500 mt-0.5 line-clamp-1">{voucher.description}</p>
+                            <span className={`text-xs font-medium mt-1.5 inline-block ${
+                              voucher.available_today > 0 ? 'text-green-600' : 'text-stone-400'
+                            }`}>
+                              {voucher.available_today}/{voucher.max_redemptions_per_user_per_day || '∞'} left today
+                            </span>
                           </div>
                           {voucher.available_today === 0 && (
-                            <span className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded-full">
-                              Used Today
+                            <span className="px-2.5 py-1 bg-stone-100 text-stone-500 text-xs font-medium rounded-full">
+                              Used
                             </span>
                           )}
                           {voucherDetails?.id === voucher.id && (
-                            <CheckCircle className="w-6 h-6 text-green-600 ml-3" />
+                            <CheckCircle className="w-5 h-5 text-green-500 ml-3" />
                           )}
                         </div>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No employee benefits available</p>
+                  <p className="text-stone-400 text-center py-4 text-sm">No perks available</p>
                 )}
 
                 {voucherDetails && (
-                  <div className="mt-6 flex gap-3">
+                  <div className="mt-5 flex gap-3">
                     <button
                       onClick={handleRedeemVoucher}
-                      className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+                      className="flex-1 bg-green-600 text-white py-3.5 rounded-xl font-semibold hover:bg-green-700 active:scale-[0.98] transition-all disabled:opacity-50"
                       disabled={loading}
                     >
                       {loading ? 'Processing...' : 'Confirm Redemption'}
                     </button>
                     <button
                       onClick={resetScan}
-                      className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                      className="px-5 py-3.5 bg-stone-100 text-stone-600 rounded-xl font-medium hover:bg-stone-200 transition-colors"
                       disabled={loading}
                     >
                       Cancel
@@ -750,18 +825,18 @@ export default function StaffScanPage() {
                 />
 
                 {/* Action Buttons */}
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                <div className="bg-white rounded-2xl p-5">
                   <div className="flex gap-3">
                     <button
                       onClick={handleRedeemVoucher}
-                      className="flex-1 bg-green-600 text-white py-5 rounded-xl font-bold hover:bg-green-700 transition-all shadow-sm hover:shadow-md text-lg disabled:opacity-50"
+                      className="flex-1 bg-green-600 text-white py-4 rounded-xl font-semibold text-[15px] hover:bg-green-700 active:scale-[0.98] transition-all disabled:opacity-50"
                       disabled={loading}
                     >
-                      {loading ? 'Processing...' : 'Redeem Voucher Now'}
+                      {loading ? 'Processing...' : 'Redeem Voucher'}
                     </button>
                     <button
                       onClick={resetScan}
-                      className="px-6 py-5 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                      className="px-5 py-4 bg-stone-100 text-stone-600 rounded-xl font-medium hover:bg-stone-200 transition-colors"
                       disabled={loading}
                     >
                       Cancel
@@ -773,16 +848,153 @@ export default function StaffScanPage() {
           </div>
         )}
 
-        {mode === 'success' && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-green-200">
-            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={60} className="text-green-600" />
+        {mode === 'redeem-collab' && qrData && collabOfferDetails && (
+          <div className="space-y-6">
+            {/* Customer Preview */}
+            <CustomerPreviewCard
+              customer={qrData.user}
+              qrType="loyalty_id"
+              showFullDetails={false}
+            />
+
+            {/* Collab Offer Details */}
+            <div
+              className="bg-white rounded-3xl overflow-hidden"
+              style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+            >
+              {/* Partner Badge Header */}
+              <div
+                className="p-5"
+                style={{
+                  background: 'linear-gradient(145deg, #f3e8ff 0%, #e9d5ff 100%)'
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
+                    style={{
+                      background: 'white',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                    }}
+                  >
+                    {collabOfferDetails.offering_company_logo ? (
+                      <img
+                        src={collabOfferDetails.offering_company_logo}
+                        alt={collabOfferDetails.offering_company_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-purple-400" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <UserPlus className="w-3.5 h-3.5 text-purple-600" />
+                      <span className="text-[10px] font-semibold text-purple-600 uppercase tracking-wider">
+                        Partner Offer
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-purple-900">
+                      {collabOfferDetails.offering_company_name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Offer Details */}
+              <div className="p-5">
+                <h3 className="text-lg font-semibold text-stone-900 mb-2">
+                  {collabOfferDetails.title}
+                </h3>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
+                    style={{
+                      background: 'linear-gradient(145deg, #f3e8ff 0%, #e9d5ff 100%)',
+                      color: '#7c3aed'
+                    }}
+                  >
+                    {getCollabDiscountIcon(collabOfferDetails)}
+                    {getCollabDiscountDisplay(collabOfferDetails)}
+                  </span>
+                </div>
+
+                {collabOfferDetails.description && (
+                  <p className="text-sm text-stone-500 mb-4">
+                    {collabOfferDetails.description}
+                  </p>
+                )}
+
+                {/* Info Box */}
+                <div
+                  className="rounded-xl p-4"
+                  style={{
+                    background: 'linear-gradient(145deg, #fefce8 0%, #fef3c7 100%)'
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-[13px] text-amber-700">
+                      This customer is from <strong>{collabOfferDetails.target_company_name}</strong>.
+                      Apply the discount and confirm the redemption.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="p-5 pt-0">
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleRedeemCollab}
+                    className="flex-1 py-4 rounded-2xl font-semibold text-[15px] text-white active:scale-[0.98] transition-all disabled:opacity-50"
+                    style={{
+                      background: loading
+                        ? '#d6d3d1'
+                        : 'linear-gradient(145deg, #7c3aed 0%, #6d28d9 100%)',
+                      boxShadow: loading ? 'none' : '0 2px 8px rgba(124, 58, 237, 0.3)'
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Confirm Redemption'}
+                  </button>
+                  <button
+                    onClick={resetScan}
+                    className="px-5 py-4 bg-stone-50 hover:bg-stone-100 text-stone-500 rounded-2xl font-medium transition-colors border border-stone-100"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
-            <h3 className="text-3xl font-bold text-black mb-3">Success!</h3>
-            <p className="text-gray-600 text-lg mb-8">Transaction completed successfully</p>
+          </div>
+        )}
+
+        {mode === 'success' && (
+          <div
+            className="bg-white rounded-3xl p-10 text-center"
+            style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+          >
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{
+                background: 'linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%)',
+                boxShadow: '0 4px 16px rgba(34, 197, 94, 0.15)'
+              }}
+            >
+              <CheckCircle size={40} className="text-green-600" />
+            </div>
+            <h3 className="text-2xl font-semibold text-stone-900 tracking-tight mb-2">Success!</h3>
+            <p className="text-stone-400 mb-8">Transaction completed</p>
             <button
               onClick={resetScan}
-              className="bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
+              className="px-8 py-4 rounded-2xl font-semibold text-[15px] text-white active:scale-[0.98] transition-all"
+              style={{
+                background: 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}
             >
               Scan Next Customer
             </button>
@@ -790,15 +1002,28 @@ export default function StaffScanPage() {
         )}
 
         {mode === 'error' && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-red-200">
-            <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle size={60} className="text-red-600" />
+          <div
+            className="bg-white rounded-3xl p-10 text-center"
+            style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+          >
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{
+                background: 'linear-gradient(145deg, #fee2e2 0%, #fecaca 100%)',
+                boxShadow: '0 4px 16px rgba(239, 68, 68, 0.15)'
+              }}
+            >
+              <AlertCircle size={40} className="text-red-500" />
             </div>
-            <h3 className="text-3xl font-bold text-black mb-3">Scan Failed</h3>
-            <p className="text-gray-600 text-lg mb-8">{errorMessage}</p>
+            <h3 className="text-2xl font-semibold text-stone-900 tracking-tight mb-2">Scan Failed</h3>
+            <p className="text-stone-400 mb-8">{errorMessage}</p>
             <button
               onClick={resetScan}
-              className="bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
+              className="px-8 py-4 rounded-2xl font-semibold text-[15px] text-white active:scale-[0.98] transition-all"
+              style={{
+                background: 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}
             >
               Try Again
             </button>
@@ -806,38 +1031,49 @@ export default function StaffScanPage() {
         )}
 
         {mode === 'manual-entry' && (
-          <div className="space-y-6">
-            <div className="text-center mb-2">
-              <h1 className="text-h2 text-sarnies-black mb-2">Manual Customer Entry</h1>
-              <p className="text-sm text-sarnies-midgray">
-                Enter customer ID or phone number
-              </p>
-            </div>
+          <div className="space-y-5">
+            <div
+              className="bg-white rounded-3xl p-6"
+              style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+            >
+              <div className="text-center mb-6">
+                <h2 className="text-lg font-semibold text-stone-900 tracking-tight mb-1">
+                  Manual Entry
+                </h2>
+                <p className="text-sm text-stone-400">
+                  Enter customer ID or phone number
+                </p>
+              </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
               <form onSubmit={handleManualEntry} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Customer ID *
+                  <label className="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-2">
+                    Customer ID
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black text-lg font-semibold"
+                    className="w-full px-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl focus:ring-2 focus:ring-stone-900 focus:border-stone-900 focus:bg-white text-base font-medium transition-all placeholder:text-stone-300"
                     placeholder="e.g., 123 or member ID"
                     value={manualCustomerId}
                     onChange={(e) => setManualCustomerId(e.target.value)}
                     autoFocus
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Customer can find their ID in the app under Profile
+                  <p className="text-[11px] text-stone-400 mt-2 ml-1">
+                    Customer can find their ID in Profile
                   </p>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-1">
                   <button
                     type="submit"
-                    className="flex-1 bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+                    className="flex-1 py-4 rounded-2xl font-semibold text-[15px] text-white active:scale-[0.98] transition-all disabled:opacity-50"
+                    style={{
+                      background: loading || !manualCustomerId.trim()
+                        ? '#d6d3d1'
+                        : 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+                      boxShadow: loading || !manualCustomerId.trim() ? 'none' : '0 2px 8px rgba(0,0,0,0.15)'
+                    }}
                     disabled={loading || !manualCustomerId.trim()}
                   >
                     {loading ? 'Searching...' : 'Find Customer'}
@@ -845,7 +1081,7 @@ export default function StaffScanPage() {
                   <button
                     type="button"
                     onClick={resetScan}
-                    className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                    className="px-6 py-4 bg-stone-50 hover:bg-stone-100 text-stone-500 rounded-2xl font-medium transition-colors border border-stone-100"
                     disabled={loading}
                   >
                     Cancel
@@ -858,36 +1094,52 @@ export default function StaffScanPage() {
 
         {/* Confirmation Modal */}
         {showConfirmModal && pendingReward && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in duration-200">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div
+              className="bg-white rounded-3xl max-w-sm w-full p-6 animate-scale-up"
+              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+            >
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <AlertCircle className="w-8 h-8 text-white" />
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{
+                    background: 'linear-gradient(145deg, #fef3c7 0%, #fde68a 100%)',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                  }}
+                >
+                  <AlertCircle className="w-8 h-8 text-amber-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Confirm Reward Application</h3>
-                <p className="text-gray-600">
-                  Are you sure you want to apply <strong className="text-gray-900">{pendingReward.title}</strong> to this transaction?
+                <h3 className="text-xl font-semibold text-stone-900 tracking-tight mb-2">Apply Reward?</h3>
+                <p className="text-sm text-stone-500">
+                  Apply <strong className="text-stone-900">{pendingReward.title}</strong> to this transaction?
                 </p>
               </div>
 
-              <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6">
-                <p className="text-sm text-amber-900 font-medium text-center">
-                  ⚠️ Please confirm with the customer before proceeding
+              <div
+                className="rounded-2xl p-4 mb-6"
+                style={{ background: 'linear-gradient(145deg, #fefce8 0%, #fef3c7 100%)' }}
+              >
+                <p className="text-[13px] text-amber-700 text-center font-medium">
+                  Please confirm with the customer before proceeding
                 </p>
               </div>
 
               <div className="flex gap-3">
                 <button
                   onClick={cancelApplyReward}
-                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors"
+                  className="flex-1 py-4 px-4 bg-stone-50 hover:bg-stone-100 text-stone-500 rounded-2xl font-medium transition-colors border border-stone-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmApplyReward}
-                  className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 transition-all"
+                  className="flex-1 py-4 px-4 rounded-2xl font-semibold text-white active:scale-[0.98] transition-all"
+                  style={{
+                    background: 'linear-gradient(145deg, #16a34a 0%, #15803d 100%)',
+                    boxShadow: '0 2px 8px rgba(22, 163, 74, 0.3)'
+                  }}
                 >
-                  Confirm & Apply
+                  Confirm
                 </button>
               </div>
             </div>

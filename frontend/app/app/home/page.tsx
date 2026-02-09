@@ -9,22 +9,24 @@ import { RewardCard } from "@/components/customer/home/RewardCard";
 import { EmployeeHome } from "@/components/employee/EmployeeHome";
 import AppLayout from "@/components/AppLayout";
 import { useRouter } from "next/navigation";
-import { announcementsAPI, vouchersAPI } from "@/lib/api";
+import { announcementsAPI, vouchersAPI, collabsAPI, CollabOffer } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { PullToRefresh } from "@/components/PullToRefresh";
-import { HomePageSkeleton } from "@/components/ui/SkeletonLoader";
+import { HomePageSkeleton, EmployeeHomePageSkeleton } from "@/components/ui/SkeletonLoader";
 import { useTabSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getBaseUrl, getWebSocketUrl } from '@/lib/config';
-import { Bell, ChevronRight, CheckCircle, Cake, X } from 'lucide-react';
+import { Bell, ChevronRight, CheckCircle, Cake, X, UserPlus, Gift, Percent, DollarSign, Building2 } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import Image from 'next/image';
+import { isEmployeeUser, isPerksOnlyUser } from '@/lib/authUtils';
 
 interface Announcement {
   id: number;
   title: string;
-  message: string;
+  message?: string;
+  description?: string;
   image_url?: string;
   announcement_type: string;
   user_type: string;
@@ -39,7 +41,7 @@ interface Voucher {
   voucher_type: string;
   points_required: number;
   cash_value: number;
-  max_redemptions_per_user_per_day?: number;
+  max_redemptions_per_user?: number;
   redeemed_today?: number;
   total_redemptions?: number;
 }
@@ -49,6 +51,7 @@ export default function HomePage() {
   const { user, token, hasHydrated } = useAuthStore();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [partnerOffers, setPartnerOffers] = useState<CollabOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
@@ -61,10 +64,25 @@ export default function HomePage() {
   const socketRef = useRef<Socket | null>(null);
   const [showBirthdayModal, setShowBirthdayModal] = useState(false);
 
+  // Detect perks-only mode early from localStorage to show correct skeleton (avoids CLS)
+  const [isPerksOnlyHint, setIsPerksOnlyHint] = useState(false);
+
   useTabSwipeNavigation();
 
   useEffect(() => {
     setMounted(true);
+    try {
+      const raw = localStorage.getItem('auth-storage');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const ut = parsed?.state?.user?.user_type || parsed?.state?.user?.type;
+        const usersCollectPoints = parsed?.state?.user?.users_collect_points;
+        // Show perks skeleton for employees OR users who don't collect points
+        if (ut === 'employee' || usersCollectPoints === false) {
+          setIsPerksOnlyHint(true);
+        }
+      }
+    } catch {}
   }, []);
 
   // WebSocket connection for real-time voucher redemption feedback
@@ -86,7 +104,7 @@ export default function HomePage() {
         socketRef.current = socket;
 
         socket.on('connect', () => {
-          socket.emit('authenticate', user.id);
+          socket.emit('authenticate', token);
         });
 
         socket.on('connect_error', (err) => {
@@ -111,7 +129,6 @@ export default function HomePage() {
 
             toast.success(`${data.voucher_title} redeemed!`, {
               duration: 4000,
-              icon: '✅'
             });
 
             fetchVouchers();
@@ -133,17 +150,21 @@ export default function HomePage() {
 
   useEffect(() => {
     if (hasHydrated && token) {
-      // Run fetches in parallel but don't block on any failure
-      // Use Promise.allSettled to handle individual failures gracefully
-      Promise.allSettled([
-        fetchCurrentUser(),
-        fetchAnnouncements(),
-        fetchQRCode(),
-        fetchVouchers(),
-      ]).then(() => {
-        // Ensure loading is set to false even if some calls fail
+      // Fetch user first, then other data in parallel
+      // This ensures user_type is correct before fetching vouchers
+      const loadData = async () => {
+        // First fetch user to get correct user_type
+        await fetchCurrentUser();
+        // Then fetch everything else in parallel
+        await Promise.allSettled([
+          fetchAnnouncements(),
+          fetchQRCode(),
+          fetchVouchers(),
+          fetchPartnerOffers(),
+        ]);
         setLoading(false);
-      });
+      };
+      loadData();
     } else if (hasHydrated && !token) {
       // No token, stop loading
       setLoading(false);
@@ -159,8 +180,9 @@ export default function HomePage() {
       const fetchedUser = response.data.user;
       useAuthStore.getState().updateUser(fetchedUser);
 
-      // Check if employee needs to provide birthday
-      if ((fetchedUser.user_type === 'employee' || fetchedUser.type === 'employee') && !fetchedUser.birthday) {
+      // Check if perks-only user needs to provide birthday
+      const isPerks = fetchedUser.user_type === 'employee' || fetchedUser.type === 'employee' || fetchedUser.users_collect_points === false;
+      if (isPerks && !fetchedUser.birthday) {
         setShowBirthdayModal(true);
       }
     } catch (error) {
@@ -200,10 +222,29 @@ export default function HomePage() {
 
   const fetchVouchers = async () => {
     try {
-      const response = await vouchersAPI.getAll();
-      setVouchers(response.data.vouchers || []);
+      // Get fresh user from store to ensure we have latest user_type
+      const currentUser = useAuthStore.getState().user;
+      const isEmployee = isEmployeeUser(currentUser);
+
+      if (isEmployee && currentUser?.id) {
+        // Use employee-specific endpoint that includes redeemed_today tracking
+        const response = await vouchersAPI.getEmployeeVouchers(currentUser.id);
+        setVouchers(response.data.vouchers || []);
+      } else {
+        const response = await vouchersAPI.getAll();
+        setVouchers(response.data.vouchers || []);
+      }
     } catch (error) {
       console.error('Failed to fetch vouchers:', error);
+    }
+  };
+
+  const fetchPartnerOffers = async () => {
+    try {
+      const response = await collabsAPI.getAvailableOffers();
+      setPartnerOffers(response.data.offers || []);
+    } catch (error) {
+      console.error('Failed to fetch partner offers:', error);
     }
   };
 
@@ -211,6 +252,7 @@ export default function HomePage() {
     await fetchAnnouncements();
     await fetchQRCode();
     await fetchVouchers();
+    await fetchPartnerOffers();
   };
 
   // Safety: If still loading after 3 seconds, stop showing skeleton
@@ -226,12 +268,13 @@ export default function HomePage() {
   if (!mounted || !hasHydrated) {
     return (
       <AppLayout>
-        <HomePageSkeleton />
+        {isPerksOnlyHint ? <EmployeeHomePageSkeleton /> : <HomePageSkeleton />}
       </AppLayout>
     );
   }
 
-  const isEmployee = user?.user_type === 'employee' || user?.type === 'employee';
+  const isEmployee = isEmployeeUser(user);
+  const perksOnly = isPerksOnlyUser(user);
 
   const handleBirthdaySave = async (birthday: string) => {
     try {
@@ -242,15 +285,15 @@ export default function HomePage() {
       );
       useAuthStore.getState().updateUser({ ...user, birthday });
       setShowBirthdayModal(false);
-      toast.success('Birthday saved! Enjoy your birthday perk when the day comes 🎂');
+      toast.success('Birthday saved! Enjoy your birthday perk when the day comes.');
     } catch (error) {
       console.error('Failed to save birthday:', error);
       toast.error('Failed to save birthday. Please try again.');
     }
   };
 
-  // Employee view
-  if (isEmployee) {
+  // Perks-only view (employees or company members who don't collect points)
+  if (perksOnly) {
     return (
       <AppLayout>
         <EmployeeHome
@@ -291,59 +334,90 @@ export default function HomePage() {
   return (
     <AppLayout>
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="min-h-screen bg-[#FAFAF8]">
+        <div className="min-h-screen bg-bg-primary">
           {/* Content */}
-          <div className="px-5 pt-4 pb-6 space-y-5">
+          <div className="px-4 pt-2 pb-24 space-y-3">
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <span className="text-[18px] font-bold tracking-[3px] text-[#1C1917]" style={{ fontFamily: 'Spline Sans, sans-serif' }}>
+            <div className="animate-stagger-item stagger-1 flex items-center justify-between">
+              <span className="text-[16px] font-bold tracking-[3px] text-[#1C1917]" style={{ fontFamily: 'Spline Sans, sans-serif' }}>
                 SARNIES
               </span>
-              <button className="w-10 h-10 rounded-full border border-[#E7E5E4] flex items-center justify-center bg-white">
-                <Bell className="w-[18px] h-[18px] text-[#1C1917]" />
+              <button className="w-9 h-9 rounded-full border border-[#E7E5E4] flex items-center justify-center bg-white">
+                <Bell className="w-4 h-4 text-[#1C1917]" />
               </button>
             </div>
 
             {/* Member Card */}
-            <MemberHeroCard
-              name={user?.name || "Guest"}
-              memberId={user?.customer_id || `SAR-${String(user?.id || 0).padStart(6, '0')}`}
-              qrCodeUrl={qrCodeUrl || undefined}
-              qrLoading={qrLoading}
-              userType={user?.user_type}
-            />
+            <div className="animate-stagger-item stagger-2">
+              <MemberHeroCard
+                name={user?.name || "Guest"}
+                memberId={user?.customer_id || `SAR-${String(user?.id || 0).padStart(6, '0')}`}
+                qrCodeUrl={qrCodeUrl || undefined}
+                qrLoading={qrLoading}
+                userType={user?.user_type}
+              />
+            </div>
 
             {/* Points Progress Card */}
-            <PointsProgressCard
-              points={user?.points_balance || 0}
-              nextRewardAt={3000}
-            />
+            <div className="animate-stagger-item stagger-3">
+              <PointsProgressCard
+                points={user?.points_balance || 0}
+                nextRewardAt={3000}
+              />
+            </div>
 
             {/* Quick Actions */}
-            <QuickActionsGrid
-              onRewards={() => router.push("/app/vouchers")}
-              onActivity={() => router.push("/app/activity")}
-              onScan={() => {}}
-            />
+            <div className="animate-stagger-item stagger-4">
+              <QuickActionsGrid
+                onRewards={() => router.push("/app/vouchers")}
+                onActivity={() => router.push("/app/activity")}
+                onScan={() => {}}
+              />
+            </div>
 
             {/* Referral Card */}
-            <ReferralCard
-              onClick={() => router.push("/app/referrals")}
-            />
+            <div className="animate-stagger-item stagger-5">
+              <ReferralCard
+                onClick={() => router.push("/app/referrals")}
+              />
+            </div>
+
+            {/* Partner Offers */}
+            {partnerOffers.length > 0 && (
+              <div className="animate-stagger-item stagger-6 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4 text-purple-500" />
+                    <p className="text-[11px] font-bold tracking-[1.5px] text-[#57534E]" style={{ fontFamily: 'Spline Sans, sans-serif' }}>
+                      PARTNER OFFERS
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {partnerOffers.slice(0, 3).map((offer) => (
+                    <PartnerOfferCard
+                      key={offer.id}
+                      offer={offer}
+                      onClick={() => router.push(`/app/collabs/${offer.id}`)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Featured Rewards */}
-            <div className="space-y-2">
+            <div className="animate-stagger-item stagger-6 space-y-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold tracking-[1.5px] text-[#57534E]" style={{ fontFamily: 'Spline Sans, sans-serif' }}>
                   FEATURED REWARDS
                 </p>
                 <button
                   onClick={() => router.push('/app/vouchers')}
-                  className="flex items-center gap-0.5 text-[14px] font-semibold text-[#D97706]"
+                  className="flex items-center gap-0.5 text-[12px] font-semibold text-[#DC2626]"
                   style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                 >
                   View all
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -354,13 +428,13 @@ export default function HomePage() {
                     description={voucher.description}
                     imageUrl={voucher.image_url}
                     points={voucher.points_required || 'FREE'}
-                    stock={voucher.max_redemptions_per_user_per_day ? `${voucher.max_redemptions_per_user_per_day - (voucher.redeemed_today || 0)} left` : undefined}
+                    stock={voucher.max_redemptions_per_user ? `${voucher.max_redemptions_per_user - (voucher.redeemed_today || 0)} left` : undefined}
                     onClick={() => router.push(`/app/vouchers/${voucher.id}`)}
                   />
                 ))}
                 {vouchers.length === 0 && (
-                  <div className="col-span-2 bg-white rounded-xl p-8 text-center border border-[#F0F0F0]">
-                    <p className="text-[14px] text-[#78716C]">No rewards available</p>
+                  <div className="col-span-2 bg-white rounded-lg p-6 text-center border border-[#F0F0F0]">
+                    <p className="text-[13px] text-[#78716C]">No rewards available</p>
                   </div>
                 )}
               </div>
@@ -389,15 +463,15 @@ function VoucherRedeemedModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-5"
+      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-5 animate-backdrop-fade"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl p-6 max-w-[320px] w-full text-center animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl p-6 max-w-[320px] w-full text-center animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-16 h-16 rounded-full bg-[#FEF3C7] flex items-center justify-center mx-auto mb-5">
-          <CheckCircle className="w-9 h-9 text-[#D97706]" />
+        <div className="w-16 h-16 rounded-full bg-[#FEE2E2] flex items-center justify-center mx-auto mb-5">
+          <CheckCircle className="w-9 h-9 text-[#DC2626]" />
         </div>
         <h2 className="text-[11px] font-bold tracking-[1.5px] text-[#78716C] mb-3" style={{ fontFamily: 'Spline Sans, sans-serif' }}>
           VOUCHER REDEEMED
@@ -409,7 +483,7 @@ function VoucherRedeemedModal({
           at {voucher.outlet}
         </p>
         {voucher.cash_value > 0 && (
-          <div className="inline-block bg-[#FEF3C7] text-[#D97706] px-3 py-1 rounded-full text-[14px] font-medium mb-5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+          <div className="inline-block bg-[#FEE2E2] text-[#DC2626] px-3 py-1 rounded-full text-[14px] font-medium mb-5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
             ฿{voucher.cash_value} Value
           </div>
         )}
@@ -476,16 +550,16 @@ function BirthdayCollectionModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-5"
+      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-5 animate-backdrop-fade"
     >
       <div
-        className="bg-white rounded-xl p-6 max-w-[340px] w-full animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-xl p-6 max-w-[340px] w-full animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 rounded-xl bg-[#FEF3C7] flex items-center justify-center">
-            <Cake className="w-6 h-6 text-[#D97706]" />
+          <div className="w-12 h-12 rounded-xl bg-[#FEE2E2] flex items-center justify-center">
+            <Cake className="w-6 h-6 text-[#DC2626]" />
           </div>
           <button
             onClick={onSkip}
@@ -497,7 +571,7 @@ function BirthdayCollectionModal({
 
         {/* Title */}
         <h2 className="text-[18px] font-semibold text-[#1C1917] mb-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-          Hey {userName}! 👋
+          Hey {userName}!
         </h2>
         <p className="text-[14px] text-[#78716C] mb-5" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
           When's your birthday? We'd love to celebrate with you and give you a special treat!
@@ -559,5 +633,74 @@ function BirthdayCollectionModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function PartnerOfferCard({
+  offer,
+  onClick
+}: {
+  offer: CollabOffer;
+  onClick: () => void;
+}) {
+  const getDiscountDisplay = () => {
+    switch (offer.discount_type) {
+      case 'percentage':
+        return `${offer.discount_value}% off`;
+      case 'fixed':
+        return `$${offer.discount_value} off`;
+      case 'free_item':
+        return 'Free item';
+      default:
+        return '';
+    }
+  };
+
+  const getDiscountIcon = () => {
+    switch (offer.discount_type) {
+      case 'percentage':
+        return <Percent className="w-3.5 h-3.5" />;
+      case 'fixed':
+        return <DollarSign className="w-3.5 h-3.5" />;
+      case 'free_item':
+        return <Gift className="w-3.5 h-3.5" />;
+      default:
+        return <Gift className="w-3.5 h-3.5" />;
+    }
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full bg-white rounded-xl border border-[#F0F0F0] p-3 flex items-center gap-3 hover:border-purple-200 hover:shadow-sm transition-all text-left"
+    >
+      {/* Partner Logo */}
+      <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+        {offer.offering_company_logo ? (
+          <img src={offer.offering_company_logo} alt={offer.offering_company_name} className="w-full h-full object-cover" />
+        ) : (
+          <Building2 className="w-6 h-6 text-purple-400" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[14px] font-semibold text-[#1C1917] truncate" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+          {offer.title}
+        </p>
+        <p className="text-[12px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+          at {offer.offering_company_name}
+        </p>
+      </div>
+
+      {/* Discount Badge */}
+      <div className="flex items-center gap-1 px-2.5 py-1 bg-purple-50 text-purple-700 rounded-full text-[12px] font-semibold flex-shrink-0" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+        {getDiscountIcon()}
+        {getDiscountDisplay()}
+      </div>
+
+      {/* Arrow */}
+      <ChevronRight className="w-4 h-4 text-[#D6D3D1] flex-shrink-0" />
+    </button>
   );
 }
