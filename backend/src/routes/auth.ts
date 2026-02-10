@@ -696,6 +696,10 @@ router.post('/register', async (req: Request, res: Response) => {
       }
     }
 
+    // Determine user_type based on company association
+    // If user has a verified company, they are an employee; otherwise customer
+    const userType = (company_id && is_company_verified) ? 'employee' : 'customer';
+
     // Update user with registration data (use ID for reliable lookup)
     const updateResult = await query(
       `UPDATE users
@@ -710,8 +714,9 @@ router.post('/register', async (req: Request, res: Response) => {
            preferred_outlet = $9,
            company_id = $10,
            is_company_verified = $11,
+           user_type = $12,
            registration_completed = true
-       WHERE id = $12
+       WHERE id = $13
        RETURNING *`,
       [
         name,
@@ -725,17 +730,18 @@ router.post('/register', async (req: Request, res: Response) => {
         preferred_outlet,
         company_id,
         is_company_verified,
+        userType,
         user.id
       ]
     );
 
     const updatedUser = updateResult.rows[0];
 
-    // Generate new token with updated user data
+    // Generate new token with correct user_type
     const token = generateToken({
       id: updatedUser.id,
       phone: updatedUser.phone,
-      type: 'customer'
+      type: userType
     });
 
     res.json({
@@ -752,6 +758,8 @@ router.post('/register', async (req: Request, res: Response) => {
         points_balance: updatedUser.points_balance,
         company_id: updatedUser.company_id,
         is_company_verified: updatedUser.is_company_verified,
+        user_type: userType,
+        type: userType,
         registration_completed: true
       }
     });
