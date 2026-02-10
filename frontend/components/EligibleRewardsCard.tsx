@@ -142,7 +142,17 @@ export default function EligibleRewardsCard({
         setLoading(true);
         setError(null);
 
-        const token = localStorage.getItem('token');
+        // Get token from zustand persisted state
+        const authStorage = localStorage.getItem('auth-storage');
+        const token = authStorage ? JSON.parse(authStorage)?.state?.token : null;
+
+        if (!token) {
+          console.warn('No auth token found for voucher fetch');
+          setRewards([]);
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(`${getApiUrl()}/vouchers/customer/${customerId}/available`, {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -62,9 +62,12 @@ export default function AuditLogsPage() {
         ...(filters.endDate && { endDate: filters.endDate })
       });
 
+      const authStorage = localStorage.getItem('auth-storage');
+      const token = authStorage ? JSON.parse(authStorage)?.state?.token : null;
+
       const response = await fetch(`${getApiUrl()}/audit-logs?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
