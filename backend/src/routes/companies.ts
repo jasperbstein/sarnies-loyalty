@@ -1040,9 +1040,10 @@ router.post('/join/:code/send-magic-link', async (req, res: Response) => {
       );
     } else {
       // Create new user with company association
+      // Use empty string for name - will be filled during registration
       const insertResult = await query(
-        `INSERT INTO users (email, email_verified, company_id, is_company_verified, user_type, registration_completed, primary_auth_method)
-         VALUES ($1, true, $2, true, $3, false, 'email')
+        `INSERT INTO users (email, name, email_verified, company_id, is_company_verified, user_type, registration_completed, primary_auth_method)
+         VALUES ($1, '', true, $2, true, $3, false, 'email')
          RETURNING id`,
         [emailLower, companyId, userType]
       );
