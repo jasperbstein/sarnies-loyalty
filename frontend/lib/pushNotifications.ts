@@ -15,7 +15,6 @@ export async function registerPushServiceWorker(): Promise<ServiceWorkerRegistra
     const registration = await navigator.serviceWorker.register(PUSH_SW_PATH, {
       scope: '/'
     });
-    console.log('Push service worker registered:', registration.scope);
     return registration;
   } catch (error) {
     console.error('Failed to register push service worker:', error);
@@ -117,7 +116,6 @@ export async function subscribeToPushNotifications(): Promise<boolean> {
     // Check permission
     const permission = await requestNotificationPermission();
     if (permission !== 'granted') {
-      console.log('Notification permission not granted');
       return false;
     }
 
@@ -154,7 +152,6 @@ export async function subscribeToPushNotifications(): Promise<boolean> {
     // Send subscription to server
     await notificationsAPI.subscribe(subscription);
 
-    console.log('Successfully subscribed to push notifications');
     return true;
   } catch (error) {
     console.error('Failed to subscribe to push notifications:', error);
@@ -183,7 +180,6 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
     // Notify server
     await notificationsAPI.unsubscribe(subscription.endpoint);
 
-    console.log('Successfully unsubscribed from push notifications');
     return true;
   } catch (error) {
     console.error('Failed to unsubscribe from push notifications:', error);

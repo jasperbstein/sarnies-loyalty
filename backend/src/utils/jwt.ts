@@ -23,6 +23,8 @@ export interface JWTPayload {
   line_id?: string;  // LINE Login user ID
   role?: string;
   type: 'staff' | 'customer' | 'employee' | 'investor' | 'media';
+  company_id?: number;  // Company ID for staff/employee users
+  staff_id?: number;  // Staff member ID
   jti?: string;  // JWT ID for blacklisting
   exp?: number;  // Expiry timestamp
   iat?: number;  // Issued at timestamp

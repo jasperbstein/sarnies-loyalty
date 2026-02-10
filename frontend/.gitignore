@@ -8,3 +8,14 @@ dist/
 .DS_Store
 .vscode/
 .idea/
+.vercel
+
+# AI/Agent skills (local configs)
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.opencode/
+.windsurf/
+.kiro/

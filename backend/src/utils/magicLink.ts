@@ -1,22 +1,36 @@
 import crypto from 'crypto';
 import { query } from '../db/database';
 
-const MAGIC_LINK_EXPIRY_MINUTES = 15;
+const MAGIC_LINK_EXPIRY_MINUTES = 30;
 
 // Generate a cryptographically secure magic link token
 export const generateMagicToken = (): string => {
   return crypto.randomBytes(32).toString('hex');
 };
 
-// Save magic link token to database
-export const saveMagicToken = async (email: string, token: string): Promise<void> => {
+// Generate a session ID for WebSocket-based login notification
+export const generateSessionId = (): string => {
+  return crypto.randomBytes(16).toString('hex');
+};
+
+// Save magic link token to database with optional session_id for WebSocket notification
+export const saveMagicToken = async (email: string, token: string, sessionId?: string): Promise<void> => {
   const expiresAt = new Date(Date.now() + MAGIC_LINK_EXPIRY_MINUTES * 60 * 1000);
 
   await query(
-    `INSERT INTO magic_link_tokens (email, token, expires_at)
-     VALUES ($1, $2, $3)`,
-    [email.toLowerCase(), token, expiresAt]
+    `INSERT INTO magic_link_tokens (email, token, expires_at, session_id)
+     VALUES ($1, $2, $3, $4)`,
+    [email.toLowerCase(), token, expiresAt, sessionId || null]
   );
+};
+
+// Get session_id for a token (used when verifying to notify waiting client)
+export const getSessionIdForToken = async (token: string): Promise<string | null> => {
+  const result = await query(
+    `SELECT session_id FROM magic_link_tokens WHERE token = $1`,
+    [token]
+  );
+  return result.rows.length > 0 ? result.rows[0].session_id : null;
 };
 
 // Verify magic link token - returns email if valid, null if invalid/expired/used
@@ -65,13 +79,14 @@ export const checkMagicLinkRateLimit = async (email: string): Promise<{ allowed:
     `SELECT created_at FROM magic_link_tokens
      WHERE email = $1 AND created_at > $2
      ORDER BY created_at ASC
-     LIMIT 3`,
+     LIMIT 10`,
     [email.toLowerCase(), oneHourAgo]
   );
 
   const count = result.rows.length;
 
-  if (count < 3) {
+  // Allow up to 10 magic link requests per hour per email
+  if (count < 10) {
     return { allowed: true };
   }
 

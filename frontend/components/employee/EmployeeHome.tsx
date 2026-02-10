@@ -1,23 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { QrCode, Users, Share2, Copy, Check, X, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { QrCode, Users, Share2, Copy, Check, X, ChevronRight, Gift, Newspaper, User, Home, Ticket } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { referralsAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
-
-/**
- * EmployeeHome - Employee Dashboard
- *
- * Design System:
- * - Section gap: 24px
- * - Card padding: 16px
- * - Internal element gap: 8-12px
- * - Border radius: 12px (consistent)
- * - No shadows (clean, premium feel)
- * - Colors: Neutral palette with amber accent (#D97706)
- */
 
 interface Voucher {
   id: number;
@@ -27,13 +16,16 @@ interface Voucher {
   cash_value: number;
   voucher_type: string;
   redeemed_today?: number;
-  max_redemptions_per_user_per_day?: number;
+  today_redemptions?: number;
+  max_redemptions_per_user?: number;
+  available_today?: number;
 }
 
 interface Announcement {
   id: number;
   title: string;
-  message: string;
+  message?: string;
+  description?: string;
   image_url?: string;
   created_at?: string;
 }
@@ -54,17 +46,16 @@ interface EmployeeHomeProps {
   qrLoading?: boolean;
 }
 
-export function EmployeeHome({ user, vouchers, announcements = [], onShowQR, qrCodeUrl, qrLoading }: EmployeeHomeProps) {
+export function EmployeeHome({ user, vouchers, announcements = [], qrCodeUrl, qrLoading }: EmployeeHomeProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const employeeId = `EMP-${String(user.id).padStart(6, '0')}`;
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [showInviteFriends, setShowInviteFriends] = useState(false);
-
   const [referralLoading, setReferralLoading] = useState(true);
   const [showQRModal, setShowQRModal] = useState(false);
 
-  // Fetch referral code on mount
   useEffect(() => {
     const fetchReferralCode = async () => {
       try {
@@ -73,8 +64,7 @@ export function EmployeeHome({ user, vouchers, announcements = [], onShowQR, qrC
         setReferralCode(response.data.referral_code);
       } catch (error) {
         console.error('Failed to fetch referral code:', error);
-        // Generate a fallback code based on user id
-        setReferralCode(`EMP${String(user.id).padStart(6, '0')}`);
+        setReferralCode(null);
       } finally {
         setReferralLoading(false);
       }
@@ -98,8 +88,8 @@ export function EmployeeHome({ user, vouchers, announcements = [], onShowQR, qrC
     if (!referralCode) return;
     const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/join?ref=${referralCode}`;
     const shareData = {
-      title: 'Join Sarnies',
-      text: `Use my referral code ${referralCode} to get started with Sarnies!`,
+      title: 'Join Sarnies - 25% Friends & Family Discount',
+      text: `Hey! Use my code ${referralCode} to get 25% off at Sarnies as a Friends & Family member!`,
       url: shareUrl
     };
 
@@ -116,91 +106,193 @@ export function EmployeeHome({ user, vouchers, announcements = [], onShowQR, qrC
     }
   };
 
-  // Get featured daily voucher (first available)
-  const todaysPerk = vouchers.length > 0 ? vouchers[0] : null;
+  // Get featured perks (first 4)
+  const featuredPerks = vouchers.slice(0, 4);
 
-  // Get latest announcement
-  const latestNews = announcements.length > 0 ? announcements[0] : null;
+  // Get latest news (first 3)
+  const latestNews = announcements.slice(0, 3);
 
   return (
     <>
-      <div className="min-h-screen bg-[#FAFAF9]">
-        {/* Content - consistent 24px section gaps */}
-        <div className="px-4 pt-4 pb-6 space-y-6">
-          {/* Employee Card - Clean, no shadow */}
-          <div
-            className="relative h-[180px] rounded-xl overflow-hidden cursor-pointer active:scale-[0.99] transition-transform"
-            onClick={() => setShowQRModal(true)}
-          >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: 'url(https://images.unsplash.com/photo-1720242569488-ece73980ba11?w=800&q=80)'
-              }}
-            />
-            {/* Gradient Overlay */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)'
-              }}
-            />
-            {/* Content - 16px padding */}
-            <div className="absolute inset-0 p-4 flex items-end justify-between">
-              <div className="space-y-1">
-                <p className="text-[10px] font-semibold tracking-[1.5px] text-white/80" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>EMPLOYEE</p>
-                <p className="text-lg font-semibold text-white" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{user.name} {user.surname || ''}</p>
-                <p className="text-[12px] text-white/80" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{employeeId}</p>
-              </div>
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
-                <QrCode className="w-7 h-7 text-[#1C1917]" />
-              </div>
-            </div>
-          </div>
+      <div className="min-h-screen bg-[#FAFAF9] pb-24">
+        <div className="max-w-2xl lg:max-w-4xl mx-auto">
+          <div className="px-4 md:px-6 pt-6 space-y-6">
 
-          {/* Your Perks Section */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <p className="text-[11px] font-semibold tracking-[1px] text-[#78716C] uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                Your Perks
-              </p>
-              <Link href="/app/vouchers" className="flex items-center text-[13px] font-medium text-[#D97706]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                View all
-                <ChevronRight className="w-4 h-4" />
-              </Link>
+            {/* Hero Section with Abstract Pattern */}
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+            >
+              {/* Abstract gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900" />
+
+              {/* Abstract pattern overlay */}
+              <div className="absolute inset-0 opacity-30">
+                <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice">
+                  <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#f5f5f4" stopOpacity="0.1" />
+                      <stop offset="100%" stopColor="#78716c" stopOpacity="0.05" />
+                    </linearGradient>
+                    <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#a8a29e" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor="#1c1917" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {/* Large flowing shapes */}
+                  <ellipse cx="350" cy="30" rx="180" ry="120" fill="url(#grad1)" />
+                  <ellipse cx="50" cy="180" rx="150" ry="100" fill="url(#grad2)" />
+                  <ellipse cx="200" cy="100" rx="100" ry="80" fill="url(#grad1)" />
+                  {/* Smaller accent circles */}
+                  <circle cx="80" cy="40" r="40" fill="#f5f5f4" fillOpacity="0.03" />
+                  <circle cx="320" cy="160" r="60" fill="#f5f5f4" fillOpacity="0.04" />
+                  <circle cx="180" cy="20" r="25" fill="#f5f5f4" fillOpacity="0.05" />
+                  {/* Curved lines */}
+                  <path d="M0,100 Q100,50 200,100 T400,100" stroke="#f5f5f4" strokeOpacity="0.08" strokeWidth="1" fill="none" />
+                  <path d="M0,150 Q150,100 300,150 T400,120" stroke="#f5f5f4" strokeOpacity="0.06" strokeWidth="1" fill="none" />
+                </svg>
+              </div>
+
+              {/* Subtle grid pattern */}
+              <div
+                className="absolute inset-0 opacity-[0.03]"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '24px 24px'
+                }}
+              />
+
+              {/* Hero content */}
+              <div className="relative px-5 py-6 flex flex-col justify-end min-h-[200px]">
+                {/* Company badge */}
+                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                  <span className="text-[11px] font-medium text-white/80 tracking-wide">
+                    {user.company || 'Sarnies'}
+                  </span>
+                </div>
+
+                <p className="text-[11px] font-medium text-stone-400 tracking-wider uppercase mb-1">
+                  Welcome back
+                </p>
+                <h1 className="text-[28px] font-bold text-white tracking-tight">
+                  {user.name} {user.surname || ''}
+                </h1>
+                <p className="text-[14px] text-stone-400 mt-1">
+                  Team Member
+                </p>
+
+                {/* QR Button */}
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  className="mt-4 inline-flex items-center gap-2 bg-white text-stone-900 px-4 py-2.5 rounded-xl text-[13px] font-semibold hover:bg-stone-100 transition-colors self-start shadow-lg"
+                >
+                  <QrCode className="w-4 h-4" />
+                  Show my QR code
+                </button>
+              </div>
             </div>
-            {todaysPerk ? (
-              <YourPerkCard voucher={todaysPerk} onShowQR={() => setShowQRModal(true)} />
-            ) : (
-              <div className="bg-white rounded-xl border border-[#E7E5E4] p-4 text-center">
-                <p className="text-[14px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  No vouchers available yet
-                </p>
-                <p className="text-[12px] text-[#A8A29E] mt-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-                  Check back soon for employee perks!
-                </p>
+
+            {/* How to Use Section */}
+            <div className="bg-white rounded-2xl p-5 border border-stone-100">
+              <h2 className="text-[15px] font-semibold text-stone-900 mb-3">How to use your perks</h2>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-stone-900 text-white text-[12px] font-bold flex items-center justify-center flex-shrink-0">1</div>
+                  <p className="text-[13px] text-stone-600">Show your QR code to the cashier at checkout</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-stone-900 text-white text-[12px] font-bold flex items-center justify-center flex-shrink-0">2</div>
+                  <p className="text-[13px] text-stone-600">They will scan it to see your available benefits</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-stone-900 text-white text-[12px] font-bold flex items-center justify-center flex-shrink-0">3</div>
+                  <p className="text-[13px] text-stone-600">Choose a perk and it will be applied to your order</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Featured Perks */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <h2 className="text-[15px] font-semibold text-stone-900">Your Perks</h2>
+                <Link
+                  href="/app/vouchers"
+                  className="text-[13px] text-stone-500 hover:text-stone-700 transition-colors flex items-center gap-1"
+                >
+                  View all
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {featuredPerks.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {featuredPerks.map((voucher) => (
+                    <PerkCard key={voucher.id} voucher={voucher} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl p-8 text-center border border-stone-100">
+                  <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
+                    <Gift className="w-6 h-6 text-stone-400" />
+                  </div>
+                  <p className="text-[15px] font-medium text-stone-700">No perks available yet</p>
+                  <p className="text-[13px] text-stone-400 mt-1">Check back soon for new benefits</p>
+                </div>
+              )}
+            </div>
+
+            {/* Invite Friends Card */}
+            <button
+              onClick={() => setShowInviteFriends(true)}
+              className="w-full bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 text-left transition-transform active:scale-[0.98]"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-6 h-6 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[15px] font-semibold text-stone-900">Invite Friends & Family</h3>
+                  <p className="text-[13px] text-stone-600 mt-1">
+                    Share your code and give them <span className="font-semibold text-amber-700">25% off</span> as Friends & Family members
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-stone-300 flex-shrink-0 mt-1" />
+              </div>
+            </button>
+
+            {/* News Section */}
+            {latestNews.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-[15px] font-semibold text-stone-900">Latest News</h2>
+                  <Link
+                    href="/app/news"
+                    className="text-[13px] text-stone-500 hover:text-stone-700 transition-colors flex items-center gap-1"
+                  >
+                    View all
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {latestNews.map((news) => (
+                    <NewsCard key={news.id} news={news} />
+                  ))}
+                </div>
               </div>
             )}
+
           </div>
-
-          {/* Invite Friends - Simple, clean */}
-          <button
-            onClick={() => setShowInviteFriends(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-white rounded-xl border border-[#E7E5E4] active:bg-[#FAFAF9] transition-colors"
-          >
-            <Users className="w-[18px] h-[18px] text-[#78716C]" />
-            <span className="text-[13px] font-medium text-[#57534E]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-              Invite Friends
-            </span>
-          </button>
-
-          {/* Latest News */}
-          <LatestNewsCard announcement={latestNews} />
         </div>
       </div>
 
-      {/* QR Code Modal */}
+      {/* Bottom Tab Navigation */}
+      <BottomTabBar currentPath={pathname} />
+
+      {/* QR Modal */}
       {showQRModal && (
         <QRCodeModal
           employeeId={employeeId}
@@ -226,6 +318,144 @@ export function EmployeeHome({ user, vouchers, announcements = [], onShowQR, qrC
   );
 }
 
+function PerkCard({ voucher }: { voucher: Voucher }) {
+  const router = useRouter();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const redeemedCount = voucher.today_redemptions ?? voucher.redeemed_today ?? 0;
+  const isRedeemed = voucher.max_redemptions_per_user
+    ? redeemedCount >= voucher.max_redemptions_per_user
+    : false;
+
+  return (
+    <button
+      onClick={() => router.push(`/app/vouchers/${voucher.id}`)}
+      className={`w-full bg-white rounded-2xl overflow-hidden text-left border border-stone-100 transition-all hover:shadow-md active:scale-[0.98] ${
+        isRedeemed ? 'opacity-50' : ''
+      }`}
+      disabled={isRedeemed}
+    >
+      <div className="w-full aspect-[4/3] bg-stone-100 relative overflow-hidden">
+        {!imageLoaded && !imageError && voucher.image_url && (
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100 animate-pulse" />
+        )}
+
+        {voucher.image_url && !imageError ? (
+          <Image
+            src={voucher.image_url}
+            alt={voucher.title}
+            fill
+            className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            sizes="(max-width: 768px) 50vw, 25vw"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+            <Gift className="w-8 h-8 text-stone-300" />
+          </div>
+        )}
+
+        {isRedeemed && (
+          <div className="absolute inset-0 bg-white/80 flex items-center justify-center backdrop-blur-sm">
+            <span className="text-[11px] font-semibold text-stone-600 bg-white px-3 py-1.5 rounded-full shadow-sm">
+              Used today
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-3">
+        <p className="text-[13px] font-medium text-stone-800 truncate">{voucher.title}</p>
+        <p className="text-[11px] text-stone-400 mt-0.5">
+          {isRedeemed ? 'Redeemed' : 'Available'}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+function NewsCard({ news }: { news: Announcement }) {
+  const router = useRouter();
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  return (
+    <button
+      onClick={() => router.push(`/app/news/${news.id}`)}
+      className="w-full bg-white rounded-2xl overflow-hidden text-left border border-stone-100 flex items-center gap-4 p-3 transition-all hover:shadow-md active:scale-[0.98]"
+    >
+      {/* Thumbnail */}
+      <div className="w-20 h-20 rounded-xl bg-stone-100 relative overflow-hidden flex-shrink-0">
+        {!imageLoaded && news.image_url && (
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100 animate-pulse" />
+        )}
+        {news.image_url ? (
+          <Image
+            src={news.image_url}
+            alt={news.title}
+            fill
+            className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            sizes="80px"
+            onLoad={() => setImageLoaded(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Newspaper className="w-6 h-6 text-stone-300" />
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[14px] font-medium text-stone-800 line-clamp-2">{news.title}</p>
+        <p className="text-[12px] text-stone-400 mt-1 line-clamp-1">
+          {news.description || news.message}
+        </p>
+      </div>
+
+      <ChevronRight className="w-5 h-5 text-stone-300 flex-shrink-0" />
+    </button>
+  );
+}
+
+function BottomTabBar({ currentPath }: { currentPath: string }) {
+  const tabs = [
+    { href: '/app/home', icon: Home, label: 'Home' },
+    { href: '/app/vouchers', icon: Ticket, label: 'Perks' },
+    { href: '/app/news', icon: Newspaper, label: 'News' },
+    { href: '/app/profile', icon: User, label: 'Profile' },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50 safe-area-bottom">
+      <div className="max-w-2xl lg:max-w-4xl mx-auto">
+        <div className="flex items-center justify-around h-16">
+          {tabs.map((tab) => {
+            const isActive = currentPath === tab.href ||
+              (tab.href !== '/app/home' && currentPath.startsWith(tab.href));
+            const Icon = tab.icon;
+
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 transition-colors ${
+                  isActive ? 'text-stone-900' : 'text-stone-400'
+                }`}
+              >
+                <Icon className="w-5 h-5" strokeWidth={isActive ? 2 : 1.5} />
+                <span className={`text-[10px] ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                  {tab.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function QRCodeModal({
   employeeId,
   userName,
@@ -241,57 +471,57 @@ function QRCodeModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-5"
+      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-5"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl w-full max-w-[300px] p-5 animate-in zoom-in-95 duration-200"
+        className="w-full max-w-[320px] bg-white rounded-2xl overflow-hidden animate-scale-in"
         onClick={(e) => e.stopPropagation()}
+        style={{ boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[16px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            Your QR Code
-          </h2>
+        <div className="p-6 flex flex-col items-center relative">
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-[#F5F5F4] flex items-center justify-center"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center hover:bg-stone-200 transition-colors"
           >
-            <X className="w-4 h-4 text-[#78716C]" />
+            <X className="w-4 h-4 text-stone-500" />
           </button>
-        </div>
 
-        {/* QR Code */}
-        <div className="flex flex-col items-center">
-          <div className="w-44 h-44 bg-white border border-[#E7E5E4] rounded-xl flex items-center justify-center mb-4 overflow-hidden">
+          <p className="text-[16px] font-semibold text-stone-900 mb-1">{userName}</p>
+          <p className="text-[12px] text-stone-400 font-mono mb-6">{employeeId}</p>
+
+          <div className="w-48 h-48 rounded-xl bg-white border border-stone-100 flex items-center justify-center mb-6">
             {qrLoading ? (
-              <div className="w-6 h-6 border-2 border-[#1C1917] border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin" />
             ) : qrCodeUrl ? (
               <img src={qrCodeUrl} alt="QR Code" className="w-full h-full object-contain p-2" />
             ) : (
-              <QrCode className="w-20 h-20 text-[#E7E5E4]" />
+              <QrCode className="w-16 h-16 text-stone-200" />
             )}
           </div>
-          <p className="text-[15px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            {userName}
-          </p>
-          <p className="text-[13px] text-[#78716C] mt-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            {employeeId}
-          </p>
-          <p className="text-[12px] text-[#A8A29E] mt-3 text-center" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            Show this to redeem your benefits
-          </p>
-        </div>
 
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="w-full bg-[#1C1917] text-white py-3 rounded-xl font-medium text-[14px] mt-4 active:bg-[#292524] transition-colors"
-          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-        >
-          Done
-        </button>
+          <p className="text-[13px] text-stone-500 mb-6 text-center">
+            Show this QR code to the cashier to use your perks
+          </p>
+
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-xl font-medium text-[14px] text-white bg-stone-900 hover:bg-stone-800 transition-colors"
+          >
+            Done
+          </button>
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.2s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
@@ -313,155 +543,82 @@ function InviteFriendsModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/50 flex items-end justify-center"
+      className="fixed inset-0 z-[100] bg-black/60 flex items-end md:items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-t-xl w-full max-w-md p-5 pb-8 animate-in slide-in-from-bottom duration-300"
+        className="w-full max-w-md bg-white rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
+        style={{ boxShadow: '0 -8px 32px rgba(0,0,0,0.15)' }}
       >
-        {/* Handle bar */}
-        <div className="w-10 h-1 bg-[#E7E5E4] rounded-full mx-auto mb-4" />
+        <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mt-3 md:hidden" />
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[16px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            Invite Friends
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-[#F5F5F4] flex items-center justify-center"
-          >
-            <X className="w-4 h-4 text-[#78716C]" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <p className="text-[13px] text-[#78716C] mb-4" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-          Share your code and both get rewarded when your friend joins!
-        </p>
-
-        {loading ? (
-          <div className="bg-[#F5F5F4] rounded-xl p-5 text-center">
-            <div className="w-5 h-5 border-2 border-[#1C1917] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Loading...</p>
-          </div>
-        ) : referralCode ? (
-          <div className="space-y-3">
-            <div className="bg-[#F5F5F4] rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <p className="text-[11px] text-[#A8A29E] mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Your referral code</p>
-                <p className="text-[18px] font-semibold text-[#1C1917] tracking-[2px] font-mono">{referralCode}</p>
-              </div>
-              <button
-                onClick={onCopy}
-                className="w-10 h-10 rounded-xl bg-white border border-[#E7E5E4] flex items-center justify-center"
-              >
-                {copiedCode ? (
-                  <Check className="w-4 h-4 text-[#16A34A]" />
-                ) : (
-                  <Copy className="w-4 h-4 text-[#78716C]" />
-                )}
-              </button>
-            </div>
+        <div className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[18px] font-semibold text-stone-900">Invite Friends & Family</h2>
             <button
-              onClick={onShare}
-              className="w-full bg-[#1C1917] text-white py-3 rounded-xl font-medium text-[14px] flex items-center justify-center gap-2 active:bg-[#292524] transition-colors"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center hover:bg-stone-200 transition-colors"
             >
-              <Share2 className="w-4 h-4" />
-              Share Invite Link
+              <X className="w-4 h-4 text-stone-500" />
             </button>
           </div>
-        ) : (
-          <div className="bg-[#F5F5F4] rounded-xl p-5 text-center">
-            <p className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Unable to load referral code</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function YourPerkCard({ voucher, onShowQR }: { voucher: Voucher; onShowQR?: () => void }) {
-  return (
-    <div className="bg-white rounded-xl border border-[#E7E5E4] overflow-hidden">
-      <div
-        className="h-28 w-full bg-[#F5F5F4] bg-cover bg-center"
-        style={{
-          backgroundImage: voucher.image_url
-            ? `url(${voucher.image_url})`
-            : 'url(https://images.unsplash.com/photo-1630439924740-b7cf5e98e7e1?w=400&q=80)'
-        }}
-      />
-      <div className="p-4 space-y-3">
-        <div>
-          <p className="text-[15px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            {voucher.title}
-          </p>
-          <p className="text-[13px] text-[#78716C] mt-1 line-clamp-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            {voucher.description}
-          </p>
-        </div>
-        <button
-          onClick={onShowQR}
-          className="w-full bg-[#1C1917] text-white py-3 rounded-xl font-medium text-[14px] active:bg-[#292524] transition-colors"
-          style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-        >
-          Use Now
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function LatestNewsCard({ announcement }: { announcement: Announcement | null }) {
-  const router = useRouter();
-
-  return (
-    <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <p className="text-[11px] font-semibold tracking-[1px] text-[#78716C] uppercase" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-          Latest News
-        </p>
-        <Link href="/app/news" className="flex items-center text-[13px] font-medium text-[#D97706]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-          View all
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
-      {announcement ? (
-        <div
-          className="bg-white rounded-xl border border-[#E7E5E4] overflow-hidden cursor-pointer active:scale-[0.99] transition-transform"
-          onClick={() => router.push(`/app/news/${announcement.id}`)}
-        >
-          {/* Featured Image */}
-          <div
-            className="h-[120px] w-full bg-[#F5F5F4] bg-cover bg-center"
-            style={{
-              backgroundImage: announcement.image_url
-                ? `url(${announcement.image_url})`
-                : 'url(https://images.unsplash.com/photo-1711633648859-1eac3e5969b9?w=800&q=80)'
-            }}
-          />
-          {/* Content - 16px padding */}
-          <div className="p-4">
-            <p className="text-[15px] font-semibold text-[#1C1917]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-              {announcement.title}
-            </p>
-            <p className="text-[13px] text-[#78716C] mt-2 line-clamp-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-              {announcement.message}
+          {/* Value proposition */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+            <p className="text-[14px] text-amber-900">
+              Share your code with friends and family. They will get <span className="font-bold">25% off</span> as Friends & Family members on all orders!
             </p>
           </div>
+
+          {loading ? (
+            <div className="py-8 text-center">
+              <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin mx-auto" />
+            </div>
+          ) : referralCode ? (
+            <div className="space-y-4">
+              <div className="bg-stone-50 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-stone-400 mb-1">Your referral code</p>
+                  <p className="text-[22px] font-bold text-stone-900 font-mono tracking-wider">{referralCode}</p>
+                </div>
+                <button
+                  onClick={onCopy}
+                  className="w-11 h-11 rounded-xl bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-50 transition-colors"
+                >
+                  {copiedCode ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-stone-500" />
+                  )}
+                </button>
+              </div>
+
+              <button
+                onClick={onShare}
+                className="w-full py-3.5 rounded-xl font-semibold text-[14px] text-white bg-amber-500 hover:bg-amber-600 flex items-center justify-center gap-2 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                Share with Friends
+              </button>
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-[13px] text-stone-400">Unable to load referral code</p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-[#E7E5E4] p-4 text-center">
-          <p className="text-[13px] text-[#78716C]" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
-            No announcements yet
-          </p>
-        </div>
-      )}
+      </div>
+
+      <style jsx>{`
+        @keyframes slide-up {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.25s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
-
-

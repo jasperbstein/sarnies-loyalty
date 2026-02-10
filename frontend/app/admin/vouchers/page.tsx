@@ -328,7 +328,7 @@ export default function VouchersPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-[1600px] mx-auto px-8 py-8 animate-macos-fade">
+      <div className="admin-page admin-page-container animate-macos-fade">
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -355,9 +355,9 @@ export default function VouchersPage() {
           {/* Stats */}
           <VoucherStatsBar stats={stats} />
 
-          {/* Bulk Selection Bar */}
+          {/* Bulk Selection Bar - Glass */}
           {selectedIds.size > 0 && (
-            <div className="p-4 bg-gradient-to-b from-[#2997FF] to-[#007AFF] rounded-2xl flex items-center justify-between text-white shadow-lg">
+            <div className="admin-bulk-action-bar flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
                 <span className="text-[14px] font-semibold">{selectedIds.size} selected</span>
                 <button onClick={clearSelection} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm">
@@ -392,9 +392,9 @@ export default function VouchersPage() {
 
           {/* Filters Card */}
           <div className="admin-card overflow-hidden">
-            {/* Tabs - macOS Segmented Control Style */}
-            <div className="border-b border-[rgba(0,0,0,0.06)] px-5 py-3 bg-[rgba(246,246,246,0.4)]">
-              <div className="inline-flex p-1 bg-[rgba(0,0,0,0.06)] rounded-xl">
+            {/* Tabs - Glass Tab Bar */}
+            <div className="border-b border-[rgba(0,0,0,0.06)] px-5 py-3 bg-[rgba(250,247,242,0.5)] backdrop-blur-[8px]">
+              <div className="inline-flex p-1 admin-tab-bar">
                 {TABS.map((tab) => (
                   <button
                     key={tab.id}
@@ -557,7 +557,7 @@ export default function VouchersPage() {
             <div className="admin-card overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[rgba(0,0,0,0.06)] bg-[rgba(246,246,246,0.6)]">
+                  <tr className="border-b border-[rgba(0,0,0,0.06)] bg-[rgba(250,247,242,0.7)]" style={{ backdropFilter: 'blur(8px)' }}>
                     <th className="w-12 px-4 py-4">
                       <input
                         type="checkbox"

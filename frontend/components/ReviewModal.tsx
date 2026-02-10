@@ -89,8 +89,7 @@ export default function ReviewModal({ isOpen, onClose, userName }: ReviewModalPr
   };
 
   const handleSubmitFeedback = () => {
-    // Handle low rating feedback submission (API call would go here)
-    console.log('Low rating feedback:', { rating, feedback });
+    // TODO: Implement API call to submit feedback
     setSubmitted(true);
 
     setTimeout(() => {

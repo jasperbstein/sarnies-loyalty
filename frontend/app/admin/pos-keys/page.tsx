@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import { posKeysAPI } from '@/lib/api';
 import {
   Key,
@@ -156,19 +157,24 @@ export default function POSKeysPage() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-neutral-50">
-        <div className="max-w-[1400px] mx-auto px-6 py-8">
+      <div className="min-h-screen admin-page animate-macos-fade">
+        <div className="admin-page-container">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-[28px] font-semibold text-neutral-900">POS API Keys</h1>
-              <p className="text-[14px] text-neutral-500 mt-1">
-                Manage API keys for external POS integrations
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#5856D6] to-[#3634A3] flex items-center justify-center shadow-lg">
+                <Key className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">POS API Keys</h1>
+                <p className="text-[14px] text-[#86868b]">
+                  Manage API keys for external POS integrations
+                </p>
+              </div>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="h-[40px] px-4 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 text-[14px] font-medium transition-all flex items-center gap-2"
+              className="admin-btn-primary"
             >
               <Plus size={16} />
               Create API Key
@@ -176,22 +182,22 @@ export default function POSKeysPage() {
           </div>
 
           {/* Info Banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+          <div className="admin-card p-4 mb-6 bg-[rgba(0,122,255,0.04)] border-[rgba(0,122,255,0.2)]">
             <div className="flex gap-3">
-              <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <Shield className="w-5 h-5 text-[#007AFF] flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-[14px] font-semibold text-blue-900 mb-1">
+                <h3 className="text-[14px] font-semibold text-[#1d1d1f] mb-1">
                   External POS Integration
                 </h3>
-                <p className="text-[13px] text-blue-700">
+                <p className="text-[13px] text-[#86868b]">
                   API keys allow external POS systems to submit transactions and look up customers.
                   Each key is shown only once when created. Store it securely.
                 </p>
                 <div className="mt-3 flex gap-4 text-[12px]">
-                  <code className="bg-blue-100 px-2 py-1 rounded text-blue-800">
+                  <code className="bg-[rgba(0,122,255,0.1)] px-2 py-1 rounded-md text-[#007AFF]">
                     POST /api/pos/transaction
                   </code>
-                  <code className="bg-blue-100 px-2 py-1 rounded text-blue-800">
+                  <code className="bg-[rgba(0,122,255,0.1)] px-2 py-1 rounded-md text-[#007AFF]">
                     GET /api/pos/lookup/:identifier
                   </code>
                 </div>
@@ -200,34 +206,34 @@ export default function POSKeysPage() {
           </div>
 
           {/* Keys Table */}
-          <div className="bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="admin-card overflow-hidden">
             {/* Table Header */}
-            <div className="flex items-center h-[48px] px-6 border-b border-neutral-200 bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
-              <div className="w-[200px]">Name</div>
-              <div className="w-[160px]">Key Prefix</div>
-              <div className="w-[100px]">Status</div>
-              <div className="w-[140px]">Last Used</div>
-              <div className="w-[100px] text-right">Requests</div>
-              <div className="w-[100px] text-right">Transactions</div>
-              <div className="w-[140px]">Created</div>
+            <div className="flex items-center h-[48px] px-6 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(246,246,246,0.6)]">
+              <div className="w-[200px] text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Name</div>
+              <div className="w-[160px] text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Key Prefix</div>
+              <div className="w-[100px] text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Status</div>
+              <div className="w-[140px] text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Last Used</div>
+              <div className="w-[100px] text-right text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Requests</div>
+              <div className="w-[100px] text-right text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Transactions</div>
+              <div className="w-[140px] text-[11px] font-semibold uppercase tracking-wide text-[#86868b]">Created</div>
               <div className="flex-1"></div>
             </div>
 
             {/* Table Body */}
             {loading ? (
-              <div className="flex items-center justify-center h-40 text-[14px] text-neutral-500">
+              <div className="flex items-center justify-center h-40 text-[14px] text-[#86868b]">
                 Loading API keys...
               </div>
             ) : keys.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 px-4">
-                <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
-                  <Key size={24} className="text-neutral-400" />
+                <div className="w-12 h-12 rounded-full bg-[rgba(0,0,0,0.04)] flex items-center justify-center mb-4">
+                  <Key size={24} className="text-[#86868b]" />
                 </div>
-                <h3 className="text-[16px] font-semibold text-neutral-900 mb-1">No API Keys</h3>
-                <p className="text-[14px] text-neutral-500 mb-4">Create your first API key to enable POS integration.</p>
+                <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">No API Keys</h3>
+                <p className="text-[14px] text-[#86868b] mb-4">Create your first API key to enable POS integration.</p>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="h-[36px] px-4 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 text-[14px] font-medium transition-all flex items-center gap-2"
+                  className="admin-btn-primary"
                 >
                   <Plus size={16} />
                   Create API Key
@@ -237,34 +243,32 @@ export default function POSKeysPage() {
               keys.map((key) => (
                 <div key={key.id}>
                   {/* Key Row */}
-                  <div className="flex items-center h-[60px] px-6 border-b border-neutral-100 last:border-0 hover:bg-neutral-50 transition-colors">
+                  <div className="flex items-center h-[60px] px-6 border-b border-[rgba(0,0,0,0.04)] last:border-0 hover:bg-[rgba(0,0,0,0.02)] transition-colors">
                     <div className="w-[200px]">
-                      <p className="text-[14px] font-medium text-neutral-900">{key.name}</p>
+                      <p className="text-[14px] font-medium text-[#1d1d1f]">{key.name}</p>
                     </div>
                     <div className="w-[160px]">
-                      <code className="text-[13px] font-mono text-neutral-600 bg-neutral-100 px-2 py-1 rounded">
+                      <code className="text-[13px] font-mono text-[#86868b] bg-[rgba(0,0,0,0.04)] px-2 py-1 rounded-md">
                         {key.key_prefix}...
                       </code>
                     </div>
                     <div className="w-[100px]">
-                      <span className={`inline-flex items-center h-[24px] px-2 rounded-md text-[12px] font-medium ${
-                        key.is_active
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                      <span className={`admin-badge ${
+                        key.is_active ? 'admin-badge-success' : 'admin-badge-error'
                       }`}>
                         {key.is_active ? 'Active' : 'Revoked'}
                       </span>
                     </div>
-                    <div className="w-[140px] text-[13px] text-neutral-600">
+                    <div className="w-[140px] text-[13px] text-[#86868b]">
                       {formatDate(key.last_used_at)}
                     </div>
-                    <div className="w-[100px] text-right text-[14px] font-medium text-neutral-900 font-mono">
+                    <div className="w-[100px] text-right text-[14px] font-medium text-[#1d1d1f] font-mono">
                       {key.total_requests.toLocaleString()}
                     </div>
-                    <div className="w-[100px] text-right text-[14px] font-medium text-neutral-900 font-mono">
+                    <div className="w-[100px] text-right text-[14px] font-medium text-[#1d1d1f] font-mono">
                       {key.total_transactions.toLocaleString()}
                     </div>
-                    <div className="w-[140px] text-[13px] text-neutral-500">
+                    <div className="w-[140px] text-[13px] text-[#86868b]">
                       {formatDate(key.created_at)}
                     </div>
                     <div className="flex-1 flex justify-end gap-2">

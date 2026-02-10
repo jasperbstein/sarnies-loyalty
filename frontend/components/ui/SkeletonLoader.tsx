@@ -202,6 +202,73 @@ export const HomePageSkeleton: React.FC = () => {
 };
 
 /**
+ * EmployeeHomePageSkeleton - Matches EmployeeHome layout
+ * Dark employee card, perks summary, 2x2 perk grid, invite button
+ */
+export const EmployeeHomePageSkeleton: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-2xl lg:max-w-4xl mx-auto">
+        <div className="px-3 md:px-6 pt-3 pb-24 space-y-3">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <Skeleton variant="text" width={100} height={24} />
+            <Skeleton variant="rectangular" width={90} height={28} className="rounded-full" />
+          </div>
+
+          {/* Employee Card */}
+          <div className="w-full rounded-xl bg-stone-900 px-4 py-3 flex items-center justify-between gap-3">
+            <div className="space-y-1.5">
+              <Skeleton variant="text" width={70} height={10} className="!bg-stone-700" />
+              <Skeleton variant="text" width={140} height={18} className="!bg-stone-700" />
+              <Skeleton variant="text" width={100} height={14} className="!bg-stone-700" />
+            </div>
+            <div className="w-12 h-12 rounded-lg bg-white/20 flex-shrink-0" />
+          </div>
+
+          {/* Perks Summary */}
+          <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2.5 border border-stone-200">
+            <Skeleton variant="rectangular" width={14} height={14} className="rounded-sm" />
+            <Skeleton variant="text" width={130} height={14} />
+          </div>
+
+          {/* Your Perks Section */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Skeleton variant="text" width={80} height={14} />
+              <Skeleton variant="text" width={55} height={14} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="w-full bg-white rounded-lg border border-stone-200 overflow-hidden">
+                  <Skeleton variant="rectangular" className="w-full aspect-[3/2] rounded-none" />
+                  <div className="p-2.5 space-y-1.5">
+                    <Skeleton variant="text" width="70%" height={14} />
+                    <Skeleton variant="text" width={40} height={12} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Invite Friends */}
+          <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-stone-200">
+            <div className="flex items-center gap-3">
+              <Skeleton variant="rectangular" width={36} height={36} className="rounded-lg" />
+              <div className="space-y-1">
+                <Skeleton variant="text" width={100} height={14} />
+                <Skeleton variant="text" width={130} height={12} />
+              </div>
+            </div>
+            <Skeleton variant="rectangular" width={16} height={16} className="rounded-sm" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
  * RewardCardSkeleton - Single reward card skeleton
  */
 export const RewardCardSkeleton: React.FC = () => {

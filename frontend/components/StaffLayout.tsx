@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { isStaffUser } from '@/lib/authUtils';
-import { Home, Scan, LifeBuoy, Settings, History, LogOut, AlertCircle } from 'lucide-react';
+import { Scan, LifeBuoy, Settings, LogOut, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -15,16 +15,36 @@ interface StaffLayoutProps {
 export default function StaffLayout({ children, hideNav = false }: StaffLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, hasHydrated, setHasHydrated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(false);
 
-  // Simple mount tracking - no complex hydration logic
+  // Track client-side mount and force hydration
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!useAuthStore.getState().hasHydrated) {
+      setHasHydrated(true);
+    }
+  }, [setHasHydrated]);
 
   // Staff can be: staff, employee (employees are also staff members)
   const isStaff = isStaffUser(user);
+
+  // Handle auth redirect with timeout protection
+  useEffect(() => {
+    if (mounted && hasHydrated && !isStaff && !redirectAttempted) {
+      setRedirectAttempted(true);
+      router.push('/login');
+
+      // If redirect doesn't work after 2.5 seconds, show recovery UI
+      const timeout = setTimeout(() => {
+        setShowRecovery(true);
+      }, 2500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isStaff, router, mounted, hasHydrated, redirectAttempted]);
 
   const handleLogoutAndRetry = () => {
     logout();
@@ -35,7 +55,7 @@ export default function StaffLayout({ children, hideNav = false }: StaffLayoutPr
     window.location.href = '/login';
   };
 
-  // Simple loading state - only on very first render
+  // Show loading only briefly
   if (!mounted) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -44,8 +64,8 @@ export default function StaffLayout({ children, hideNav = false }: StaffLayoutPr
     );
   }
 
-  // If not staff after mount, show recovery UI immediately (no waiting)
-  if (!isStaff) {
+  // Show recovery UI if auth is invalid and redirect didn't work
+  if (!isStaff && showRecovery) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="max-w-sm w-full text-center">
@@ -76,19 +96,26 @@ export default function StaffLayout({ children, hideNav = false }: StaffLayoutPr
     );
   }
 
+  // Still trying to redirect, show loading
+  if (!isStaff && !showRecovery) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   const navItems = [
-    { id: 'home', icon: Home, label: 'HOME', desktopLabel: 'Home', path: '/staff' },
-    { id: 'scan', icon: Scan, label: 'SCAN', desktopLabel: 'Scan', path: '/staff/scan' },
-    { id: 'transactions', icon: History, label: 'HISTORY', desktopLabel: 'Transactions', path: '/staff/transactions', desktopOnly: true },
+    { id: 'home', icon: Scan, label: 'SCAN', desktopLabel: 'Scan', path: '/staff' },
     { id: 'help', icon: LifeBuoy, label: 'HELP', desktopLabel: 'Help', path: '/staff/help' },
-    { id: 'settings', icon: Settings, label: 'SETTINGS', desktopLabel: 'Settings', path: '/staff/settings', mobileOnly: true },
+    { id: 'settings', icon: Settings, label: 'MORE', desktopLabel: 'Settings', path: '/staff/settings' },
   ];
 
-  const mobileNavItems = navItems.filter(item => !item.desktopOnly);
-  const desktopNavItems = navItems.filter(item => !item.mobileOnly);
+  const mobileNavItems = navItems;
+  const desktopNavItems = navItems;
 
   return (
-    <div className="min-h-screen bg-white lg:bg-stone-50">
+    <div className="min-h-screen bg-[#f5f5f4] lg:bg-[#f5f5f4]">
       {/* Desktop Sidebar - hidden on mobile/tablet */}
       {!hideNav && (
         <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[240px] bg-stone-900 flex-col z-50">
@@ -105,8 +132,7 @@ export default function StaffLayout({ children, hideNav = false }: StaffLayoutPr
               {desktopNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.path ||
-                  (item.path === '/staff' && pathname === '/staff') ||
-                  (item.path === '/staff/scan' && pathname.startsWith('/staff/scan'));
+                  (item.path === '/staff' && (pathname === '/staff' || pathname === '/staff/scan'));
 
                 return (
                   <Link
@@ -129,23 +155,8 @@ export default function StaffLayout({ children, hideNav = false }: StaffLayoutPr
             </div>
           </nav>
 
-          {/* Settings at bottom */}
-          <div className="px-3 pb-6">
-            <Link
-              href="/staff/settings"
-              prefetch={true}
-              className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
-                pathname === '/staff/settings'
-                  ? 'bg-white/10 text-white'
-                  : 'text-stone-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Settings className="w-5 h-5" strokeWidth={pathname === '/staff/settings' ? 2 : 1.5} />
-              <span className="text-sm font-medium">
-                Settings
-              </span>
-            </Link>
-          </div>
+          {/* Spacer */}
+          <div className="flex-1" />
         </aside>
       )}
 
@@ -159,30 +170,40 @@ export default function StaffLayout({ children, hideNav = false }: StaffLayoutPr
 
       {/* Bottom Navigation - visible on mobile/tablet only */}
       {!hideNav && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-[68px] bg-white border-t border-stone-200 z-50 pb-safe">
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 h-[72px] bg-white z-50 pb-safe"
+          style={{
+            boxShadow: '0 -1px 0 rgba(0,0,0,0.04), 0 -4px 12px rgba(0,0,0,0.02)'
+          }}
+        >
           <div className="max-w-screen-xl mx-auto h-full">
             <div className="flex justify-around items-center h-full">
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.path ||
-                  (item.path === '/staff' && pathname === '/staff') ||
-                  (item.path === '/staff/scan' && pathname.startsWith('/staff/scan'));
+                  (item.path === '/staff' && (pathname === '/staff' || pathname === '/staff/scan'));
 
                 return (
                   <Link
                     key={item.id}
                     href={item.path}
                     prefetch={true}
-                    className="flex flex-col items-center justify-center py-2 px-4 min-w-[72px] transition-colors"
+                    className="flex flex-col items-center justify-center py-2 px-5 min-w-[80px] transition-all"
                   >
-                    <Icon
-                      className={`w-6 h-6 mb-1 transition-colors ${
-                        isActive ? 'text-amber-600' : 'text-stone-400'
+                    <div
+                      className={`p-2 rounded-xl mb-1 transition-all ${
+                        isActive ? 'bg-stone-900' : 'bg-transparent'
                       }`}
-                      strokeWidth={isActive ? 2.5 : 1.5}
-                    />
-                    <span className={`text-xs font-medium uppercase tracking-wide transition-colors ${
-                      isActive ? 'text-amber-600' : 'text-stone-400'
+                    >
+                      <Icon
+                        className={`w-5 h-5 transition-colors ${
+                          isActive ? 'text-white' : 'text-stone-400'
+                        }`}
+                        strokeWidth={2}
+                      />
+                    </div>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                      isActive ? 'text-stone-900' : 'text-stone-400'
                     }`}>
                       {item.label}
                     </span>

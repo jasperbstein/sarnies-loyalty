@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Button from './Button';
+import Button from './ui/Button';
 import ImageUpload from './ImageUpload';
 import { X, Save, DollarSign, Users, Calendar, Building2, Search, AlertCircle, CheckCircle2, Sparkles, User, Briefcase, TrendingUp, Newspaper } from 'lucide-react';
 
@@ -42,6 +42,8 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
     investor_credits_cost: voucher?.investor_credits_cost || '',
     media_budget_cost: voucher?.media_budget_cost || '',
     expires_at: voucher?.expires_at || '',
+    is_company_exclusive: voucher?.is_company_exclusive ?? false,
+    allowed_company_ids: voucher?.allowed_company_ids || [],
   });
 
   const [companySearch, setCompanySearch] = useState('');
@@ -102,105 +104,90 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
     onSubmit(formData);
   };
 
-  // DISABLED: Database doesn't have is_company_exclusive or allowed_company_ids columns yet
-  // const toggleCompany = (companyId: number) => {
-  //   if (formData.allowed_company_ids.includes(companyId)) {
-  //     setFormData({
-  //       ...formData,
-  //       allowed_company_ids: formData.allowed_company_ids.filter((id: number) => id !== companyId),
-  //     });
-  //   } else {
-  //     setFormData({
-  //       ...formData,
-  //       allowed_company_ids: [...formData.allowed_company_ids, companyId],
-  //     });
-  //   }
-  // };
+  const toggleCompany = (companyId: number) => {
+    if (formData.allowed_company_ids.includes(companyId)) {
+      setFormData({
+        ...formData,
+        allowed_company_ids: formData.allowed_company_ids.filter((id: number) => id !== companyId),
+      });
+    } else {
+      setFormData({
+        ...formData,
+        allowed_company_ids: [...formData.allowed_company_ids, companyId],
+      });
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm flex items-start justify-center p-6 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl my-8 animate-in slide-in-from-bottom-4 duration-300">
-        {/* Modal Card */}
-        <div className="bg-white rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-gradient-to-b from-background-subtle to-white">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-accent-500 flex items-center justify-center shadow-sm">
-                <Sparkles size={20} className="text-white" />
-              </div>
-              <div>
-                <h2 className="font-display text-display-md text-text-primary tracking-tight">
-                  {voucher ? 'Edit Voucher' : 'Create Voucher'}
-                </h2>
-                <p className="font-ui text-ui-xs text-text-secondary mt-0.5">
-                  {voucher ? 'Update reward details' : 'Design a new customer reward'}
-                </p>
-              </div>
+    <div className="admin-modal-overlay">
+      <div className="admin-modal" style={{ maxWidth: '640px' }}>
+        {/* Header */}
+        <div className="admin-modal-header">
+          <div className="flex items-center gap-3">
+            <div className="admin-icon-badge admin-icon-badge-coral">
+              <Sparkles size={20} />
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-border-subtle shadow-sm">
-                <span className="font-ui text-ui-xs text-text-secondary">Status</span>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
-                  className={`relative inline-flex h-4 w-7 items-center rounded-full transition-all duration-200 ${
-                    formData.is_active ? 'bg-success-500' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${
-                      formData.is_active ? 'translate-x-4' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-                <span className={`font-ui text-ui-xs font-semibold ${formData.is_active ? 'text-success-600' : 'text-text-tertiary'}`}>
-                  {formData.is_active ? 'Live' : 'Draft'}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={onCancel}
-                className="p-2 hover:bg-background-hover rounded-lg transition-colors group"
-              >
-                <X size={18} className="text-text-secondary group-hover:text-text-primary transition-colors" />
-              </button>
+            <div>
+              <h2 className="admin-modal-title">
+                {voucher ? 'Edit Voucher' : 'Create Voucher'}
+              </h2>
+              <p className="text-[13px] text-[#6B7280] mt-0.5">
+                {voucher ? 'Update reward details' : 'Design a new customer reward'}
+              </p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F9FAFB] rounded-lg border border-[#E8EAED]">
+              <span className="text-[12px] text-[#6B7280]">Status</span>
+              <div
+                onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
+                className={`admin-toggle ${formData.is_active ? 'active' : ''}`}
+                style={{ width: '36px', height: '20px' }}
+              >
+                <span className="admin-toggle-knob" style={{ width: '16px', height: '16px' }} />
+              </div>
+              <span className={`text-[12px] font-semibold ${formData.is_active ? 'text-[#10B981]' : 'text-[#6B7280]'}`}>
+                {formData.is_active ? 'Live' : 'Draft'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors"
+            >
+              <X size={18} className="text-[#6B7280]" />
+            </button>
+          </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="p-5 space-y-5 max-h-[calc(100vh-10rem)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="admin-modal-body">
             {/* Section 1: Reward Configuration */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
-                    <DollarSign size={16} className="text-white" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-[15px] font-bold text-text-primary leading-none">Reward Configuration</h3>
-                  </div>
+            <div className="space-y-4">
+              <div className="admin-form-section-header" style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #E8EAED' }}>
+                <div className="admin-form-section-icon admin-icon-badge-coral">
+                  <DollarSign size={16} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="admin-form-section-title">Reward Configuration</h3>
                 </div>
                 {formData.title && formData.points_required && (
-                  <CheckCircle2 size={16} className="text-success-500" strokeWidth={2.5} />
+                  <CheckCircle2 size={16} className="text-[#10B981]" />
                 )}
               </div>
 
-              <div className="space-y-3 pl-9">
+              <div className="space-y-4">
                 <div>
-                  <label className="flex items-center justify-between font-ui text-[12px] font-semibold text-text-primary mb-1.5 leading-tight">
-                    <span>Voucher Name <span className="text-danger-500">*</span></span>
+                  <label className="admin-label flex items-center justify-between">
+                    <span>Voucher Name <span className="text-[#EF4444]">*</span></span>
                     {touched.title && !errors.title && formData.title && (
-                      <span className="text-[11px] text-success-600 flex items-center gap-1 leading-none">
-                        <CheckCircle2 size={12} strokeWidth={2.5} /> Looks great
+                      <span className="text-[11px] text-[#10B981] flex items-center gap-1">
+                        <CheckCircle2 size={12} /> Looks great
                       </span>
                     )}
                   </label>
                   <input
                     type="text"
-                    className={`w-full px-3 py-2 border rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 transition-all leading-tight ${
-                      errors.title && touched.title
-                        ? 'border-danger-500 focus:ring-danger-500/20 focus:border-danger-500'
-                        : 'border-border-subtle focus:ring-accent-500/20 focus:border-accent-500'
-                    }`}
+                    className={`admin-input ${errors.title && touched.title ? 'admin-input-error' : ''}`}
                     value={formData.title}
                     onChange={(e) => handleFieldChange('title', e.target.value)}
                     onBlur={() => handleFieldBlur('title')}
@@ -208,23 +195,17 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                     required
                   />
                   {errors.title && touched.title && (
-                    <p className="font-ui text-[11px] text-danger-600 mt-1 flex items-center gap-1 leading-tight">
-                      <AlertCircle size={11} strokeWidth={2.5} /> {errors.title}
+                    <p className="admin-form-error">
+                      <AlertCircle size={12} /> {errors.title}
                     </p>
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-3">
+                <div className="admin-form-grid admin-form-grid-4">
                   <div>
-                    <label className="block font-ui text-[12px] font-medium text-text-primary mb-1.5 leading-tight">
-                      Category <span className="text-danger-500">*</span>
-                    </label>
+                    <label className="admin-label-sm admin-label-required">Category</label>
                     <select
-                      className={`w-full px-3 py-2 border rounded-lg font-ui text-[13px] text-text-primary focus:outline-none focus:ring-1 transition-all bg-white leading-tight ${
-                        errors.category && touched.category
-                          ? 'border-danger-500 focus:ring-danger-500/20 focus:border-danger-500'
-                          : 'border-border-subtle focus:ring-accent-500/20 focus:border-accent-500'
-                      }`}
+                      className={`admin-select admin-select-sm ${errors.category && touched.category ? 'admin-input-error' : ''}`}
                       value={formData.category}
                       onChange={(e) => handleFieldChange('category', e.target.value)}
                       onBlur={() => handleFieldBlur('category')}
@@ -239,18 +220,16 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                       <option value="promotions">Promotions</option>
                     </select>
                     {errors.category && touched.category && (
-                      <p className="font-ui text-[10px] text-danger-600 mt-1 flex items-center gap-1 leading-tight">
-                        <AlertCircle size={10} strokeWidth={2.5} /> {errors.category}
+                      <p className="admin-form-error" style={{ fontSize: '11px' }}>
+                        <AlertCircle size={10} /> {errors.category}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block font-ui text-[12px] font-medium text-text-primary mb-1.5 leading-tight">
-                      Type <span className="text-danger-500">*</span>
-                    </label>
+                    <label className="admin-label-sm admin-label-required">Type</label>
                     <select
-                      className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all bg-white leading-tight"
+                      className="admin-select admin-select-sm"
                       value={formData.voucher_type}
                       onChange={(e) => handleFieldChange('voucher_type', e.target.value)}
                     >
@@ -260,14 +239,12 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                   </div>
 
                   <div>
-                    <label className="block font-ui text-[12px] font-medium text-text-primary mb-1.5 leading-tight">
-                      Value <span className="font-ui text-[11px] text-text-tertiary">(THB)</span>
-                    </label>
+                    <label className="admin-label-sm">Value <span className="admin-label-hint">(THB)</span></label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all leading-tight"
+                      className="admin-input admin-input-sm"
                       value={formData.cash_value}
                       onChange={(e) => handleFieldChange('cash_value', e.target.value)}
                       placeholder="100"
@@ -275,17 +252,11 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                   </div>
 
                   <div>
-                    <label className="flex items-center justify-between font-ui text-[12px] font-semibold text-text-primary mb-1.5 leading-tight">
-                      <span>Points <span className="text-danger-500">*</span></span>
-                    </label>
+                    <label className="admin-label-sm admin-label-required">Points</label>
                     <input
                       type="number"
                       min="0"
-                      className={`w-full px-3 py-2 border rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 transition-all leading-tight ${
-                        errors.points_required && touched.points_required
-                          ? 'border-danger-500 focus:ring-danger-500/20 focus:border-danger-500'
-                          : 'border-border-subtle focus:ring-accent-500/20 focus:border-accent-500'
-                      }`}
+                      className={`admin-input admin-input-sm ${errors.points_required && touched.points_required ? 'admin-input-error' : ''}`}
                       value={formData.points_required}
                       onChange={(e) => handleFieldChange('points_required', e.target.value)}
                       onBlur={() => handleFieldBlur('points_required')}
@@ -293,8 +264,8 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                       required
                     />
                     {errors.points_required && touched.points_required && (
-                      <p className="font-ui text-[10px] text-danger-600 mt-1 flex items-center gap-1 leading-tight">
-                        <AlertCircle size={10} strokeWidth={2.5} /> {errors.points_required}
+                      <p className="admin-form-error" style={{ fontSize: '11px' }}>
+                        <AlertCircle size={10} /> {errors.points_required}
                       </p>
                     )}
                   </div>
@@ -302,17 +273,15 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
 
                 {/* Smart Redemption Costs - Only show if investor or media selected */}
                 {(showInvestorCost || showMediaCost) && (
-                  <div className="bg-background-subtle rounded-lg p-3 border border-border-subtle">
-                    <div className="grid gap-3 grid-cols-2">
+                  <div className="admin-form-section" style={{ marginBottom: 0 }}>
+                    <div className="admin-form-grid admin-form-grid-2">
                       {showInvestorCost && (
-                        <div className="animate-in slide-in-from-right duration-200">
-                          <label className="block font-ui text-[11px] font-medium text-text-primary mb-1.5 leading-tight">
-                            Investor Credits
-                          </label>
+                        <div>
+                          <label className="admin-label-sm">Investor Credits</label>
                           <input
                             type="number"
                             min="0"
-                            className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all leading-tight bg-white"
+                            className="admin-input admin-input-sm"
                             value={formData.investor_credits_cost}
                             onChange={(e) => handleFieldChange('investor_credits_cost', e.target.value)}
                             placeholder="0"
@@ -321,15 +290,13 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                       )}
 
                       {showMediaCost && (
-                        <div className="animate-in slide-in-from-right duration-200">
-                          <label className="block font-ui text-[11px] font-medium text-text-primary mb-1.5 leading-tight">
-                            Media Budget (THB)
-                          </label>
+                        <div>
+                          <label className="admin-label-sm">Media Budget (THB)</label>
                           <input
                             type="number"
                             step="0.01"
                             min="0"
-                            className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all leading-tight bg-white"
+                            className="admin-input admin-input-sm"
                             value={formData.media_budget_cost}
                             onChange={(e) => handleFieldChange('media_budget_cost', e.target.value)}
                             placeholder="0.00"
@@ -353,23 +320,21 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
             </div>
 
             {/* Section 2: Access & Availability */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-text-primary to-gray-700 flex items-center justify-center">
-                    <Users size={16} className="text-white" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-[15px] font-bold text-text-primary leading-none">Access & Availability</h3>
-                  </div>
+            <div className="space-y-4 mt-6">
+              <div className="admin-form-section-header" style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #E8EAED' }}>
+                <div className="admin-form-section-icon">
+                  <Users size={16} />
+                </div>
+                <div>
+                  <h3 className="admin-form-section-title">Access & Availability</h3>
                 </div>
               </div>
 
-              <div className="space-y-3 pl-9">
+              <div className="space-y-4">
                 {/* User Types */}
                 <div>
-                  <label className="block font-ui text-[12px] font-semibold text-text-primary mb-1.5 leading-tight">Who can redeem?</label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <label className="admin-label-sm">Who can redeem?</label>
+                  <div className="admin-chip-group">
                     {[
                       { value: 'customer', label: 'Customers', icon: User },
                       { value: 'employee', label: 'Staff', icon: Briefcase },
@@ -389,65 +354,117 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                               handleFieldChange('target_user_types', [...formData.target_user_types, type.value]);
                             }
                           }}
-                          className={`flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg border transition-all font-ui text-[11px] font-semibold ${
-                            isSelected
-                              ? 'border-accent-500 bg-accent-50 text-text-primary'
-                              : 'border-border-subtle bg-white text-text-secondary hover:border-accent-300'
-                          }`}
+                          className={`admin-chip ${isSelected ? 'selected' : ''}`}
                         >
-                          <Icon size={16} strokeWidth={2} className={isSelected ? 'text-accent-600' : 'text-text-tertiary'} />
-                          <span className="leading-tight">{type.label}</span>
+                          <Icon size={16} className="admin-chip-icon" />
+                          <span>{type.label}</span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Corporate Exclusivity - DISABLED: Database schema doesn't support this yet */}
-                {/* <div className="pt-3 border-t border-border-subtle">
-                  TODO: Add is_company_exclusive and allowed_company_ids columns to vouchers table
-                </div> */}
+                {/* Corporate Exclusivity */}
+                <div className="pt-4 border-t border-[#E8EAED]">
+                  <div
+                    className="admin-checkbox-wrapper mb-3"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        is_company_exclusive: !formData.is_company_exclusive,
+                        allowed_company_ids: !formData.is_company_exclusive ? formData.allowed_company_ids : [],
+                      });
+                    }}
+                  >
+                    <div className={`admin-checkbox ${formData.is_company_exclusive ? 'checked' : ''}`}>
+                      {formData.is_company_exclusive && <CheckCircle2 size={12} />}
+                    </div>
+                    <div>
+                      <span className="admin-checkbox-label">Company exclusive</span>
+                      <p className="admin-checkbox-description">Only available to selected company employees</p>
+                    </div>
+                  </div>
+
+                  {formData.is_company_exclusive && (
+                    <div className="admin-form-section" style={{ marginBottom: 0 }}>
+                      {/* Company Search */}
+                      <div className="relative mb-3">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                        <input
+                          type="text"
+                          className="admin-input admin-input-sm"
+                          style={{ paddingLeft: '36px' }}
+                          placeholder="Search companies..."
+                          value={companySearch}
+                          onChange={(e) => setCompanySearch(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Company List */}
+                      <div className="max-h-40 overflow-y-auto space-y-2">
+                        {filteredCompanies.length === 0 ? (
+                          <p className="text-[12px] text-[#6B7280] text-center py-2">No companies found</p>
+                        ) : (
+                          filteredCompanies.map((company: any) => (
+                            <button
+                              key={company.id}
+                              type="button"
+                              onClick={() => toggleCompany(company.id)}
+                              className={`admin-chip w-full justify-start ${formData.allowed_company_ids.includes(company.id) ? 'selected' : ''}`}
+                            >
+                              <Building2 size={14} />
+                              <span className="flex-1 text-left">{company.name}</span>
+                              {company.discount_percentage > 0 && (
+                                <span className="text-[10px] opacity-60">{company.discount_percentage}%</span>
+                              )}
+                              {formData.allowed_company_ids.includes(company.id) && (
+                                <CheckCircle2 size={14} />
+                              )}
+                            </button>
+                          ))
+                        )}
+                      </div>
+
+                      {formData.allowed_company_ids.length > 0 && (
+                        <p className="admin-form-hint mt-2">
+                          {formData.allowed_company_ids.length} {formData.allowed_company_ids.length === 1 ? 'company' : 'companies'} selected
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Expiration - Inline */}
-                <div className="pt-3 border-t border-border-subtle grid grid-cols-[auto_1fr] gap-3 items-center">
-                  <Calendar size={16} strokeWidth={2} className="text-text-secondary flex-shrink-0" />
-                  <div>
-                    <label className="block font-ui text-[12px] font-semibold text-text-primary mb-1.5 leading-tight">
-                      Expiration <span className="font-ui text-[11px] text-text-tertiary font-normal">(optional)</span>
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[12px] text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all leading-tight"
-                      value={formData.expires_at}
-                      onChange={(e) => handleFieldChange('expires_at', e.target.value)}
-                    />
-                  </div>
+                <div className="pt-4 border-t border-[#E8EAED]">
+                  <label className="admin-label-sm">Expiration <span className="admin-label-hint">(optional)</span></label>
+                  <input
+                    type="date"
+                    className="admin-input admin-input-sm"
+                    value={formData.expires_at}
+                    onChange={(e) => handleFieldChange('expires_at', e.target.value)}
+                  />
                 </div>
               </div>
             </div>
 
             {/* Section 3: Advanced Settings */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                    <Calendar size={16} className="text-white" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-[15px] font-bold text-text-primary leading-none">Advanced Settings</h3>
-                    <p className="font-ui text-[11px] text-text-secondary mt-0.5">Redemption rules & restrictions</p>
-                  </div>
+            <div className="space-y-4 mt-6">
+              <div className="admin-form-section-header" style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #E8EAED' }}>
+                <div className="admin-form-section-icon" style={{ background: '#F3E8FF', color: '#8B5CF6' }}>
+                  <Calendar size={16} />
+                </div>
+                <div>
+                  <h3 className="admin-form-section-title">Advanced Settings</h3>
+                  <p className="admin-form-section-subtitle">Redemption rules & restrictions</p>
                 </div>
               </div>
 
-              <div className="space-y-3 pl-9">
+              <div className="space-y-4">
                 {/* Redemption Window */}
                 <div>
-                  <label className="block font-ui text-[12px] font-semibold text-text-primary mb-1.5 leading-tight">
-                    Redemption Window
-                  </label>
+                  <label className="admin-label-sm">Redemption Window</label>
                   <select
-                    className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all bg-white leading-tight"
+                    className="admin-select admin-select-sm"
                     value={formData.redemption_window}
                     onChange={(e) => handleFieldChange('redemption_window', e.target.value)}
                   >
@@ -460,16 +477,14 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                 </div>
 
                 {/* Minimum Purchase & Auto-Expire */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="admin-form-grid admin-form-grid-2">
                   <div>
-                    <label className="block font-ui text-[12px] font-medium text-text-primary mb-1.5 leading-tight">
-                      Minimum Purchase <span className="font-ui text-[11px] text-text-tertiary">(THB)</span>
-                    </label>
+                    <label className="admin-label-sm">Minimum Purchase <span className="admin-label-hint">(THB)</span></label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all leading-tight"
+                      className="admin-input admin-input-sm"
                       value={formData.requires_minimum_purchase}
                       onChange={(e) => handleFieldChange('requires_minimum_purchase', e.target.value)}
                       placeholder="0.00"
@@ -477,26 +492,22 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                   </div>
 
                   <div>
-                    <label className="block font-ui text-[12px] font-medium text-text-primary mb-1.5 leading-tight">
-                      Auto-Expire <span className="font-ui text-[11px] text-text-tertiary">(hours after redemption)</span>
-                    </label>
+                    <label className="admin-label-sm">Auto-Expire <span className="admin-label-hint">(hours)</span></label>
                     <input
                       type="number"
                       min="0"
-                      className="w-full px-3 py-2 border border-border-subtle rounded-lg font-ui text-[13px] text-text-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-500/20 focus:border-accent-500 transition-all leading-tight"
+                      className="admin-input admin-input-sm"
                       value={formData.auto_expire_hours}
                       onChange={(e) => handleFieldChange('auto_expire_hours', e.target.value)}
-                      placeholder="Leave empty for no auto-expire"
+                      placeholder="No auto-expire"
                     />
                   </div>
                 </div>
 
                 {/* Valid Days of Week */}
                 <div>
-                  <label className="block font-ui text-[12px] font-semibold text-text-primary mb-1.5 leading-tight">
-                    Valid Days of Week <span className="font-ui text-[11px] text-text-tertiary font-normal">(optional)</span>
-                  </label>
-                  <div className="grid grid-cols-7 gap-2">
+                  <label className="admin-label-sm">Valid Days of Week <span className="admin-label-hint">(optional)</span></label>
+                  <div className="admin-chip-group">
                     {[
                       { value: 1, label: 'Mon' },
                       { value: 2, label: 'Tue' },
@@ -518,83 +529,78 @@ export default function VoucherForm({ voucher, companies, onSubmit, onCancel, is
                               handleFieldChange('valid_days_of_week', [...formData.valid_days_of_week, day.value]);
                             }
                           }}
-                          className={`px-2 py-2 rounded-lg border transition-all font-ui text-[11px] font-semibold ${
-                            isSelected
-                              ? 'border-accent-500 bg-accent-50 text-accent-700'
-                              : 'border-border-subtle bg-white text-text-secondary hover:border-accent-300'
-                          }`}
+                          className={`admin-chip ${isSelected ? 'selected' : ''}`}
+                          style={{ padding: '6px 12px', fontSize: '12px' }}
                         >
                           {day.label}
                         </button>
                       );
                     })}
                   </div>
-                  <p className="font-ui text-[10px] text-text-tertiary mt-1.5 leading-tight">
-                    Leave empty to allow all days
-                  </p>
+                  <p className="admin-form-hint">Leave empty to allow all days</p>
                 </div>
 
                 {/* Valid Outlets - Coming Soon */}
-                <div className="bg-background-subtle rounded-lg p-3 border border-border-subtle">
+                <div className="admin-info-box">
                   <div className="flex items-center gap-2">
-                    <Building2 size={14} className="text-text-tertiary" />
-                    <label className="block font-ui text-[11px] font-semibold text-text-primary leading-tight">
-                      Valid Outlets <span className="font-ui text-[10px] text-text-tertiary font-normal">(Coming Soon)</span>
-                    </label>
+                    <Building2 size={14} className="text-[#6B7280]" />
+                    <span className="text-[12px] font-semibold text-[#1A1A1A]">
+                      Valid Outlets <span className="admin-label-hint">(Coming Soon)</span>
+                    </span>
                   </div>
-                  <p className="font-ui text-[10px] text-text-tertiary mt-1.5 leading-tight">
+                  <p className="admin-form-hint mt-1">
                     Outlet-specific redemption restrictions will be available soon
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Premium Footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-border-subtle -mx-5 px-5 pb-1 mt-5">
-              <div className="flex items-center gap-1.5">
-                {isValid ? (
-                  <>
-                    <CheckCircle2 size={14} strokeWidth={2.5} className="text-success-500" />
-                    <span className="font-ui text-[11px] text-success-600 font-semibold leading-tight">Ready</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle size={14} strokeWidth={2} className="text-warning-500" />
-                    <span className="font-ui text-[11px] text-text-secondary leading-tight">Required fields missing</span>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 font-ui text-[13px] font-semibold text-text-secondary hover:text-text-primary hover:bg-background-hover rounded-lg transition-all disabled:opacity-50 leading-none"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!isValid || isSubmitting}
-                  className="px-4 py-2 bg-text-primary text-white font-ui text-[13px] font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 leading-none"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={14} strokeWidth={2} />
-                      {voucher ? 'Update' : 'Create'}
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
           </form>
+
+          {/* Footer */}
+          <div className="admin-modal-footer">
+            <div className="flex items-center gap-2 mr-auto">
+              {isValid ? (
+                <>
+                  <CheckCircle2 size={14} className="text-[#10B981]" />
+                  <span className="text-[12px] text-[#10B981] font-semibold">Ready</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={14} className="text-[#F59E0B]" />
+                  <span className="text-[12px] text-[#6B7280]">Required fields missing</span>
+                </>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="admin-btn admin-btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="voucher-form"
+              onClick={handleSubmit}
+              disabled={!isValid || isSubmitting}
+              className="admin-btn admin-btn-primary flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="admin-spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }} />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={14} />
+                  {voucher ? 'Update' : 'Create'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
-      </div>
     </div>
   );
 }

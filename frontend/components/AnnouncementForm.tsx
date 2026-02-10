@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Button from './Button';
+import Button from './ui/Button';
 import ImageUpload from './ImageUpload';
 import { X, Save, Megaphone, Users, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 

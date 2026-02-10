@@ -85,6 +85,94 @@ export const sendOTPEmail = async (email: string, otp: string, companyName?: str
   await sendEmail({ to: email, subject, text, html });
 };
 
+export const sendStaffVerificationEmail = async (email: string, verificationLink: string, staffName: string): Promise<void> => {
+  const subject = 'Verify your Sarnies Staff account';
+
+  const text = `Hi ${staffName},\n\nWelcome to Sarnies! Please verify your email by clicking the link below:\n\n${verificationLink}\n\nThis link expires in 24 hours.\n\nIf you didn't create this account, you can ignore this email.`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #1B1B1B; margin: 0; font-size: 24px;">Sarnies Loyalty</h1>
+      </div>
+
+      <h2 style="color: #1B1B1B; font-size: 20px; margin-bottom: 20px;">Welcome, ${staffName}!</h2>
+
+      <p style="color: #4A4A4A; font-size: 16px; line-height: 1.5;">
+        Please verify your email address to complete your staff account setup.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationLink}"
+           style="display: inline-block; background: #1B1B1B; color: #FFFFFF; text-decoration: none;
+                  padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 500;">
+          Verify Email
+        </a>
+      </div>
+
+      <p style="color: #6F6F6F; font-size: 14px; line-height: 1.5;">
+        Or copy and paste this link into your browser:
+      </p>
+      <p style="color: #1B1B1B; font-size: 12px; word-break: break-all; background: #F5F5F5;
+                padding: 12px; border-radius: 6px;">
+        ${verificationLink}
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #E5E5E5; margin: 30px 0;">
+
+      <p style="color: #9A9A9A; font-size: 12px; line-height: 1.5;">
+        This link expires in 24 hours. If you didn't create this account, you can safely ignore this email.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({ to: email, subject, text, html });
+};
+
+export const sendPasswordResetEmail = async (email: string, resetLink: string): Promise<void> => {
+  const subject = 'Reset your Sarnies password';
+
+  const text = `You requested a password reset for your Sarnies Staff account.\n\nClick the link below to reset your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, you can ignore this email.`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #1B1B1B; margin: 0; font-size: 24px;">Sarnies Loyalty</h1>
+      </div>
+
+      <h2 style="color: #1B1B1B; font-size: 20px; margin-bottom: 20px;">Reset your password</h2>
+
+      <p style="color: #4A4A4A; font-size: 16px; line-height: 1.5;">
+        We received a request to reset your password. Click the button below to choose a new password.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetLink}"
+           style="display: inline-block; background: #1B1B1B; color: #FFFFFF; text-decoration: none;
+                  padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 500;">
+          Reset Password
+        </a>
+      </div>
+
+      <p style="color: #6F6F6F; font-size: 14px; line-height: 1.5;">
+        Or copy and paste this link into your browser:
+      </p>
+      <p style="color: #1B1B1B; font-size: 12px; word-break: break-all; background: #F5F5F5;
+                padding: 12px; border-radius: 6px;">
+        ${resetLink}
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #E5E5E5; margin: 30px 0;">
+
+      <p style="color: #9A9A9A; font-size: 12px; line-height: 1.5;">
+        This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({ to: email, subject, text, html });
+};
+
 export const sendMagicLinkEmail = async (email: string, magicLink: string): Promise<void> => {
   const subject = 'Sign in to Sarnies Loyalty';
 

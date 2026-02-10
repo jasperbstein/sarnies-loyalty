@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Star, Heart, Clock, Flame } from 'lucide-react';
@@ -14,7 +14,7 @@ import { ExpiryBadge } from './Badge';
  * - Border radius: 12px (rounded-xl)
  * - Border: 1px solid stone-200
  * - No shadows (flat design)
- * - Image aspect ratio: 4:3
+ * - Image aspect ratio: 3:2
  * - Content padding: 16px
  */
 
@@ -32,8 +32,11 @@ export interface VoucherCardProps {
   onClick?: () => void;
   onUseNow?: () => void;
   variant?: 'grid' | 'featured' | 'list';
-  // New props for expiry and favorites
+  // Expiry props
   expiresAt?: string | Date;
+  expiryType?: string;
+  expiryDays?: number;
+  // Favorites
   isFavorite?: boolean;
   onToggleFavorite?: (id: number) => void;
 }
@@ -63,12 +66,15 @@ export function VoucherCard({
   onUseNow,
   variant = 'grid',
   expiresAt,
+  expiryType,
+  expiryDays,
   isFavorite = false,
   onToggleFavorite,
 }: VoucherCardProps) {
   const router = useRouter();
   const daysUntilExpiry = getDaysUntilExpiry(expiresAt);
   const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry <= 7;
+  const hasExpiry = expiryType && expiryType !== 'no_expiry';
 
   const handleClick = () => {
     if (onClick) {
@@ -83,44 +89,26 @@ export function VoucherCard({
     onToggleFavorite?.(id);
   };
 
-  const getEmoji = () => {
+  const getFallbackImage = () => {
+    const lowerTitle = title.toLowerCase();
+    if (voucherType === 'merch') return '/images/content/vouchers/merch.jpg';
+    if (voucherType === 'discount_amount' || voucherType === 'percentage_discount')
+      return '/images/content/vouchers/coffee-beans.jpg';
     if (voucherType === 'free_item') {
-      if (title.toLowerCase().includes('coffee') || title.toLowerCase().includes('drink') || title.toLowerCase().includes('latte')) {
-        return '☕';
-      }
-      if (title.toLowerCase().includes('cake') || title.toLowerCase().includes('birthday')) {
-        return '🎂';
-      }
-      if (title.toLowerCase().includes('snack') || title.toLowerCase().includes('food') || title.toLowerCase().includes('sandwich')) {
-        return '🥪';
-      }
-      return '🎁';
+      if (lowerTitle.includes('coffee') || lowerTitle.includes('drink') || lowerTitle.includes('latte') || lowerTitle.includes('espresso'))
+        return '/images/content/vouchers/coffee.jpg';
+      if (lowerTitle.includes('pastry') || lowerTitle.includes('cake') || lowerTitle.includes('croissant') || lowerTitle.includes('birthday'))
+        return '/images/content/vouchers/pastry.jpg';
+      return '/images/content/vouchers/bakery.jpg';
     }
-    if (voucherType === 'discount_amount' || voucherType === 'percentage_discount') {
-      return '💰';
-    }
-    if (voucherType === 'merch') {
-      return '👕';
-    }
-    return '🎫';
+    return '/images/content/vouchers/bakery.jpg';
   };
 
-  const getEmojiGradient = () => {
-    const lowerTitle = title.toLowerCase();
-    if (voucherType === 'free_item') {
-      if (lowerTitle.includes('coffee') || lowerTitle.includes('drink') || lowerTitle.includes('latte'))
-        return 'bg-gradient-to-br from-amber-200 via-amber-100 to-orange-200';
-      return 'bg-gradient-to-br from-stone-200 via-stone-100 to-amber-200';
-    }
-    if (voucherType === 'discount_amount' || voucherType === 'percentage_discount')
-      return 'bg-gradient-to-br from-stone-300 via-stone-200 to-stone-100';
-    if (voucherType === 'merch')
-      return 'bg-gradient-to-br from-violet-200 via-purple-100 to-fuchsia-200';
-    return 'bg-gradient-to-br from-stone-200 to-stone-300';
-  };
+  const resolvedImage = imageUrl || getFallbackImage();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const getPriceLabel = () => {
-    if (isEmployee) return 'FREE';
+    if (isEmployee) return 'PERK';
     if (pointsRequired === 0) return 'FREE';
     return `${pointsRequired} pts`;
   };
@@ -128,21 +116,16 @@ export function VoucherCard({
   // Featured variant - larger card with use now button
   if (variant === 'featured') {
     return (
-      <div className="card overflow-hidden">
+      <div className="card overflow-hidden border-t-2 border-t-red-500">
         {/* Image */}
-        <div
-          className={`h-28 w-full bg-cover bg-center relative ${imageUrl ? 'bg-stone-100' : getEmojiGradient()}`}
-          style={{
-            backgroundImage: imageUrl
-              ? `url(${imageUrl})`
-              : undefined
-          }}
-        >
-          {!imageUrl && (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-[40px]">{getEmoji()}</span>
-            </div>
-          )}
+        <div className="h-36 w-full bg-stone-100 relative">
+          <Image
+            src={resolvedImage}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 50vw, 300px"
+          />
           {/* Expiry badge */}
           {isExpiringSoon && daysUntilExpiry !== null && (
             <div className="absolute top-2 left-2">
@@ -163,19 +146,19 @@ export function VoucherCard({
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-2">
           <div>
-            <p className="text-subheading text-text-primary">
+            <p className="text-sm font-semibold text-text-primary">
               {title}
             </p>
-            <p className="text-caption text-text-tertiary mt-1 line-clamp-2">
+            <p className="text-xs text-text-tertiary mt-0.5 line-clamp-2 leading-relaxed">
               {description}
             </p>
           </div>
           {onUseNow && (
             <button
               onClick={onUseNow}
-              className="btn-primary w-full py-3 rounded-lg"
+              className="btn-primary w-full py-2.5 rounded-lg text-xs"
             >
               Use Now
             </button>
@@ -190,22 +173,18 @@ export function VoucherCard({
     return (
       <button
         onClick={handleClick}
-        className="w-full card overflow-hidden text-left active:scale-[0.99] transition-transform flex"
+        className="w-full card overflow-hidden text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ease-smooth active:scale-[0.99] flex"
       >
         {/* Image */}
-        <div className={`w-24 h-24 flex-shrink-0 relative ${imageUrl ? 'bg-stone-100' : getEmojiGradient()}`}>
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={title}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-[32px]">{getEmoji()}</span>
-            </div>
-          )}
+        <div className={`w-20 h-20 flex-shrink-0 relative bg-stone-100 img-shimmer-container ${imageLoaded ? 'loaded' : ''}`}>
+          <Image
+            src={resolvedImage}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="96px"
+            onLoad={() => setImageLoaded(true)}
+          />
           {/* Expiry indicator for list */}
           {isExpiringSoon && daysUntilExpiry !== null && daysUntilExpiry <= 3 && (
             <div className="absolute bottom-1 left-1">
@@ -219,19 +198,23 @@ export function VoucherCard({
 
         {/* Content */}
         <div className="p-3 flex-1 flex flex-col justify-center">
-          <p className="text-subheading text-text-primary line-clamp-1">
+          <p className="text-sm font-semibold text-text-primary line-clamp-1">
             {title}
           </p>
-          <p className="text-caption text-text-tertiary line-clamp-1 mt-0.5">
+          <p className="text-[11px] text-text-tertiary line-clamp-1 mt-0.5 leading-relaxed">
             {description}
           </p>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-subheading text-text-primary">
-              {getPriceLabel()}
-            </span>
+          <div className="flex items-center justify-between mt-1.5">
+            {getPriceLabel() === 'FREE' || getPriceLabel() === 'PERK' ? (
+              <span className="badge-free">{getPriceLabel()}</span>
+            ) : (
+              <span className="text-xs font-semibold text-text-primary">
+                {getPriceLabel()}
+              </span>
+            )}
             {maxPerDay && remainingToday !== undefined && (
-              <span className="text-caption text-text-tertiary">
-                {remainingToday}/{maxPerDay} left
+              <span className="text-[10px] text-text-tertiary">
+                {remainingToday}/{maxPerDay}
               </span>
             )}
           </div>
@@ -258,22 +241,18 @@ export function VoucherCard({
   return (
     <button
       onClick={handleClick}
-      className="w-full card overflow-hidden text-left active:scale-[0.99] transition-transform"
+      className="w-full card overflow-hidden text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ease-smooth active:scale-[0.99]"
     >
       {/* Image */}
-      <div className={`relative w-full aspect-[4/3] ${imageUrl ? 'bg-stone-100' : getEmojiGradient()}`}>
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-[40px]">{getEmoji()}</span>
-          </div>
-        )}
+      <div className={`relative w-full aspect-[3/2] bg-stone-100 img-shimmer-container ${imageLoaded ? 'loaded' : ''}`}>
+        <Image
+          src={resolvedImage}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 50vw, 300px"
+          onLoad={() => setImageLoaded(true)}
+        />
 
         {/* Top badges row */}
         <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
@@ -307,27 +286,39 @@ export function VoucherCard({
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="text-subheading text-text-primary line-clamp-1">
+      <div className="p-3">
+        <h3 className="text-xs font-semibold text-text-primary line-clamp-1">
           {title}
         </h3>
-        <p className="text-caption text-text-tertiary line-clamp-1 mt-1">
+        <p className="text-[11px] text-text-tertiary line-clamp-2 mt-0.5 leading-relaxed">
           {description}
         </p>
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center justify-between mt-1.5">
           <div className="flex items-center gap-1">
-            {pointsRequired > 0 && !isEmployee && (
-              <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+            {getPriceLabel() === 'FREE' || getPriceLabel() === 'PERK' ? (
+              <span className="badge-free">{getPriceLabel()}</span>
+            ) : (
+              <>
+                <Star className="w-3 h-3 text-accent fill-accent" />
+                <span className="text-xs font-bold text-text-primary">
+                  {getPriceLabel()}
+                </span>
+              </>
             )}
-            <span className="text-subheading text-text-primary">
-              {getPriceLabel()}
-            </span>
           </div>
-          {maxPerDay && remainingToday !== undefined && (
-            <span className="text-caption text-text-tertiary">
-              {remainingToday}/{maxPerDay} left
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {hasExpiry && expiryDays && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] text-text-tertiary">
+                <Clock className="w-2.5 h-2.5" />
+                {expiryDays}d
+              </span>
+            )}
+            {maxPerDay && remainingToday !== undefined && (
+              <span className="text-[10px] text-text-tertiary">
+                {remainingToday}/{maxPerDay}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </button>

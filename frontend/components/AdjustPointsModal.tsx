@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Modal from './Modal';
-import Button from './Button';
+import Button from './ui/Button';
 import { Plus, Minus } from 'lucide-react';
 
 interface AdjustPointsModalProps {
@@ -173,7 +173,7 @@ export default function AdjustPointsModal({
           </Button>
           <Button
             type="submit"
-            variant={mode === 'deduct' ? 'destructive' : 'primary'}
+            variant={mode === 'deduct' ? 'danger' : 'primary'}
             loading={loading}
             disabled={!points || !reason.trim()}
           >

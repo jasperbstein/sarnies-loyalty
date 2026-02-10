@@ -1,16 +1,21 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Spline_Sans, Instrument_Sans } from 'next/font/google'
 import './globals.css'
 import ClientProviders from './ClientProviders'
 
-// Inter as Circular Std alternative
-// Book = 400, Medium = 500
-const inter = Inter({
+const splineSans = Spline_Sans({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-title',
   display: 'swap',
-  preload: true,
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
+})
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-sans',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -39,7 +44,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#000000',
+  themeColor: '#131313',
 }
 
 export default function RootLayout({
@@ -48,23 +53,45 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${splineSans.variable} ${instrumentSans.variable}`}>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Unregister old service workers and clear caches
+              // Force service worker update on new deploy
               if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  for (let registration of registrations) {
-                    registration.unregister();
+                navigator.serviceWorker.getRegistration().then(function(reg) {
+                  if (reg) {
+                    reg.update();
+                    if (reg.waiting) {
+                      reg.waiting.postMessage({type: 'SKIP_WAITING'});
+                    }
+                    reg.addEventListener('updatefound', function() {
+                      var newWorker = reg.installing;
+                      if (newWorker) {
+                        newWorker.addEventListener('statechange', function() {
+                          if (newWorker.state === 'activated' && !sessionStorage.getItem('sw-refreshed')) {
+                            sessionStorage.setItem('sw-refreshed', '1');
+                            window.location.reload();
+                          }
+                        });
+                      }
+                    });
+                    // If there's already a waiting worker, activate it
+                    var waiting = reg.waiting;
+                    if (waiting) {
+                      waiting.postMessage({type: 'SKIP_WAITING'});
+                      if (!sessionStorage.getItem('sw-refreshed')) {
+                        sessionStorage.setItem('sw-refreshed', '1');
+                        window.location.reload();
+                      }
+                    }
                   }
                 });
-              }
-              if ('caches' in window) {
-                caches.keys().then(function(names) {
-                  for (let name of names) {
-                    caches.delete(name);
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                  if (!sessionStorage.getItem('sw-refreshed')) {
+                    sessionStorage.setItem('sw-refreshed', '1');
+                    window.location.reload();
                   }
                 });
               }
@@ -74,7 +101,9 @@ export default function RootLayout({
               (function() {
                 try {
                   var path = window.location.pathname;
-                  var isProtectedRoute = path.startsWith('/app/') || path.startsWith('/staff/') || path.startsWith('/admin/');
+                  var staffPublicPaths = ['/staff/login', '/staff/register', '/staff/forgot-password', '/staff/reset-password'];
+                  var isStaffPublicPath = staffPublicPaths.some(function(p) { return path.startsWith(p); });
+                  var isProtectedRoute = path.startsWith('/app/') || (path.startsWith('/staff/') && !isStaffPublicPath) || path.startsWith('/admin/');
 
                   if (isProtectedRoute) {
                     var authData = localStorage.getItem('auth-storage');
@@ -129,7 +158,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans`}>
+      <body className="font-sans">
         <ClientProviders>
           {children}
         </ClientProviders>

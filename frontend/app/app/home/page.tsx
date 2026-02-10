@@ -372,6 +372,7 @@ export default function HomePage() {
                 onRewards={() => router.push("/app/vouchers")}
                 onActivity={() => router.push("/app/activity")}
                 onScan={() => {}}
+                onCollabs={() => router.push("/app/collabs")}
               />
             </div>
 

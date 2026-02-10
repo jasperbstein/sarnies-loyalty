@@ -10,7 +10,7 @@ function LineCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'linked' | 'error'>('loading');
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
@@ -36,7 +36,7 @@ function LineCallbackContent() {
       try {
         // Exchange code for token
         const response = await authAPI.lineCallback(code, state || undefined);
-        const { token, user, needs_registration, referral_code } = response.data;
+        const { token, user, needs_registration, referral_code, company_invite_code, account_linked } = response.data;
 
         // Store auth - cast types to expected values
         const authUser = {
@@ -46,10 +46,17 @@ function LineCallbackContent() {
         };
         setAuth(authUser, token);
 
-        if (needs_registration) {
+        if (account_linked) {
+          // Account was linked - redirect to profile
+          setStatus('linked');
+          setTimeout(() => {
+            router.push('/app/profile');
+          }, 1500);
+        } else if (needs_registration) {
           // Redirect to registration with LINE context
           const params = new URLSearchParams();
           if (referral_code) params.set('ref', referral_code);
+          if (company_invite_code) params.set('company', company_invite_code);
           params.set('from', 'line');
 
           setStatus('success');
@@ -121,6 +128,22 @@ function LineCallbackContent() {
               </h1>
               <p className="text-[#78716C] mb-4" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
                 Redirecting you now...
+              </p>
+            </>
+          )}
+
+          {status === 'linked' && (
+            <>
+              <div className="w-16 h-16 bg-[#DCFCE7] rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+              </div>
+              <h1 className="text-xl font-semibold text-[#1C1917] mb-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                LINE Account Linked!
+              </h1>
+              <p className="text-[#78716C] mb-4" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                You can now log in with LINE or your other methods.
               </p>
             </>
           )}

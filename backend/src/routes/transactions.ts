@@ -167,6 +167,18 @@ router.post('/redeem', authenticate, requireStaff, async (req: AuthRequest, res:
       };
     });
 
+    // Emit WebSocket event to user
+    const io = getSocket();
+    io.to(`user:${user_id}`).emit('voucher_redeemed', {
+      voucher_id: result.voucher.id,
+      voucher_title: result.voucher.title,
+      voucher_type: result.voucher.voucher_type,
+      cash_value: result.voucher.cash_value || 0,
+      used_at: new Date().toISOString(),
+      outlet: outlet || 'Unknown'
+    });
+    console.log(`📡 Emitted voucher_redeemed event to user:${user_id}`);
+
     res.json({
       message: 'Voucher redeemed successfully',
       points_spent: result.voucher.points_required,
@@ -176,14 +188,17 @@ router.post('/redeem', authenticate, requireStaff, async (req: AuthRequest, res:
     });
   } catch (error: any) {
     console.error('Redeem voucher error:', error);
-    res.status(400).json({ error: error.message || 'Failed to redeem voucher' });
+    const safeMessage = error.status ? error.message : 'Failed to redeem voucher';
+    res.status(error.status || 400).json({ error: safeMessage });
   }
 });
 
 // Get transactions (admin: all, customer: own only)
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const { user_id, type, limit = 50, offset = 0 } = req.query;
+    const { user_id, type } = req.query;
+    const limit = Math.min(Math.max(1, parseInt(req.query.limit as string) || 50), 200);
+    const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
 
     let sql = `
       SELECT t.*, u.name as user_name, u.phone as user_phone,

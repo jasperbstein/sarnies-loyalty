@@ -41,3 +41,25 @@ test-results/
 # Misc
 *.tsbuildinfo
 next-env.d.ts
+
+# AI/Agent skills (local configs)
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.opencode/
+.windsurf/
+.kiro/
+
+# Deployment scripts with secrets
+DEPLOY_*.sh
+
+# Reports and diagrams
+*.pen
+pista-*.html
+PISTA-*.md
+diagrams/
+
+# PM2 ecosystem (contains secrets)
+ecosystem.config.js

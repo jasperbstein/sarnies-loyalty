@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import AppLayout from '@/components/AppLayout';
 import QRModal from '@/components/QRModal';
 import { useAuthStore } from '@/lib/store';
 import { vouchersAPI } from '@/lib/api';
-import { ArrowLeft, Star, Clock, Wallet, Calendar, Store, CheckCircle, QrCode, Info } from 'lucide-react';
+import { ArrowLeft, Star, Clock, QrCode, MapPin, Coffee, Cake, Gift, Coins, Shirt, Ticket } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSwipeBack } from '@/hooks/useSwipeBack';
 import { io, Socket } from 'socket.io-client';
@@ -100,7 +100,6 @@ export default function VoucherDetailPage() {
 
         toast.success(`${data.voucher_title} redeemed successfully!`, {
           duration: 4000,
-          icon: '✅'
         });
       }, 800);
     });
@@ -191,33 +190,50 @@ export default function VoucherDetailPage() {
     return '';
   };
 
-  const getEmoji = () => {
-    if (!voucher) return '🎫';
+  const getVoucherIcon = () => {
+    if (!voucher) return <Ticket className="w-7 h-7 text-red-600" />;
+    const t = voucher.title.toLowerCase();
     if (voucher.voucher_type === 'free_item') {
-      const title = voucher.title.toLowerCase();
-      if (title.includes('coffee') || title.includes('drink') || title.includes('latte')) return '☕';
-      if (title.includes('cake') || title.includes('birthday')) return '🎂';
-      if (title.includes('snack') || title.includes('food') || title.includes('sandwich')) return '🥪';
-      return '🎁';
+      if (t.includes('coffee') || t.includes('drink') || t.includes('latte')) return <Coffee className="w-7 h-7 text-red-600" />;
+      if (t.includes('cake') || t.includes('birthday')) return <Cake className="w-7 h-7 text-red-600" />;
+      return <Gift className="w-7 h-7 text-red-600" />;
     }
-    if (voucher.voucher_type === 'discount_amount' || voucher.voucher_type === 'percentage_discount') return '💰';
-    if (voucher.voucher_type === 'merch') return '👕';
-    return '🎫';
+    if (voucher.voucher_type === 'discount_amount' || voucher.voucher_type === 'percentage_discount') return <Coins className="w-7 h-7 text-red-600" />;
+    if (voucher.voucher_type === 'merch') return <Shirt className="w-7 h-7 text-red-600" />;
+    return <Ticket className="w-7 h-7 text-red-600" />;
   };
 
-  const getEmojiGradient = () => {
-    if (!voucher) return 'from-stone-200 to-stone-300';
-    const title = voucher.title.toLowerCase();
-    if (voucher.voucher_type === 'free_item') {
-      if (title.includes('coffee') || title.includes('drink') || title.includes('latte'))
-        return 'from-amber-200 via-amber-100 to-orange-200';
-      return 'from-stone-200 via-stone-100 to-amber-200';
-    }
+  const getFallbackImage = () => {
+    if (!voucher) return '/images/content/vouchers/bakery.jpg';
+    const t = voucher.title.toLowerCase();
+    if (voucher.voucher_type === 'merch') return '/images/content/vouchers/merch.jpg';
     if (voucher.voucher_type === 'discount_amount' || voucher.voucher_type === 'percentage_discount')
-      return 'from-stone-300 via-stone-200 to-stone-100';
-    if (voucher.voucher_type === 'merch')
-      return 'from-violet-200 via-purple-100 to-fuchsia-200';
-    return 'from-stone-200 to-stone-300';
+      return '/images/content/vouchers/coffee-beans.jpg';
+    if (voucher.voucher_type === 'free_item') {
+      if (t.includes('coffee') || t.includes('drink') || t.includes('latte') || t.includes('espresso'))
+        return '/images/content/vouchers/coffee.jpg';
+      if (t.includes('pastry') || t.includes('cake') || t.includes('croissant') || t.includes('birthday'))
+        return '/images/content/vouchers/pastry.jpg';
+      return '/images/content/vouchers/bakery.jpg';
+    }
+    return '/images/content/vouchers/bakery.jpg';
+  };
+
+  // Merge rules + limitations into a single condensed string
+  const getTermsText = () => {
+    if (!voucher) return '';
+    const parts: string[] = [];
+    if (voucher.rules) parts.push(voucher.rules);
+    if (voucher.limitations && voucher.limitations !== voucher.rules) parts.push(voucher.limitations);
+    return parts.join('. ').replace(/\.\./g, '.');
+  };
+
+  const storesLabel = () => {
+    if (!voucher) return 'All stores';
+    if (voucher.valid_stores && voucher.valid_stores.length > 0) {
+      return voucher.valid_stores.join(', ');
+    }
+    return 'All stores';
   };
 
   if (loading) {
@@ -241,157 +257,89 @@ export default function VoucherDetailPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-bg-primary pb-24">
+      <div className="min-h-screen bg-bg-primary pb-36">
         <div className="max-w-2xl lg:max-w-4xl mx-auto">
-          {/* Compact Hero with Overlay */}
-          <div className="relative h-48 w-full overflow-hidden">
-            {voucher.image_url ? (
-              <Image
-                src={voucher.image_url}
-                alt={voucher.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 512px"
-                priority
-              />
-            ) : (
-              <div className={`w-full h-full bg-gradient-to-br ${getEmojiGradient()} flex items-center justify-center`}>
-                <span className="text-6xl">{getEmoji()}</span>
-              </div>
-            )}
-
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-            {/* Back button */}
+          {/* Header - consistent with news detail */}
+          <header className="bg-surface border-b border-border px-4 md:px-6 py-3 flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="absolute top-4 left-4 w-10 h-10 rounded-lg bg-white/90 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white transition-colors"
+              className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center hover:bg-stone-200 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-text-primary" />
             </button>
+            <h1 className="text-subheading text-text-primary">
+              Voucher
+            </h1>
+          </header>
 
-            {/* Featured Badge */}
-            {voucher.is_featured && (
-              <div className="absolute top-4 right-4 badge bg-white/90 backdrop-blur-sm">
-                <Star className="w-3 h-3 text-accent fill-accent mr-1" />
-                Featured
-              </div>
-            )}
-
-            {/* Title overlaid on image */}
-            <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
-              <h1 className="text-heading text-text-inverse mb-1">
-                {voucher.title}
-              </h1>
-              {voucher.cash_value > 0 && (
-                <span className="badge bg-white/20 backdrop-blur-sm text-white border-0">
-                  ฿{Number(voucher.cash_value).toFixed(0)} value
-                </span>
-              )}
-            </div>
+          {/* Image */}
+          <div className="relative h-48 w-full overflow-hidden">
+            <Image
+              src={voucher.image_url || getFallbackImage()}
+              alt={voucher.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 512px"
+              priority
+            />
           </div>
 
-          <div className="px-4 md:px-6 space-y-4 mt-4">
+          {/* Content — clean white, separated from image */}
+          <div className="px-5 md:px-6 space-y-4 mt-5">
+
+            {/* Title */}
+            <div>
+              <h1 className="text-heading text-text-primary">{voucher.title}</h1>
+
+              {/* Inline meta — hide defaults (Free for employee, No expiry, zero cost) */}
+              {(() => {
+                const parts: React.ReactNode[] = [];
+                // Show points cost only when > 0 and not employee
+                if (!isEmployee && voucher.points_required > 0) {
+                  parts.push(<span key="pts" className="font-semibold text-text-primary">{voucher.points_required} pts</span>);
+                }
+                // Show expiry only when not "no_expiry"
+                if (voucher.expiry_type !== 'no_expiry' && formatExpiry()) {
+                  parts.push(<span key="exp">{formatExpiry()}</span>);
+                }
+                // Show cash value only when > 0
+                if (voucher.cash_value > 0) {
+                  parts.push(<span key="val">฿{Number(voucher.cash_value).toFixed(0)} value</span>);
+                }
+                if (parts.length === 0) return null;
+                return (
+                  <p className="text-caption text-text-tertiary mt-1.5">
+                    {parts.map((part, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <span className="mx-1.5 text-stone-300">·</span>}
+                        {part}
+                      </React.Fragment>
+                    ))}
+                  </p>
+                );
+              })()}
+
+              {/* Balance indicator — customers only */}
+              {!isEmployee && (
+                <p className={`text-caption mt-1 ${canRedeem() ? 'text-success' : 'text-error'}`}>
+                  You have {user?.points_balance || 0} pts
+                  {!canRedeem() && ` — need ${voucher.points_required - (user?.points_balance || 0)} more`}
+                </p>
+              )}
+            </div>
+
             {/* Description */}
-            <p className="text-body text-text-tertiary leading-relaxed">
+            <p className="text-body text-text-secondary leading-relaxed">
               {voucher.description}
             </p>
 
-            {/* Detail Chips */}
-            <div className="flex flex-wrap gap-2">
-              {/* Points chip */}
-              <div className="badge bg-surface border border-border">
-                <Star className="w-3.5 h-3.5 text-accent fill-accent mr-1" />
-                <span className="text-text-primary">
-                  {isEmployee ? 'FREE' : `${voucher.points_required} pts`}
-                </span>
-              </div>
-
-              {/* Your balance chip - customers only */}
-              {!isEmployee && (
-                <div className={`badge border ${
-                  canRedeem()
-                    ? 'bg-success-light border-success'
-                    : 'bg-error-light border-error'
-                }`}>
-                  <Wallet className="w-3.5 h-3.5 text-text-tertiary mr-1" />
-                  <span className={canRedeem() ? 'text-success' : 'text-error'}>
-                    {user?.points_balance || 0} pts
-                  </span>
-                </div>
-              )}
-
-              {/* Expiry chip */}
-              {formatExpiry() && (
-                <div className="badge bg-surface border border-border">
-                  <Calendar className="w-3.5 h-3.5 text-text-tertiary mr-1" />
-                  <span className="text-text-secondary">
-                    {formatExpiry()}
-                  </span>
-                </div>
-              )}
-
-              {/* Store chips */}
-              {voucher.valid_stores && voucher.valid_stores.length > 0 ? (
-                voucher.valid_stores.map((store, index) => (
-                  <div key={index} className="badge bg-surface border border-border">
-                    <Store className="w-3.5 h-3.5 text-text-tertiary mr-1" />
-                    <span className="text-text-secondary">{store}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="badge bg-text-primary text-text-inverse">
-                  <Store className="w-3.5 h-3.5 mr-1" />
-                  All Stores
-                </div>
-              )}
-            </div>
-
-            {/* Rules & Limitations */}
-            {(voucher.rules || voucher.limitations) && (
-              <div className="bg-warning-light rounded-lg border border-warning p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-surface rounded-md flex items-center justify-center flex-shrink-0">
-                    <Info className="w-4 h-4 text-warning" />
-                  </div>
-                  <div className="space-y-2">
-                    {voucher.rules && (
-                      <div>
-                        <p className="text-caption font-semibold text-amber-800 mb-0.5">
-                          Rules
-                        </p>
-                        <p className="text-body text-amber-800">
-                          {voucher.rules}
-                        </p>
-                      </div>
-                    )}
-                    {voucher.limitations && (
-                      <div>
-                        <p className="text-caption font-semibold text-amber-800 mb-0.5">
-                          Limitations
-                        </p>
-                        <p className="text-body text-amber-800">
-                          {voucher.limitations}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Already Redeemed Today */}
             {redeemedToday && voucher.max_redemptions_per_user_per_day && (
-              <div className="bg-stone-100 rounded-lg border border-border p-4">
+              <div className="bg-stone-100 rounded-lg p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-surface rounded-md flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-text-tertiary" />
-                  </div>
+                  <Clock className="w-4 h-4 text-text-tertiary flex-shrink-0" />
                   <div>
-                    <p className="text-subheading text-text-primary">
-                      Already Redeemed Today
-                    </p>
+                    <p className="text-subheading text-text-primary">Already redeemed today</p>
                     <p className="text-caption text-text-tertiary">
                       Come back tomorrow for your next {voucher.title.toLowerCase()}
                     </p>
@@ -399,20 +347,47 @@ export default function VoucherDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* How to use — single line */}
+            <div className="flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-text-tertiary flex-shrink-0" />
+              <p className="text-body text-text-secondary">Tap <span className="font-semibold">Use Voucher</span> → show QR to staff</p>
+            </div>
+
+            {/* Eligible outlets — only show when specific stores */}
+            {voucher.valid_stores && voucher.valid_stores.length > 0 && (
+              <div>
+                <p className="text-label mb-2">Eligible outlets</p>
+                <div className="flex items-center gap-2 text-body text-text-secondary">
+                  <MapPin className="w-4 h-4 text-text-tertiary flex-shrink-0" />
+                  <span>{voucher.valid_stores.join(', ')}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Terms */}
+            {getTermsText() && (
+              <div>
+                <p className="text-label mb-2">Terms</p>
+                <p className="text-caption text-text-tertiary leading-relaxed">
+                  {getTermsText()}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Sticky Redeem Button */}
-      <div className="fixed bottom-0 left-0 right-0 z-fixed">
-        <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 pb-4 pt-3 bg-gradient-to-t from-stone-50 via-stone-50/95 to-stone-50/0">
+      {/* Sticky CTA — sits above bottom nav */}
+      <div className="fixed bottom-[64px] left-0 right-0 z-fixed pb-safe">
+        <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 pb-3 pt-3 bg-gradient-to-t from-[#FDFDFD] via-[#FDFDFD]/95 to-[#FDFDFD]/0">
           <button
             onClick={() => setShowConfirmModal(true)}
             disabled={!canRedeem() || redeeming || redeemedToday}
-            className={`btn w-full h-14 rounded-lg text-base ${
+            className={`btn w-full h-14 rounded-xl text-base shadow-lg ${
               canRedeem() && !redeeming && !redeemedToday
                 ? 'btn-primary'
-                : 'bg-stone-200 text-text-tertiary cursor-not-allowed'
+                : 'bg-stone-200 text-text-tertiary cursor-not-allowed shadow-none'
             }`}
           >
             {redeeming ? (
@@ -425,7 +400,7 @@ export default function VoucherDetailPage() {
             ) : canRedeem() ? (
               <>
                 <QrCode className="w-5 h-5" />
-                <span>Redeem Now</span>
+                <span>Use Voucher</span>
               </>
             ) : (
               <span>Need {voucher.points_required - (user?.points_balance || 0)} more points</span>
@@ -436,14 +411,14 @@ export default function VoucherDetailPage() {
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-surface rounded-xl max-w-sm w-full p-6 border border-border">
+        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-backdrop-fade">
+          <div className="bg-surface rounded-xl max-w-sm w-full p-6 border border-border animate-scale-up">
             <div className="text-center mb-5">
-              <div className="w-14 h-14 bg-stone-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">{getEmoji()}</span>
+              <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                {getVoucherIcon()}
               </div>
               <h2 className="text-heading text-text-primary mb-1">
-                Redeem Voucher?
+                Use Voucher?
               </h2>
               <p className="text-caption text-text-tertiary">
                 {voucher.title}
@@ -451,7 +426,7 @@ export default function VoucherDetailPage() {
             </div>
 
             {!isEmployee && (
-              <div className="bg-stone-100 rounded-lg p-4 mb-5 space-y-2">
+              <div className="bg-stone-100 rounded-xl p-4 mb-5 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-body text-text-tertiary">Points to deduct</span>
                   <span className="text-subheading text-text-primary">{voucher.points_required} pts</span>
@@ -469,9 +444,9 @@ export default function VoucherDetailPage() {
             )}
 
             {isEmployee && (
-              <div className="bg-amber-50 rounded-lg p-4 mb-5 text-center">
-                <p className="text-subheading text-accent">
-                  Employee Perk - No Points Required
+              <div className="bg-stone-100 rounded-xl p-4 mb-5 text-center">
+                <p className="text-subheading text-text-primary">
+                  Employee Perk — No Points Required
                 </p>
               </div>
             )}
@@ -479,14 +454,14 @@ export default function VoucherDetailPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="btn-secondary flex-1 h-12 rounded-lg"
+                className="btn-secondary flex-1 h-12 rounded-xl"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRedeem}
                 disabled={redeeming}
-                className="btn-primary flex-1 h-12 rounded-lg disabled:opacity-50"
+                className="btn-primary flex-1 h-12 rounded-xl disabled:opacity-50"
               >
                 {redeeming ? 'Redeeming...' : 'Confirm'}
               </button>
@@ -511,19 +486,19 @@ export default function VoucherDetailPage() {
       {/* Success Modal */}
       {showSuccessModal && redeemedVoucherData && (
         <div
-          className="fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-backdrop-fade"
           onClick={() => {
             setShowSuccessModal(false);
             router.push('/app/vouchers');
           }}
         >
           <div
-            className="bg-surface rounded-xl p-6 max-w-sm w-full text-center border border-border"
+            className="bg-surface rounded-xl p-6 max-w-sm w-full text-center border border-border animate-scale-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Success Icon */}
-            <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center mx-auto mb-5">
-              <CheckCircle className="w-8 h-8 text-success" />
+            <div className="w-20 h-20 rounded-full bg-stone-900 flex items-center justify-center mx-auto mb-5">
+              <img src="/images/content/milestones/trophy.gif" alt="" className="w-12 h-12" />
             </div>
 
             <h2 className="text-heading text-text-primary mb-1">
@@ -539,7 +514,7 @@ export default function VoucherDetailPage() {
             </p>
 
             {redeemedVoucherData.cash_value > 0 && (
-              <div className="badge-default rounded-lg px-4 py-2 mb-5 mx-auto">
+              <div className="bg-stone-100 rounded-lg px-4 py-2 mb-5 inline-flex">
                 <span className="text-subheading text-text-primary">
                   ฿{redeemedVoucherData.cash_value} Value
                 </span>
@@ -551,7 +526,7 @@ export default function VoucherDetailPage() {
                 setShowSuccessModal(false);
                 router.push('/app/vouchers');
               }}
-              className="btn-primary w-full h-12 rounded-lg"
+              className="btn-primary w-full h-12 rounded-xl"
             >
               Done
             </button>

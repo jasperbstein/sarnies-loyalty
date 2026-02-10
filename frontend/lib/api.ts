@@ -179,7 +179,9 @@ export interface LineCallbackResponse {
     type: string;
   };
   needs_registration: boolean;
+  account_linked?: boolean;
   referral_code?: string;
+  company_invite_code?: string;
   remember_me: string;
 }
 
@@ -228,7 +230,8 @@ export const authAPI = {
 
   // Customer registration
   register: (data: {
-    phone: string;
+    phone?: string;
+    user_id?: number;
     name: string;
     surname?: string;
     email?: string;
@@ -238,12 +241,13 @@ export const authAPI = {
     email_consent?: boolean;
     sms_consent?: boolean;
     preferred_outlet?: string;
+    company_id?: number; // From company invite code
   }) =>
     api.post('/auth/register', data),
 
   // LINE Login
-  getLineAuthUrl: (remember_me?: string, ref?: string) =>
-    api.get<LineAuthUrlResponse>('/line/auth-url', { params: { remember_me, ref } }),
+  getLineAuthUrl: (remember_me?: string, ref?: string, company?: string) =>
+    api.get<LineAuthUrlResponse>('/line/auth-url', { params: { remember_me, ref, company } }),
 
   lineCallback: (code: string, state?: string) =>
     api.post<LineCallbackResponse>('/line/callback', { code, state }),
@@ -274,6 +278,15 @@ export const usersAPI = {
 
   getVoucherInstances: (id: number, status?: 'active' | 'used' | 'expired') =>
     api.get(`/users/${id}/voucher-instances`, { params: status ? { status } : undefined }),
+
+  updateCompany: (userId: number, companyId: number | null) =>
+    api.patch(`/users/${userId}/company`, { company_id: companyId }),
+
+  sendInvite: (userId: number) =>
+    api.post(`/users/${userId}/send-invite`),
+
+  create: (data: { name: string; surname?: string; email: string; user_type?: string }) =>
+    api.post('/users', data),
 };
 
 // Vouchers API
@@ -545,4 +558,231 @@ export const posKeysAPI = {
 
   getStats: () =>
     api.get('/pos/keys/stats'),
+};
+
+// Companies API (public endpoints for invite codes)
+export const companiesAPI = {
+  // Look up company by invite code (public)
+  getByInviteCode: (code: string) =>
+    api.get(`/companies/invite/${code}`),
+
+  // Look up any invite code (personal or company) for join flow
+  lookupJoinCode: (code: string) =>
+    api.get(`/companies/join/${code}`),
+
+  // Verify access code for company join
+  verifyAccessCode: (code: string, accessCode: string) =>
+    api.post(`/companies/join/${code}/verify-access-code`, { access_code: accessCode }),
+
+  // Verify if email is eligible for company program
+  verifyEmail: (email: string) =>
+    api.post('/companies/verify-email', { email }),
+
+  // Get all companies (admin)
+  getAll: () =>
+    api.get('/companies'),
+};
+
+// Auth Methods API (for linking multiple auth methods)
+export const authMethodsAPI = {
+  list: () =>
+    api.get('/users/me/auth-methods'),
+
+  addPhone: (phone: string) =>
+    api.post('/users/me/phone', { phone }),
+
+  verifyPhone: (phone: string, otp: string) =>
+    api.post('/users/me/phone/verify', { phone, otp }),
+
+  addEmail: (email: string) =>
+    api.post('/users/me/email', { email }),
+
+  verifyEmail: (email: string, otp: string) =>
+    api.post('/users/me/email/verify', { email, otp }),
+
+  remove: (type: 'phone' | 'email' | 'line') =>
+    api.delete(`/users/me/auth-methods/${type}`),
+
+  setPrimary: (type: 'phone' | 'email' | 'line') =>
+    api.put(`/users/me/auth-methods/${type}/primary`),
+};
+
+// PIN Auth API
+export const pinAuthAPI = {
+  // Check if user has PIN set up (for login page - no auth required)
+  checkByEmail: (email: string) =>
+    api.post<{ pin_available: boolean }>('/auth/pin/check', { email }),
+
+  // Get PIN status for current user (requires auth)
+  getStatus: () =>
+    api.get<{ pin_enabled: boolean; has_pin: boolean }>('/auth/pin/status'),
+
+  // Set up a new PIN (requires auth)
+  setup: (pin: string) =>
+    api.post<{ message: string; pin_enabled: boolean }>('/auth/pin/setup', { pin }),
+
+  // Login with PIN (no auth required)
+  verify: (email: string, pin: string, remember_me?: string) =>
+    api.post('/auth/pin/verify', { email, pin, remember_me }),
+
+  // Change PIN (requires auth + current PIN)
+  change: (current_pin: string, new_pin: string) =>
+    api.post<{ message: string }>('/auth/pin/change', { current_pin, new_pin }),
+
+  // Disable PIN (requires auth)
+  disable: () =>
+    api.post<{ message: string; pin_enabled: boolean }>('/auth/pin/disable'),
+};
+
+// Collab Offers Types
+export interface CollabPartner {
+  partnership_id: number;
+  partner_id: number;
+  partner_name: string;
+  partner_logo?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CollabOffer {
+  id: number;
+  offering_company_id: number;
+  target_company_id: number;
+  title: string;
+  description?: string;
+  discount_type: 'percentage' | 'fixed' | 'free_item';
+  discount_value: number;
+  image_url?: string;
+  terms?: string;
+  valid_from: string;
+  valid_until: string;
+  max_redemptions?: number;
+  max_per_user?: number;
+  redemptions_count: number;
+  status: 'pending' | 'active' | 'rejected' | 'paused' | 'expired';
+  rejection_reason?: string;
+  approved_at?: string;
+  created_at: string;
+  // Joined fields
+  offering_company_name?: string;
+  offering_company_logo?: string;
+  target_company_name?: string;
+  target_company_logo?: string;
+  user_redemption_count?: number;
+}
+
+export interface CollabOfferCreateData {
+  target_company_id: number;
+  title: string;
+  description?: string;
+  discount_type: 'percentage' | 'fixed' | 'free_item';
+  discount_value: number;
+  image_url?: string;
+  terms?: string;
+  valid_from: string;
+  valid_until: string;
+  max_redemptions?: number;
+  max_per_user?: number;
+}
+
+export interface CollabRedemption {
+  id: number;
+  collab_offer_id: number;
+  user_id: number;
+  redeemed_at: string;
+  redeemed_at_outlet?: string;
+  staff_id?: number;
+  customer_name?: string;
+  customer_email?: string;
+  staff_name?: string;
+}
+
+// Collabs API
+export const collabsAPI = {
+  // Partnership management (Admin)
+  getPartners: () =>
+    api.get<{ partners: CollabPartner[] }>('/collabs/partners'),
+
+  getAvailablePartners: () =>
+    api.get<{ companies: { id: number; name: string; logo_url?: string }[] }>('/collabs/partners/available'),
+
+  addPartner: (partner_company_id: number) =>
+    api.post('/collabs/partners', { partner_company_id }),
+
+  removePartner: (partnershipId: number) =>
+    api.delete(`/collabs/partners/${partnershipId}`),
+
+  // Offer management (Admin - outgoing)
+  getOffers: () =>
+    api.get<{ offers: CollabOffer[] }>('/collabs/offers'),
+
+  getOffer: (id: number) =>
+    api.get<CollabOffer>(`/collabs/offers/${id}`),
+
+  createOffer: (data: CollabOfferCreateData) =>
+    api.post<CollabOffer>('/collabs/offers', data),
+
+  updateOffer: (id: number, data: Partial<CollabOfferCreateData>) =>
+    api.patch<CollabOffer>(`/collabs/offers/${id}`, data),
+
+  deleteOffer: (id: number) =>
+    api.delete(`/collabs/offers/${id}`),
+
+  // Incoming offers (Admin - from partners)
+  getIncomingOffers: (status?: string) =>
+    api.get<{ offers: CollabOffer[] }>('/collabs/incoming', { params: status ? { status } : undefined }),
+
+  approveOffer: (id: number) =>
+    api.post<CollabOffer>(`/collabs/offers/${id}/approve`),
+
+  rejectOffer: (id: number, reason?: string) =>
+    api.post<CollabOffer>(`/collabs/offers/${id}/reject`, { reason }),
+
+  pauseOffer: (id: number) =>
+    api.post<CollabOffer>(`/collabs/offers/${id}/pause`),
+
+  resumeOffer: (id: number) =>
+    api.post<CollabOffer>(`/collabs/offers/${id}/resume`),
+
+  // Customer endpoints
+  getAvailableOffers: () =>
+    api.get<{ offers: CollabOffer[] }>('/collabs/available'),
+
+  redeemOffer: (id: number) =>
+    api.post<{
+      qr_code: string;
+      qr_token: string;
+      redemption_id: string;
+      expires_at: string;
+      offer: {
+        id: number;
+        title: string;
+        description?: string;
+        discount_type: string;
+        discount_value: number;
+        offering_company_name: string;
+      };
+    }>(`/collabs/offers/${id}/redeem`),
+
+  // Staff verification
+  verifyRedemption: (qr_data: string, outlet?: string) =>
+    api.post<{
+      success: boolean;
+      message: string;
+      offer: {
+        id: number;
+        title: string;
+        discount_type: string;
+        discount_value: number;
+        partner_company: string;
+      };
+      customer: {
+        id: number;
+        name: string;
+      };
+    }>('/collabs/verify', { qr_data, outlet }),
+
+  // Redemption history (Admin)
+  getOfferRedemptions: (offerId: number) =>
+    api.get<{ redemptions: CollabRedemption[] }>(`/collabs/offers/${offerId}/redemptions`),
 };

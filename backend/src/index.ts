@@ -30,6 +30,8 @@ import staffRoutes from './routes/staff';
 import referralRoutes from './routes/referrals';
 import rewardsRoutes from './routes/rewards';
 import lineAuthRoutes from './routes/lineAuth';
+import pinAuthRoutes from './routes/pinAuth';
+import collabRoutes from './routes/collabs';
 
 // Import rate limiters
 import { apiLimiter, authLimiter, publicLimiter, posLimiter } from './middleware/rateLimiter';
@@ -106,6 +108,8 @@ app.use('/api/audit-logs', apiLimiter, auditLogRoutes);
 app.use('/api/referrals', apiLimiter, referralRoutes);
 app.use('/api/rewards', apiLimiter, rewardsRoutes);
 app.use('/api/line', publicLimiter, lineAuthRoutes); // Use publicLimiter for LINE webhook compatibility
+app.use('/api/auth/pin', authLimiter, pinAuthRoutes);
+app.use('/api/collabs', apiLimiter, collabRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -142,24 +142,18 @@ export default function StaffRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] flex flex-col">
+    <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-[#E7E5E4] px-5 py-4">
+      <div className="bg-white border-b border-stone-200 px-5 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <Link href="/login" className="text-[#78716C] hover:text-[#1C1917]">
+          <Link href="/login" className="text-stone-500 hover:text-stone-900">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1
-              className="text-[18px] font-bold text-[#1C1917]"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-            >
+            <h1 className="text-lg font-bold text-stone-900">
               Staff Registration
             </h1>
-            <p
-              className="text-[13px] text-[#78716C]"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-            >
+            <p className="text-[13px] text-stone-500">
               Register using your company email
             </p>
           </div>
@@ -172,20 +166,14 @@ export default function StaffRegisterPage() {
           {step === 'email' && (
             <form onSubmit={handleCheckEmail} className="space-y-6">
               {/* Info Card */}
-              <div className="bg-[#FEF3C7] rounded-xl p-4">
+              <div className="bg-amber-100 rounded-xl p-4">
                 <div className="flex gap-3">
-                  <Building2 className="w-5 h-5 text-[#D97706] flex-shrink-0 mt-0.5" />
+                  <Building2 className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p
-                      className="text-[14px] font-semibold text-[#92400E]"
-                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    >
+                    <p className="text-sm font-semibold text-amber-800">
                       Company Email Required
                     </p>
-                    <p
-                      className="text-[13px] text-[#B45309] mt-1"
-                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    >
+                    <p className="text-[13px] text-amber-700 mt-1">
                       Use your company email address (e.g., name@sarnies.com) to register as staff.
                     </p>
                   </div>
@@ -194,21 +182,17 @@ export default function StaffRegisterPage() {
 
               {/* Email Input */}
               <div>
-                <label
-                  className="block text-[13px] font-medium text-[#57534E] mb-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <label className="block text-[13px] font-medium text-stone-600 mb-2">
                   Company Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                   />
                 </div>
               </div>
@@ -216,18 +200,14 @@ export default function StaffRegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Checking...' : 'Continue'}
               </button>
 
-              <p
-                className="text-center text-[14px] text-[#78716C]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <p className="text-center text-sm text-stone-500">
                 Already have an account?{' '}
-                <Link href="/login" className="text-[#D97706] font-semibold">
+                <Link href="/login" className="text-amber-600 font-semibold">
                   Login
                 </Link>
               </p>
@@ -237,21 +217,15 @@ export default function StaffRegisterPage() {
           {step === 'details' && company && (
             <form onSubmit={handleRegister} className="space-y-6">
               {/* Company Badge */}
-              <div className="bg-white rounded-xl border border-[#E7E5E4] p-4 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#FEF3C7] flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-[#D97706]" />
+              <div className="bg-white rounded-xl border border-stone-200 p-4 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-amber-600" />
                 </div>
                 <div>
-                  <p
-                    className="text-[15px] font-semibold text-[#1C1917]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
+                  <p className="text-[15px] font-semibold text-stone-900">
                     {company.name}
                   </p>
-                  <p
-                    className="text-[13px] text-[#78716C]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
+                  <p className="text-[13px] text-stone-500">
                     {email}
                   </p>
                 </div>
@@ -259,40 +233,32 @@ export default function StaffRegisterPage() {
 
               {/* Name Input */}
               <div>
-                <label
-                  className="block text-[13px] font-medium text-[#57534E] mb-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <label className="block text-[13px] font-medium text-stone-600 mb-2">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your full name"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                   />
                 </div>
               </div>
 
               {/* Branch Selection */}
               <div>
-                <label
-                  className="block text-[13px] font-medium text-[#57534E] mb-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <label className="block text-[13px] font-medium text-stone-600 mb-2">
                   Branch / Location (Optional)
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E] pointer-events-none" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
                   <select
                     value={branch}
                     onChange={(e) => setBranch(e.target.value)}
-                    className="w-full pl-12 pr-10 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] appearance-none bg-white"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="w-full pl-12 pr-10 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 appearance-none bg-white"
                   >
                     <option value="">Select your branch</option>
                     {outlets.map((outlet) => (
@@ -301,48 +267,40 @@ export default function StaffRegisterPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E] pointer-events-none" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
                 </div>
               </div>
 
               {/* Password Input */}
               <div>
-                <label
-                  className="block text-[13px] font-medium text-[#57534E] mb-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <label className="block text-[13px] font-medium text-stone-600 mb-2">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                   />
                 </div>
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label
-                  className="block text-[13px] font-medium text-[#57534E] mb-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <label className="block text-[13px] font-medium text-stone-600 mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                   />
                 </div>
               </div>
@@ -350,8 +308,7 @@ export default function StaffRegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
@@ -359,8 +316,7 @@ export default function StaffRegisterPage() {
               <button
                 type="button"
                 onClick={() => setStep('email')}
-                className="w-full py-3 text-[#78716C] font-medium text-[14px]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="w-full py-3 text-stone-500 font-medium text-sm"
               >
                 Back to email
               </button>
@@ -369,21 +325,15 @@ export default function StaffRegisterPage() {
 
           {step === 'success' && (
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-[#F0FDF4] flex items-center justify-center mx-auto">
-                <CheckCircle className="w-10 h-10 text-[#16A34A]" />
+              <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+                <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
 
               <div>
-                <h2
-                  className="text-[20px] font-bold text-[#1C1917]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <h2 className="text-xl font-bold text-stone-900">
                   Check Your Email
                 </h2>
-                <p
-                  className="text-[14px] text-[#78716C] mt-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <p className="text-sm text-stone-500 mt-2">
                   We sent a verification link to <strong>{email}</strong>.
                   Click the link to activate your account.
                 </p>
@@ -391,17 +341,13 @@ export default function StaffRegisterPage() {
 
               {/* Dev mode: Show verification link */}
               {verificationLink && (
-                <div className="bg-[#FEF3C7] rounded-xl p-4 text-left">
-                  <p
-                    className="text-[11px] font-bold text-[#92400E] tracking-[1px] mb-2"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
+                <div className="bg-amber-100 rounded-xl p-4 text-left">
+                  <p className="text-[11px] font-bold text-amber-800 tracking-wider mb-2">
                     DEV MODE - VERIFICATION LINK
                   </p>
                   <a
                     href={verificationLink}
-                    className="text-[13px] text-[#D97706] underline break-all"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="text-[13px] text-amber-600 underline break-all"
                   >
                     {verificationLink}
                   </a>
@@ -411,8 +357,7 @@ export default function StaffRegisterPage() {
               <div className="space-y-3">
                 <button
                   onClick={() => router.push('/login')}
-                  className="w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] transition-colors"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  className="w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 transition-colors"
                 >
                   Go to Login
                 </button>
@@ -429,8 +374,7 @@ export default function StaffRegisterPage() {
                       toast.error('Failed to resend email');
                     }
                   }}
-                  className="w-full py-3 text-[#78716C] font-medium text-[14px]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  className="w-full py-3 text-stone-500 font-medium text-sm"
                 >
                   Resend verification email
                 </button>

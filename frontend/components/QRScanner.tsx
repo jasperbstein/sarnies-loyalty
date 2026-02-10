@@ -33,9 +33,15 @@ const QRScannerComponent = forwardRef<QRScannerRef, QRScannerProps>(({ onScan },
         throw new Error('Camera API not supported in this browser. Please use a modern browser like Chrome or Safari.');
       }
 
-      // First, request camera permission explicitly
+      // First, request camera permission with high resolution for better QR detection
       try {
-        await navigator.mediaDevices.getUserMedia({ video: true });
+        await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          }
+        });
       } catch (permErr: any) {
         if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
           throw new Error('PERMISSION_DENIED');
@@ -80,7 +86,7 @@ const QRScannerComponent = forwardRef<QRScannerRef, QRScannerProps>(({ onScan },
         setSelectedCamera(cameraId);
       }
 
-      // Create scanner with iOS-optimized settings
+      // Create scanner with optimized settings for small QR codes
       const qrScanner = new QrScanner(
         videoRef.current,
         (result) => {
@@ -96,11 +102,22 @@ const QRScannerComponent = forwardRef<QRScannerRef, QRScannerProps>(({ onScan },
         },
         {
           returnDetailedScanResult: true,
-          highlightScanRegion: true,
+          highlightScanRegion: false, // We use custom overlay
           highlightCodeOutline: true,
           preferredCamera: cameraId,
-          // iOS Safari specific optimizations
-          maxScansPerSecond: 10,
+          // Optimizations for small QR codes on cards
+          maxScansPerSecond: 15, // More frequent scanning
+          calculateScanRegion: (video) => {
+            // Use larger scan region for better small QR detection
+            const smallestDimension = Math.min(video.videoWidth, video.videoHeight);
+            const scanRegionSize = Math.round(smallestDimension * 0.9); // 90% of frame
+            return {
+              x: Math.round((video.videoWidth - scanRegionSize) / 2),
+              y: Math.round((video.videoHeight - scanRegionSize) / 2),
+              width: scanRegionSize,
+              height: scanRegionSize,
+            };
+          },
         }
       );
 
@@ -253,20 +270,23 @@ const QRScannerComponent = forwardRef<QRScannerRef, QRScannerProps>(({ onScan },
             </div>
           </div>
 
-          {/* Scanning Frame Overlay */}
+          {/* Scanning Frame Overlay - Larger for small QR codes */}
           {!qrDetected && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-5">
-              <div className="relative w-72 h-72">
+              <div className="relative w-[85vw] max-w-[360px] aspect-square">
                 {/* Corner markers with Sarnies gold color */}
-                <div className="absolute -top-2 -left-2 w-16 h-16 border-l-4 border-t-4 border-yellow-400 rounded-tl-2xl"></div>
-                <div className="absolute -top-2 -right-2 w-16 h-16 border-r-4 border-t-4 border-yellow-400 rounded-tr-2xl"></div>
-                <div className="absolute -bottom-2 -left-2 w-16 h-16 border-l-4 border-b-4 border-yellow-400 rounded-bl-2xl"></div>
-                <div className="absolute -bottom-2 -right-2 w-16 h-16 border-r-4 border-b-4 border-yellow-400 rounded-br-2xl"></div>
+                <div className="absolute -top-1 -left-1 w-12 h-12 border-l-4 border-t-4 border-yellow-400 rounded-tl-xl"></div>
+                <div className="absolute -top-1 -right-1 w-12 h-12 border-r-4 border-t-4 border-yellow-400 rounded-tr-xl"></div>
+                <div className="absolute -bottom-1 -left-1 w-12 h-12 border-l-4 border-b-4 border-yellow-400 rounded-bl-xl"></div>
+                <div className="absolute -bottom-1 -right-1 w-12 h-12 border-r-4 border-b-4 border-yellow-400 rounded-br-xl"></div>
+
+                {/* Scanning line animation */}
+                <div className="absolute inset-x-4 top-4 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-scan-line"></div>
 
                 {/* Center coffee cup icon */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-black/50 backdrop-blur-sm p-4 rounded-2xl">
-                    <Coffee className="w-12 h-12 text-yellow-400 animate-pulse" strokeWidth={2} />
+                  <div className="bg-black/40 backdrop-blur-sm p-3 rounded-xl">
+                    <Coffee className="w-8 h-8 text-yellow-400/80" strokeWidth={2} />
                   </div>
                 </div>
               </div>
@@ -274,21 +294,32 @@ const QRScannerComponent = forwardRef<QRScannerRef, QRScannerProps>(({ onScan },
           )}
 
           {/* Bottom Status Bar */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 z-10">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pb-8 z-10">
             {qrDetected ? (
               <div className="bg-yellow-500 text-black px-6 py-4 rounded-xl text-center font-semibold shadow-lg flex items-center justify-center gap-2">
                 <Coffee className="w-5 h-5" strokeWidth={2.5} />
                 <span>QR Recognized — Loading...</span>
               </div>
             ) : (
-              <div className="bg-white/20 backdrop-blur-sm text-white px-6 py-4 rounded-xl text-center">
-                <p className="font-medium">Hold QR code steady inside the frame</p>
-                <p className="text-sm text-white/80 mt-1">Position 15-20cm from camera</p>
+              <div className="space-y-3">
+                <div className="bg-white/15 backdrop-blur-sm text-white px-5 py-4 rounded-xl text-center">
+                  <p className="font-semibold text-[15px]">Position QR code in frame</p>
+                  <p className="text-sm text-white/70 mt-1.5">Move closer for small QR codes on cards</p>
+                </div>
+                {/* Tips for small QR codes */}
+                <div className="flex justify-center gap-4 text-white/60 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Scan className="w-3.5 h-3.5" />
+                    10-15cm distance
+                  </span>
+                  <span>•</span>
+                  <span>Good lighting helps</span>
+                </div>
               </div>
             )}
             {cameras.length > 1 && selectedCamera && (
-              <p className="text-white/60 text-xs text-center mt-3">
-                Current: {cameras.find(c => c.id === selectedCamera)?.label || 'Unknown Camera'}
+              <p className="text-white/50 text-xs text-center mt-3">
+                {cameras.find(c => c.id === selectedCamera)?.label || 'Camera'}
               </p>
             )}
           </div>
@@ -296,28 +327,28 @@ const QRScannerComponent = forwardRef<QRScannerRef, QRScannerProps>(({ onScan },
           {/* QR Detection Success Overlay - Sarnies Theme */}
           {qrDetected && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-              <div className="relative w-80 h-80">
+              <div className="relative w-[85vw] max-w-[360px] aspect-square">
                 {/* Animated gold border with coffee theme */}
                 <div
-                  className="absolute inset-0 border-4 border-yellow-400 rounded-2xl animate-pulse"
+                  className="absolute inset-0 border-4 border-yellow-400 rounded-xl animate-pulse"
                   style={{
-                    boxShadow: '0 0 40px rgba(250, 204, 21, 0.8)'
+                    boxShadow: '0 0 60px rgba(250, 204, 21, 0.6)'
                   }}
                 ></div>
 
                 {/* Corner markers - Sarnies gold */}
-                <div className="absolute -top-2 -left-2 w-16 h-16 border-l-4 border-t-4 border-yellow-300 rounded-tl-2xl"></div>
-                <div className="absolute -top-2 -right-2 w-16 h-16 border-r-4 border-t-4 border-yellow-300 rounded-tr-2xl"></div>
-                <div className="absolute -bottom-2 -left-2 w-16 h-16 border-l-4 border-b-4 border-yellow-300 rounded-bl-2xl"></div>
-                <div className="absolute -bottom-2 -right-2 w-16 h-16 border-r-4 border-b-4 border-yellow-300 rounded-br-2xl"></div>
+                <div className="absolute -top-1 -left-1 w-12 h-12 border-l-4 border-t-4 border-yellow-300 rounded-tl-xl"></div>
+                <div className="absolute -top-1 -right-1 w-12 h-12 border-r-4 border-t-4 border-yellow-300 rounded-tr-xl"></div>
+                <div className="absolute -bottom-1 -left-1 w-12 h-12 border-l-4 border-b-4 border-yellow-300 rounded-bl-xl"></div>
+                <div className="absolute -bottom-1 -right-1 w-12 h-12 border-r-4 border-b-4 border-yellow-300 rounded-br-xl"></div>
 
                 {/* Success coffee cup with checkmark */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-yellow-500 text-black rounded-full p-6 shadow-2xl relative">
-                    <Coffee className="w-16 h-16" strokeWidth={2.5} />
+                  <div className="bg-yellow-500 text-black rounded-full p-5 shadow-2xl relative">
+                    <Coffee className="w-12 h-12" strokeWidth={2.5} />
                     {/* Checkmark badge */}
-                    <div className="absolute -bottom-2 -right-2 bg-green-500 text-white rounded-full p-2 shadow-lg border-4 border-white">
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="absolute -bottom-1.5 -right-1.5 bg-green-500 text-white rounded-full p-1.5 shadow-lg border-[3px] border-white">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>

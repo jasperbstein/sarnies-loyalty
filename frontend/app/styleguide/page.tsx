@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/customer/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { SectionCard } from '@/components/customer/ui/SectionCard';
 import { X, QrCode, Gift, Activity, TrendingUp, Star, ChevronRight, Search, Home, User } from 'lucide-react';
 
@@ -170,6 +170,31 @@ export default function StyleguidePage() {
                 <div className="flex flex-wrap gap-4">
                   <Button variant="ghost">Ghost Button</Button>
                   <Button variant="ghost" disabled>Disabled</Button>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Success Buttons</h3>
+                <div className="flex flex-wrap gap-4">
+                  <Button variant="success">Success Button</Button>
+                  <Button variant="success" disabled>Disabled</Button>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Sizes</h3>
+                <div className="flex flex-wrap items-center gap-4">
+                  <Button variant="primary" size="sm">Small</Button>
+                  <Button variant="primary" size="md">Medium</Button>
+                  <Button variant="primary" size="lg">Large</Button>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Loading State</h3>
+                <div className="flex flex-wrap gap-4">
+                  <Button variant="primary" loading>Loading...</Button>
+                  <Button variant="secondary" loading>Loading...</Button>
                 </div>
               </div>
 

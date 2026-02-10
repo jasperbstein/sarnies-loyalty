@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import { Search, Megaphone, Plus, Edit2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { announcementsAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -126,18 +127,23 @@ export default function AnnouncementsPage() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-neutral-50">
-        <div className="max-w-[1600px] mx-auto px-4 py-6">
+      <div className="min-h-screen admin-page animate-macos-fade">
+        <div className="admin-page-container">
           {/* Header */}
           <div className="flex items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-[28px] font-semibold text-neutral-900">Announcements</h1>
-              <p className="text-[14px] text-neutral-500">{announcements.length} total announcements</p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF9F0A] to-[#FF6B00] flex items-center justify-center shadow-lg">
+                <Megaphone className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">Announcements</h1>
+                <p className="text-[14px] text-[#86868b]">{announcements.length} total announcements</p>
+              </div>
             </div>
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="h-[40px] px-4 rounded-lg border border-neutral-900 bg-neutral-900 text-white text-[14px] font-medium flex items-center gap-2 hover:bg-neutral-800 transition-colors"
+              className="admin-btn-primary"
             >
               <Plus size={18} />
               Create Announcement
@@ -145,15 +151,15 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 mb-6">
+          <div className="admin-card p-4 mb-6">
             <div className="flex items-center gap-4">
               {/* Search */}
               <div className="flex-1 relative">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86868b]" />
                 <input
                   type="text"
                   placeholder="Search announcements..."
-                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-2.5 border border-[rgba(0,0,0,0.1)] rounded-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[rgba(0,122,255,0.3)] focus:border-[#007AFF] bg-white"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -161,7 +167,7 @@ export default function AnnouncementsPage() {
 
               {/* Type Filter */}
               <select
-                className="px-3 py-2 border border-neutral-200 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white"
+                className="admin-select"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
               >
@@ -175,7 +181,7 @@ export default function AnnouncementsPage() {
 
               {/* Status Filter */}
               <select
-                className="px-3 py-2 border border-neutral-200 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white"
+                className="admin-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -187,17 +193,17 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* Announcements Table */}
-          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          <div className="admin-card overflow-hidden">
             {loading ? (
               <div className="p-12 text-center">
-                <div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto" />
-                <p className="mt-4 text-[14px] text-neutral-500">Loading announcements...</p>
+                <div className="w-8 h-8 border-2 border-[rgba(0,0,0,0.1)] border-t-[#007AFF] rounded-full animate-spin mx-auto" />
+                <p className="mt-4 text-[14px] text-[#86868b]">Loading announcements...</p>
               </div>
             ) : filteredAnnouncements.length === 0 ? (
               <div className="p-12 text-center">
-                <Megaphone size={48} className="mx-auto text-neutral-300 mb-4" />
-                <h3 className="text-[16px] font-semibold text-neutral-900 mb-1">No announcements found</h3>
-                <p className="text-[14px] text-neutral-500">
+                <Megaphone size={48} className="mx-auto text-[#86868b] mb-4 opacity-50" />
+                <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">No announcements found</h3>
+                <p className="text-[14px] text-[#86868b]">
                   {search || typeFilter !== 'all' || statusFilter !== 'all'
                     ? 'Try adjusting your filters'
                     : 'Create your first announcement to get started'}
@@ -207,33 +213,33 @@ export default function AnnouncementsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-neutral-200 bg-neutral-50">
-                      <th className="px-4 py-3 text-left text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                    <tr className="border-b border-[rgba(0,0,0,0.06)] bg-[rgba(246,246,246,0.6)]">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         Title
                       </th>
-                      <th className="px-4 py-3 text-left text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         Type
                       </th>
-                      <th className="px-4 py-3 text-left text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         Target
                       </th>
-                      <th className="px-4 py-3 text-left text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         Start Date
                       </th>
-                      <th className="px-4 py-3 text-left text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         End Date
                       </th>
-                      <th className="px-4 py-3 text-left text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-right text-[12px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-right text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredAnnouncements.map((announcement) => (
-                      <tr key={announcement.id} className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                      <tr key={announcement.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.02)] transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-start gap-3">
                             {announcement.image_url && (

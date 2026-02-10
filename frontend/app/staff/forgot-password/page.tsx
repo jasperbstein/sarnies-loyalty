@@ -38,24 +38,18 @@ export default function StaffForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] flex flex-col">
+    <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-[#E7E5E4] px-5 py-4">
+      <div className="bg-white border-b border-stone-200 px-5 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <Link href="/login" className="text-[#78716C] hover:text-[#1C1917]">
+          <Link href="/login" className="text-stone-500 hover:text-stone-900">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1
-              className="text-[18px] font-bold text-[#1C1917]"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-            >
+            <h1 className="text-lg font-bold text-stone-900">
               Forgot Password
             </h1>
-            <p
-              className="text-[13px] text-[#78716C]"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-            >
+            <p className="text-[13px] text-stone-500">
               Reset your staff account password
             </p>
           </div>
@@ -67,30 +61,23 @@ export default function StaffForgotPasswordPage() {
         <div className="max-w-md mx-auto">
           {!submitted ? (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <p
-                className="text-[14px] text-[#57534E]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <p className="text-sm text-stone-600">
                 Enter your email address and we'll send you a link to reset your password.
               </p>
 
               {/* Email Input */}
               <div>
-                <label
-                  className="block text-[13px] font-medium text-[#57534E] mb-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <label className="block text-[13px] font-medium text-stone-600 mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                   />
                 </div>
               </div>
@@ -98,56 +85,42 @@ export default function StaffForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Sending...' : 'Send Reset Link'}
               </button>
 
-              <p
-                className="text-center text-[14px] text-[#78716C]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <p className="text-center text-sm text-stone-500">
                 Remember your password?{' '}
-                <Link href="/login" className="text-[#D97706] font-semibold">
+                <Link href="/login" className="text-amber-600 font-semibold">
                   Login
                 </Link>
               </p>
             </form>
           ) : (
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-[#F0FDF4] flex items-center justify-center mx-auto">
-                <CheckCircle className="w-10 h-10 text-[#16A34A]" />
+              <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+                <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
 
               <div>
-                <h2
-                  className="text-[20px] font-bold text-[#1C1917]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <h2 className="text-xl font-bold text-stone-900">
                   Check Your Email
                 </h2>
-                <p
-                  className="text-[14px] text-[#78716C] mt-2"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
+                <p className="text-sm text-stone-500 mt-2">
                   If an account exists for <strong>{email}</strong>, you will receive a password reset link.
                 </p>
               </div>
 
               {/* Dev mode: Show reset link */}
               {resetLink && (
-                <div className="bg-[#FEF3C7] rounded-xl p-4 text-left">
-                  <p
-                    className="text-[11px] font-bold text-[#92400E] tracking-[1px] mb-2"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
+                <div className="bg-amber-100 rounded-xl p-4 text-left">
+                  <p className="text-[11px] font-bold text-amber-800 tracking-wider mb-2">
                     DEV MODE - RESET LINK
                   </p>
                   <a
                     href={resetLink}
-                    className="text-[13px] text-[#D97706] underline break-all"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    className="text-[13px] text-amber-600 underline break-all"
                   >
                     {resetLink}
                   </a>
@@ -157,8 +130,7 @@ export default function StaffForgotPasswordPage() {
               <div className="space-y-3">
                 <Link
                   href="/login"
-                  className="block w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] transition-colors text-center"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  className="block w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 transition-colors text-center"
                 >
                   Back to Login
                 </Link>
@@ -168,8 +140,7 @@ export default function StaffForgotPasswordPage() {
                     setSubmitted(false);
                     setResetLink(null);
                   }}
-                  className="w-full py-3 text-[#78716C] font-medium text-[14px]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  className="w-full py-3 text-stone-500 font-medium text-sm"
                 >
                   Try a different email
                 </button>

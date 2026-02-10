@@ -6,6 +6,7 @@ import Image from 'next/image';
 import AppLayout from '@/components/AppLayout';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 import { useSwipeBack } from '@/hooks/useSwipeBack';
+import { announcementsAPI } from '@/lib/api';
 
 interface Announcement {
   id: number;
@@ -35,10 +36,8 @@ export default function AnnouncementDetail() {
     setLoading(true);
     setError(false);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/announcements/${params.id}`);
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
-      setAnnouncement(data.announcement);
+      const response = await announcementsAPI.getById(Number(params.id));
+      setAnnouncement(response.data.announcement);
     } catch (error) {
       console.error('Failed to fetch announcement:', error);
       setError(true);

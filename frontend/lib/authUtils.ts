@@ -61,6 +61,25 @@ export function isEmployeeUser(user: AuthUser | null | undefined): boolean {
 }
 
 /**
+ * Check if user should see perks-only view (no points earning/spending).
+ * This applies to:
+ * - All employees
+ * - Company members whose company has users_collect_points = false
+ */
+export function isPerksOnlyUser(user: AuthUser | null | undefined): boolean {
+  if (!user) return false;
+
+  // Employees always get perks-only view
+  if (isEmployeeUser(user)) return true;
+
+  // Check company setting - if users_collect_points is explicitly false
+  // @ts-ignore - users_collect_points is a new field
+  if (user.users_collect_points === false) return true;
+
+  return false;
+}
+
+/**
  * Get the appropriate login redirect path based on user type.
  */
 export function getLoginRedirectPath(user: AuthUser | null | undefined): string {

@@ -24,6 +24,25 @@ const config: Config = {
         white: 'var(--color-white)',
         cream: 'var(--color-cream)',
 
+        // macOS System Colors
+        macos: {
+          blue: 'var(--macos-blue)',
+          'blue-hover': 'var(--macos-blue-hover)',
+          'blue-light': 'var(--macos-blue-light)',
+          green: 'var(--macos-green)',
+          'green-light': 'var(--macos-green-light)',
+          orange: 'var(--macos-orange)',
+          'orange-light': 'var(--macos-orange-light)',
+          red: 'var(--macos-red)',
+          'red-light': 'var(--macos-red-light)',
+          purple: 'var(--macos-purple)',
+          'purple-light': 'var(--macos-purple-light)',
+          teal: 'var(--macos-teal)',
+          'teal-light': 'var(--macos-teal-light)',
+          gray: 'var(--macos-gray)',
+          'gray-light': 'var(--macos-gray-light)',
+        },
+
         // Stone palette (primary neutrals)
         stone: {
           50: 'var(--color-stone-50)',
@@ -134,6 +153,7 @@ const config: Config = {
          ======================================== */
       fontFamily: {
         sans: ['var(--font-sans)'],
+        title: ['var(--font-title)'],
         mono: ['var(--font-mono)'],
       },
 
@@ -229,6 +249,23 @@ const config: Config = {
         DEFAULT: 'var(--shadow-md)',
         md: 'var(--shadow-md)',
         lg: 'var(--shadow-lg)',
+        // macOS Shadows
+        'macos-xs': 'var(--macos-shadow-xs)',
+        'macos-sm': 'var(--macos-shadow-sm)',
+        'macos-md': 'var(--macos-shadow-md)',
+        'macos-lg': 'var(--macos-shadow-lg)',
+        'macos-float': 'var(--macos-shadow-float)',
+        'macos-dropdown': 'var(--macos-shadow-dropdown)',
+      },
+
+      backdropBlur: {
+        macos: 'var(--macos-glass-blur)',
+        lg: '20px',
+        xl: '24px',
+      },
+
+      backdropSaturate: {
+        macos: 'var(--macos-glass-saturate)',
       },
 
       /* ========================================
@@ -256,6 +293,10 @@ const config: Config = {
       /* ========================================
          ANIMATIONS
          ======================================== */
+      transitionTimingFunction: {
+        smooth: 'var(--ease-smooth)',
+        spring: 'var(--ease-spring)',
+      },
       keyframes: {
         'fade-in': {
           '0%': { opacity: '0' },
@@ -269,11 +310,48 @@ const config: Config = {
           '0%': { backgroundPosition: '-1000px 0' },
           '100%': { backgroundPosition: '1000px 0' },
         },
+        'slide-up-fade': {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'scale-up': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'backdrop-fade': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'progress-shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        // macOS Sonoma animations
+        'macos-fade': {
+          '0%': { opacity: '0', transform: 'scale(0.98)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'macos-slide-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'macos-slide-down': {
+          '0%': { opacity: '0', transform: 'translateY(-8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in var(--duration-normal) var(--ease-default)',
         'slide-up': 'slide-up var(--duration-slow) var(--ease-default)',
         shimmer: 'shimmer 2s infinite',
+        'slide-up-fade': 'slide-up-fade 0.4s var(--ease-smooth) both',
+        'scale-up': 'scale-up 0.25s var(--ease-spring) both',
+        'backdrop-fade': 'backdrop-fade 0.2s var(--ease-smooth) both',
+        'progress-shimmer': 'progress-shimmer 2s infinite',
+        // macOS Sonoma animations
+        'macos-fade': 'macos-fade 200ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
+        'macos-slide-up': 'macos-slide-up 250ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
+        'macos-slide-down': 'macos-slide-down 250ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
       },
     },
   },

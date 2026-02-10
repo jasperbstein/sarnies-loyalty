@@ -1,6 +1,6 @@
 import { query } from '../db/database';
 
-export type AuditAction = 'create' | 'update' | 'delete' | 'archive' | 'restore' | 'approve' | 'reject' | 'redeem' | 'refund';
+export type AuditAction = 'create' | 'update' | 'delete' | 'archive' | 'restore' | 'approve' | 'reject' | 'redeem' | 'refund' | 'send_invite';
 export type EntityType = 'voucher' | 'announcement' | 'user' | 'transaction' | 'outlet' | 'staff' | 'staff_user' | 'company' | 'points_adjustment' | 'settings';
 export type Severity = 'info' | 'warning' | 'critical';
 

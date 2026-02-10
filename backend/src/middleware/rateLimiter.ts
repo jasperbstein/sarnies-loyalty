@@ -16,34 +16,34 @@ export const apiLimiter = rateLimit({
   }
 });
 
-// Stricter limiter for authentication endpoints - 10 requests per 15 minutes
+// Stricter limiter for authentication endpoints - 30 requests per 15 minutes
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login requests per windowMs
+  max: 30, // Limit each IP to 30 login requests per windowMs
   message: 'Too many login attempts from this IP, please try again after 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false, // Count successful requests
+  skipSuccessfulRequests: true, // Don't count successful requests
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many login attempts',
-      message: 'Too many authentication attempts from this IP. Please try again after 15 minutes.',
+      error: 'rate_limit_exceeded',
+      message: 'Too many login attempts. Please wait a few minutes before trying again.',
       retryAfter: res.getHeader('Retry-After')
     });
   }
 });
 
-// Very strict limiter for OTP requests - 5 requests per 15 minutes
+// OTP/magic link limiter - 10 requests per 15 minutes
 export const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 OTP requests per windowMs
-  message: 'Too many OTP requests from this IP, please try again after 15 minutes.',
+  max: 10, // Limit each IP to 10 OTP/magic link requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'Too many OTP requests',
-      message: 'Too many OTP requests from this IP. Please try again after 15 minutes.',
+      error: 'rate_limit_exceeded',
+      message: 'Too many requests. Please wait a few minutes before trying again.',
       retryAfter: res.getHeader('Retry-After')
     });
   }
@@ -60,6 +60,36 @@ export const createLimiter = rateLimit({
     res.status(429).json({
       error: 'Too many requests',
       message: 'You are creating resources too quickly. Please slow down.',
+      retryAfter: res.getHeader('Retry-After')
+    });
+  }
+});
+
+// POS limiter - more generous for point-of-sale terminals: 200 requests per 15 minutes
+export const posLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      error: 'Too many requests',
+      message: 'POS rate limit exceeded. Please try again shortly.',
+      retryAfter: res.getHeader('Retry-After')
+    });
+  }
+});
+
+// Password reset limiter - 3 requests per 15 minutes per IP
+export const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      error: 'Too many requests',
+      message: 'Too many password reset attempts. Please try again later.',
       retryAfter: res.getHeader('Retry-After')
     });
   }

@@ -39,9 +39,10 @@ const withPWA = require('next-pwa')({
     },
     {
       urlPattern: /\.(?:js)$/i,
-      handler: 'StaleWhileRevalidate',
+      handler: 'NetworkFirst',
       options: {
         cacheName: 'static-js-assets',
+        networkTimeoutSeconds: 5,
         expiration: {
           maxEntries: 32,
           maxAgeSeconds: 24 * 60 * 60 // 1 day
@@ -50,9 +51,10 @@ const withPWA = require('next-pwa')({
     },
     {
       urlPattern: /\.(?:css|less)$/i,
-      handler: 'StaleWhileRevalidate',
+      handler: 'NetworkFirst',
       options: {
         cacheName: 'static-style-assets',
+        networkTimeoutSeconds: 5,
         expiration: {
           maxEntries: 32,
           maxAgeSeconds: 24 * 60 * 60 // 1 day

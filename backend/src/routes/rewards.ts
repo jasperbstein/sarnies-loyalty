@@ -28,11 +28,11 @@ router.post('/birthday/claim', authenticate, async (req: AuthRequest, res: Respo
     const currentYear = today.getFullYear();
     const claimedYear = userResult.rows[0].birthday_reward_claimed_year;
 
-    // Check if birthday is today or within the birthday week
-    const isBirthdayWeek = (
-      birthday.getMonth() === today.getMonth() &&
-      Math.abs(birthday.getDate() - today.getDate()) <= 3
-    );
+    // Check if birthday is today or within the birthday week (±3 days)
+    // Handle month/year boundaries correctly
+    const birthdayThisYear = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
+    const daysDiff = Math.floor((today.getTime() - birthdayThisYear.getTime()) / (1000 * 60 * 60 * 24));
+    const isBirthdayWeek = Math.abs(daysDiff) <= 3;
 
     if (!isBirthdayWeek) {
       return res.status(400).json({ error: 'Birthday reward can only be claimed during your birthday week' });
@@ -104,10 +104,11 @@ router.get('/birthday/status', authenticate, async (req: AuthRequest, res: Respo
     const currentYear = today.getFullYear();
     const claimedYear = userResult.rows[0].birthday_reward_claimed_year;
 
-    const isBirthdayWeek = (
-      birthday.getMonth() === today.getMonth() &&
-      Math.abs(birthday.getDate() - today.getDate()) <= 3
-    );
+    // Check if birthday is today or within the birthday week (±3 days)
+    // Handle month/year boundaries correctly
+    const birthdayThisYear = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
+    const daysDiff = Math.floor((today.getTime() - birthdayThisYear.getTime()) / (1000 * 60 * 60 * 24));
+    const isBirthdayWeek = Math.abs(daysDiff) <= 3;
 
     const alreadyClaimed = claimedYear === currentYear;
 

@@ -58,18 +58,15 @@ function ResetPasswordContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#FAFAF9] flex flex-col">
+      <div className="min-h-screen bg-stone-50 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b border-[#E7E5E4] px-5 py-4">
+        <div className="bg-white border-b border-stone-200 px-5 py-4">
           <div className="max-w-md mx-auto flex items-center gap-3">
-            <Link href="/login" className="text-[#78716C] hover:text-[#1C1917]">
+            <Link href="/login" className="text-stone-500 hover:text-stone-900">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1
-                className="text-[18px] font-bold text-[#1C1917]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <h1 className="text-lg font-bold text-stone-900">
                 Reset Password
               </h1>
             </div>
@@ -79,21 +76,15 @@ function ResetPasswordContent() {
         {/* Error Content */}
         <div className="flex-1 px-5 py-8">
           <div className="max-w-md mx-auto text-center space-y-6">
-            <div className="w-20 h-20 rounded-full bg-[#FEE2E2] flex items-center justify-center mx-auto">
-              <AlertCircle className="w-10 h-10 text-[#DC2626]" />
+            <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-10 h-10 text-red-600" />
             </div>
 
             <div>
-              <h2
-                className="text-[20px] font-bold text-[#1C1917]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <h2 className="text-xl font-bold text-stone-900">
                 Invalid Link
               </h2>
-              <p
-                className="text-[14px] text-[#78716C] mt-2"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <p className="text-sm text-stone-500 mt-2">
                 {error}
               </p>
             </div>
@@ -101,16 +92,14 @@ function ResetPasswordContent() {
             <div className="space-y-3">
               <Link
                 href="/staff/forgot-password"
-                className="block w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] transition-colors text-center"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="block w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 transition-colors text-center"
               >
                 Request New Link
               </Link>
 
               <Link
                 href="/login"
-                className="block w-full py-3 text-[#78716C] font-medium text-[14px]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                className="block w-full py-3 text-stone-500 font-medium text-sm"
               >
                 Back to Login
               </Link>
@@ -123,15 +112,12 @@ function ResetPasswordContent() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#FAFAF9] flex flex-col">
+      <div className="min-h-screen bg-stone-50 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b border-[#E7E5E4] px-5 py-4">
+        <div className="bg-white border-b border-stone-200 px-5 py-4">
           <div className="max-w-md mx-auto flex items-center gap-3">
             <div>
-              <h1
-                className="text-[18px] font-bold text-[#1C1917]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <h1 className="text-lg font-bold text-stone-900">
                 Password Reset
               </h1>
             </div>
@@ -141,29 +127,22 @@ function ResetPasswordContent() {
         {/* Success Content */}
         <div className="flex-1 px-5 py-8">
           <div className="max-w-md mx-auto text-center space-y-6">
-            <div className="w-20 h-20 rounded-full bg-[#F0FDF4] flex items-center justify-center mx-auto">
-              <CheckCircle className="w-10 h-10 text-[#16A34A]" />
+            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+              <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
 
             <div>
-              <h2
-                className="text-[20px] font-bold text-[#1C1917]"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <h2 className="text-xl font-bold text-stone-900">
                 Password Updated!
               </h2>
-              <p
-                className="text-[14px] text-[#78716C] mt-2"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <p className="text-sm text-stone-500 mt-2">
                 Your password has been reset successfully. You can now login with your new password.
               </p>
             </div>
 
             <button
               onClick={() => router.push('/login')}
-              className="w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] transition-colors"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+              className="w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 transition-colors"
             >
               Go to Login
             </button>
@@ -174,24 +153,18 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] flex flex-col">
+    <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-[#E7E5E4] px-5 py-4">
+      <div className="bg-white border-b border-stone-200 px-5 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <Link href="/login" className="text-[#78716C] hover:text-[#1C1917]">
+          <Link href="/login" className="text-stone-500 hover:text-stone-900">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1
-              className="text-[18px] font-bold text-[#1C1917]"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-            >
+            <h1 className="text-lg font-bold text-stone-900">
               Reset Password
             </h1>
-            <p
-              className="text-[13px] text-[#78716C]"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-            >
+            <p className="text-[13px] text-stone-500">
               Create a new password
             </p>
           </div>
@@ -204,42 +177,34 @@ function ResetPasswordContent() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* New Password */}
             <div>
-              <label
-                className="block text-[13px] font-medium text-[#57534E] mb-2"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <label className="block text-[13px] font-medium text-stone-600 mb-2">
                 New Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                 />
               </div>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label
-                className="block text-[13px] font-medium text-[#57534E] mb-2"
-                style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-              >
+              <label className="block text-[13px] font-medium text-stone-600 mb-2">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A8A29E]" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-[#E7E5E4] text-[16px] focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-stone-200 text-base focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                 />
               </div>
             </div>
@@ -247,8 +212,7 @@ function ResetPasswordContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-[#1C1917] text-white rounded-xl font-semibold text-[16px] hover:bg-[#292524] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+              className="w-full py-4 bg-stone-900 text-white rounded-xl font-semibold text-base hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </button>
@@ -262,8 +226,8 @@ function ResetPasswordContent() {
 export default function StaffResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FAFAF9] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D97706]"></div>
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
       </div>
     }>
       <ResetPasswordContent />

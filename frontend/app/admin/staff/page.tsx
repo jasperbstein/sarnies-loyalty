@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import { Users, Plus, Edit, X, Trash2, Search, CheckCircle, XCircle, Key, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -174,12 +175,18 @@ export default function AdminStaffPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="min-h-screen admin-page animate-macos-fade">
+        <div className="admin-page-container">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Staff Management</h2>
-            <p className="text-gray-600 mt-1">Manage staff accounts and permissions</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#5856D6] to-[#3634A3] flex items-center justify-center shadow-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">Staff Management</h1>
+              <p className="text-[14px] text-[#86868b] mt-0.5">Manage staff accounts and permissions</p>
+            </div>
           </div>
           <button
             onClick={() => {
@@ -187,39 +194,41 @@ export default function AdminStaffPage() {
               resetForm();
               setShowForm(true);
             }}
-            className="btn btn-primary flex items-center gap-2"
+            className="admin-btn-primary h-[40px] px-5 flex items-center gap-2"
           >
-            <Plus size={20} />
+            <Plus size={18} />
             Add Staff
           </button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              className="input pl-10 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="admin-card p-4 mb-6">
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                className="w-full h-[40px] pl-10 pr-4 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select
+              className="admin-select w-40"
+              value={filterActive}
+              onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
-          <select
-            className="input w-40"
-            value={filterActive}
-            onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </div>
 
         {/* Form Modal */}
         {showForm && (
-          <div className="card bg-blue-50 border border-blue-200">
+          <div className="admin-card mb-6 bg-[rgba(0,122,255,0.04)] border border-[rgba(0,122,255,0.1)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-800">
                 {editingStaff ? 'Edit Staff' : 'Add New Staff'}
@@ -336,7 +345,7 @@ export default function AdminStaffPage() {
 
         {/* Reset Password Modal */}
         {showResetPassword && (
-          <div className="card bg-amber-50 border border-amber-200">
+          <div className="admin-card mb-6 bg-[rgba(255,159,10,0.06)] border border-[rgba(255,159,10,0.2)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-800">
                 Reset Password for {showResetPassword.name}
@@ -389,7 +398,7 @@ export default function AdminStaffPage() {
         )}
 
         {/* Staff List */}
-        <div className="card">
+        <div className="admin-card overflow-hidden">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -403,53 +412,53 @@ export default function AdminStaffPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Name</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Email</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Role</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Branch</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Verified</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Created</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
+                  <tr className="border-b border-[rgba(0,0,0,0.06)] bg-[rgba(246,246,246,0.6)]">
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Name</th>
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Email</th>
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Role</th>
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Branch</th>
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Status</th>
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Verified</th>
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Created</th>
+                    <th className="text-right py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {staff.map((staffUser) => (
-                    <tr key={staffUser.id} className="border-b hover:bg-gray-50">
+                    <tr key={staffUser.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.02)] transition-colors">
                       <td className="py-3 px-4">
-                        <div className="font-medium text-gray-900">{staffUser.name}</div>
+                        <div className="text-[14px] font-medium text-[#1d1d1f]">{staffUser.name}</div>
                         {staffUser.company_name && (
-                          <div className="text-xs text-gray-500">{staffUser.company_name}</div>
+                          <div className="text-[12px] text-[#86868b]">{staffUser.company_name}</div>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{staffUser.email}</td>
+                      <td className="py-3 px-4 text-[14px] text-[#636366]">{staffUser.email}</td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`admin-badge ${
                           staffUser.role === 'admin'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'admin-badge-info'
+                            : 'bg-[rgba(88,86,214,0.12)] text-[#5856D6]'
                         }`}>
                           {staffUser.role}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">
+                      <td className="py-3 px-4 text-[14px] text-[#636366]">
                         {staffUser.branch ? (
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
                             {staffUser.branch}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-[#aeaeb2]">-</span>
                         )}
                       </td>
                       <td className="py-3 px-4">
                         <button
                           onClick={() => handleToggleActive(staffUser)}
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          className={`admin-badge cursor-pointer ${
                             staffUser.active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'admin-badge-success'
+                              : 'admin-badge-error'
                           }`}
                         >
                           {staffUser.active ? 'Active' : 'Inactive'}
@@ -457,12 +466,12 @@ export default function AdminStaffPage() {
                       </td>
                       <td className="py-3 px-4">
                         {staffUser.is_verified ? (
-                          <CheckCircle size={18} className="text-green-500" />
+                          <CheckCircle size={18} className="text-[#34C759]" />
                         ) : (
-                          <XCircle size={18} className="text-gray-300" />
+                          <XCircle size={18} className="text-[#aeaeb2]" />
                         )}
                       </td>
-                      <td className="py-3 px-4 text-gray-600 text-sm">
+                      <td className="py-3 px-4 text-[13px] text-[#86868b]">
                         {formatDate(staffUser.created_at)}
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -499,29 +508,52 @@ export default function AdminStaffPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="card bg-blue-50">
-            <div className="text-3xl font-bold text-blue-600">{staff.length}</div>
-            <div className="text-sm text-blue-800">Total Staff</div>
-          </div>
-          <div className="card bg-green-50">
-            <div className="text-3xl font-bold text-green-600">
-              {staff.filter(s => s.active).length}
+        <div className="grid grid-cols-4 gap-4 mt-6">
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(0,122,255,0.12)] flex items-center justify-center">
+                <Users size={20} className="text-[#007AFF]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{staff.length}</div>
+                <div className="text-[12px] text-[#86868b]">Total Staff</div>
+              </div>
             </div>
-            <div className="text-sm text-green-800">Active</div>
           </div>
-          <div className="card bg-purple-50">
-            <div className="text-3xl font-bold text-purple-600">
-              {staff.filter(s => s.role === 'admin').length}
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(52,199,89,0.12)] flex items-center justify-center">
+                <CheckCircle size={20} className="text-[#34C759]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{staff.filter(s => s.active).length}</div>
+                <div className="text-[12px] text-[#86868b]">Active</div>
+              </div>
             </div>
-            <div className="text-sm text-purple-800">Admins</div>
           </div>
-          <div className="card bg-amber-50">
-            <div className="text-3xl font-bold text-amber-600">
-              {staff.filter(s => !s.is_verified).length}
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(88,86,214,0.12)] flex items-center justify-center">
+                <Key size={20} className="text-[#5856D6]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{staff.filter(s => s.role === 'admin').length}</div>
+                <div className="text-[12px] text-[#86868b]">Admins</div>
+              </div>
             </div>
-            <div className="text-sm text-amber-800">Pending Verification</div>
           </div>
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(255,159,10,0.12)] flex items-center justify-center">
+                <XCircle size={20} className="text-[#FF9F0A]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{staff.filter(s => !s.is_verified).length}</div>
+                <div className="text-[12px] text-[#86868b]">Pending Verification</div>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </AdminLayout>

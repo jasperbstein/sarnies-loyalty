@@ -45,19 +45,23 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Protected app routes (customer/employee/staff)
+  // Protected app routes (customer/employee only - NOT staff)
   if (pathname.startsWith('/app/')) {
     if (!authToken) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
-    // Validate user type can access app routes
+    // Staff should use /staff/* portal, not /app/*
+    if (userType === 'staff') {
+      return NextResponse.redirect(new URL('/staff/scan', request.url));
+    }
+    // Admin goes to admin dashboard
+    if (isAdminUser(userType)) {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    }
+    // Validate user type can access app routes (customer, employee)
     if (!isValidAppUser(userType)) {
-      // Admin without app access goes to admin dashboard
-      if (isAdminUser(userType)) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-      }
       // Invalid user type, clear and redirect to login
       const response = NextResponse.redirect(new URL('/login', request.url));
       response.cookies.delete('auth-token');
@@ -67,7 +71,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Protected staff routes
-  const staffPublicPaths = ['/staff/register', '/staff/forgot-password', '/staff/reset-password'];
+  const staffPublicPaths = ['/staff/login', '/staff/register', '/staff/forgot-password', '/staff/reset-password'];
   const isStaffPublicPath = staffPublicPaths.some(path => pathname.startsWith(path));
 
   if (pathname.startsWith('/staff/') && !isStaffPublicPath) {

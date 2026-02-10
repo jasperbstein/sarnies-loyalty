@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
-import { DashboardStatsCards } from "@/components/dashboard/DashboardStatsCards";
-import { RecentTransactionsPanel } from "@/components/dashboard/RecentTransactionsPanel";
-import { SystemConfigPanel } from "@/components/dashboard/SystemConfigPanel";
 import { Transaction } from "@/components/transactions/types";
 import { transactionsAPI, vouchersAPI, usersAPI, settingsAPI } from "@/lib/api";
-import { TrendingUp, Users, Gift, DollarSign } from "lucide-react";
+import {
+  TrendingUp, Users, Gift, Activity, Zap, Award, ChevronRight, Settings, ArrowUpRight, ArrowDownRight
+} from "lucide-react";
 import toast from "react-hot-toast";
+import '@/app/admin/admin.css';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -126,7 +126,6 @@ export default function DashboardPage() {
         }
       } catch (error) {
         console.error('Failed to fetch system config:', error);
-        // Keep showing default/fallback values on error
         setConfigRows([
           { id: "points", label: "Points per 100 THB", value: "1 point" },
           { id: "qrExpiry", label: "QR token expiry", value: "120 seconds" },
@@ -135,7 +134,7 @@ export default function DashboardPage() {
       }
 
       // Transform recent transactions
-      const transformed: Transaction[] = data.slice(0, 10).map((tx: any) => {
+      const transformed: Transaction[] = data.slice(0, 8).map((tx: any) => {
         const userName = tx.user_name || `User ${tx.user_id}`;
         const initials = userName
           .split(" ")
@@ -155,13 +154,12 @@ export default function DashboardPage() {
         const createdAtDisplay = createdAt.toLocaleDateString("en-GB", {
           day: "numeric",
           month: "short",
-          year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
         });
 
         const amount = tx.amount_thb || tx.amount || 0;
-        const valueDisplay = amount > 0 ? `฿${Number(amount).toFixed(2)}` : "—";
+        const valueDisplay = amount > 0 ? `฿${Number(amount).toFixed(0)}` : "—";
 
         return {
           id: String(tx.id),
@@ -184,158 +182,339 @@ export default function DashboardPage() {
     }
   };
 
-  const statCards = [
-    {
-      id: "total",
-      label: "Total transactions",
-      value: loading ? "..." : stats.totalTransactions.toLocaleString(),
-    },
-    {
-      id: "earned",
-      label: "Points earned",
-      value: loading ? "..." : stats.totalPointsEarned.toLocaleString(),
-    },
-    {
-      id: "redeemed",
-      label: "Points redeemed",
-      value: loading ? "..." : stats.totalPointsRedeemed.toLocaleString(),
-    },
-  ];
+  const redemptionRate = stats.totalPointsEarned > 0
+    ? Math.round((stats.totalPointsRedeemed / stats.totalPointsEarned) * 100)
+    : 0;
 
   return (
     <AdminLayout>
-      <div className="max-w-[1600px] mx-auto px-4 py-6">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-[28px] font-semibold text-neutral-900">
-              Dashboard
-            </h1>
+      <div className="admin-content animate-macos-fade">
+        {/* Header */}
+        <div className="admin-page-header">
+          <h1 className="admin-page-title">Dashboard</h1>
+          <p className="admin-page-subtitle">Overview of your loyalty program performance</p>
+        </div>
+
+        {/* Primary Stats */}
+        <div className="stats-row">
+          <div className="stat-card stat-card--blue group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="stat-label">Total Users</div>
+              <div className="w-9 h-9 rounded-xl bg-[rgba(0,122,255,0.08)] flex items-center justify-center">
+                <Users className="w-[18px] h-[18px] text-[#007AFF]" />
+              </div>
+            </div>
+            <div className="stat-value">
+              {loading ? "—" : userStats.totalUsers.toLocaleString()}
+            </div>
+            {!loading && userStats.newUsersThisMonth > 0 && (
+              <div className="stat-change positive">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                +{userStats.newUsersThisMonth} this month
+              </div>
+            )}
           </div>
 
-          {/* Top stats - Transactions */}
-          <DashboardStatsCards stats={statCards} />
-
-          {/* Analytics Grid */}
-          <div className="grid grid-cols-3 gap-4">
-            {/* Users Stats */}
-            <div className="bg-white border border-neutral-200 rounded-lg p-5 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Users size={18} className="text-blue-600" />
-                </div>
-                <h3 className="text-[14px] font-semibold text-neutral-900">Users</h3>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Total Users</p>
-                  <p className="text-[28px] font-bold text-neutral-900">{loading ? "..." : userStats.totalUsers.toLocaleString()}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Active</p>
-                    <p className="text-[20px] font-bold text-neutral-900">{loading ? "..." : userStats.activeUsers.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">New This Month</p>
-                    <p className="text-[20px] font-bold text-green-600">{loading ? "..." : `+${userStats.newUsersThisMonth}`}</p>
-                  </div>
-                </div>
+          <div className="stat-card stat-card--green group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="stat-label">Points Earned</div>
+              <div className="w-9 h-9 rounded-xl bg-[rgba(52,199,89,0.08)] flex items-center justify-center">
+                <TrendingUp className="w-[18px] h-[18px] text-[#34C759]" />
               </div>
             </div>
+            <div className="stat-value">
+              {loading ? "—" : stats.totalPointsEarned.toLocaleString()}
+            </div>
+            <div className="text-[13px] text-[#86868b] mt-2.5 font-medium">Lifetime total</div>
+          </div>
 
-            {/* Vouchers Stats */}
-            <div className="bg-white border border-neutral-200 rounded-lg p-5 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                  <Gift size={18} className="text-purple-600" />
-                </div>
-                <h3 className="text-[14px] font-semibold text-neutral-900">Vouchers</h3>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Total Redemptions</p>
-                  <p className="text-[28px] font-bold text-neutral-900">{loading ? "..." : voucherStats.totalRedemptions.toLocaleString()}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Total</p>
-                    <p className="text-[20px] font-bold text-neutral-900">{loading ? "..." : voucherStats.totalVouchers}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Active</p>
-                    <p className="text-[20px] font-bold text-green-600">{loading ? "..." : voucherStats.activeVouchers}</p>
-                  </div>
-                </div>
+          <div className="stat-card stat-card--orange group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="stat-label">Points Redeemed</div>
+              <div className="w-9 h-9 rounded-xl bg-[rgba(255,159,10,0.08)] flex items-center justify-center">
+                <Gift className="w-[18px] h-[18px] text-[#FF9F0A]" />
               </div>
             </div>
+            <div className="stat-value">
+              {loading ? "—" : stats.totalPointsRedeemed.toLocaleString()}
+            </div>
+            <div className="text-[13px] text-[#86868b] mt-2.5 font-medium">{redemptionRate}% redemption rate</div>
+          </div>
 
-            {/* Revenue Stats */}
-            <div className="bg-white border border-neutral-200 rounded-lg p-5 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                  <TrendingUp size={18} className="text-green-600" />
-                </div>
-                <h3 className="text-[14px] font-semibold text-neutral-900">Engagement</h3>
+          <div className="stat-card stat-card--purple group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="stat-label">Voucher Uses</div>
+              <div className="w-9 h-9 rounded-xl bg-[rgba(175,82,222,0.08)] flex items-center justify-center">
+                <Award className="w-[18px] h-[18px] text-[#AF52DE]" />
               </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Points Earned</p>
-                  <p className="text-[28px] font-bold text-neutral-900">{loading ? "..." : stats.totalPointsEarned.toLocaleString()}</p>
+            </div>
+            <div className="stat-value">
+              {loading ? "—" : voucherStats.totalRedemptions.toLocaleString()}
+            </div>
+            <div className="text-[13px] text-[#86868b] mt-2.5 font-medium">{voucherStats.activeVouchers} active vouchers</div>
+          </div>
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+          {/* Users */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[rgba(0,122,255,0.08)] flex items-center justify-center">
+                  <Users className="w-4 h-4 text-[#007AFF]" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Redeemed</p>
-                    <p className="text-[20px] font-bold text-neutral-900">{loading ? "..." : stats.totalPointsRedeemed.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Redemption Rate</p>
-                    <p className="text-[20px] font-bold text-neutral-900">
-                      {loading || stats.totalPointsEarned === 0
-                        ? "..."
-                        : `${Math.round((stats.totalPointsRedeemed / stats.totalPointsEarned) * 100)}%`}
-                    </p>
-                  </div>
-                </div>
+                <span className="admin-card-title">User Analytics</span>
+              </div>
+            </div>
+            <div className="admin-card-body space-y-1">
+              <div className="flex justify-between items-center py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="text-[14px] text-[#86868b]">Active Users</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading ? "—" : userStats.activeUsers.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="text-[14px] text-[#86868b]">New This Month</span>
+                <span className="text-[16px] font-semibold text-[#34C759] tabular-nums">
+                  {loading ? "—" : `+${userStats.newUsersThisMonth}`}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="text-[14px] text-[#86868b]">Engagement Rate</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading || userStats.totalUsers === 0
+                    ? "—"
+                    : `${Math.round((userStats.activeUsers / userStats.totalUsers) * 100)}%`}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Top Performing Vouchers */}
-          {voucherStats.topVouchers.length > 0 && (
-            <div className="bg-white border border-neutral-200 rounded-lg shadow-sm">
-              <div className="px-6 py-4 border-b border-neutral-200">
-                <h3 className="text-[14px] font-semibold text-neutral-900">Top Performing Vouchers</h3>
-              </div>
-              <div className="p-6">
-                <div className="space-y-3">
-                  {voucherStats.topVouchers.map((voucher, index) => (
-                    <div key={voucher.id} className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[13px] font-bold">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="text-[14px] font-semibold text-neutral-900">{voucher.title}</p>
-                          <p className="text-[12px] text-neutral-500">{voucher.points} points</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[20px] font-bold text-neutral-900">{voucher.redemptions}</p>
-                        <p className="text-[11px] text-neutral-500">redemptions</p>
-                      </div>
-                    </div>
-                  ))}
+          {/* Vouchers */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[rgba(255,159,10,0.08)] flex items-center justify-center">
+                  <Gift className="w-4 h-4 text-[#FF9F0A]" />
                 </div>
+                <span className="admin-card-title">Voucher Overview</span>
               </div>
             </div>
-          )}
+            <div className="admin-card-body space-y-1">
+              <div className="flex justify-between items-center py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="text-[14px] text-[#86868b]">Total Vouchers</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading ? "—" : voucherStats.totalVouchers}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="text-[14px] text-[#86868b]">Active</span>
+                <span className="text-[16px] font-semibold text-[#34C759] tabular-nums">
+                  {loading ? "—" : voucherStats.activeVouchers}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="text-[14px] text-[#86868b]">Total Uses</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading ? "—" : voucherStats.totalRedemptions.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
 
-          {/* Middle: Recent transactions */}
-          <RecentTransactionsPanel items={recentTransactions} />
+          {/* Program Health */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[rgba(52,199,89,0.08)] flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-[#34C759]" />
+                </div>
+                <span className="admin-card-title">Program Health</span>
+              </div>
+            </div>
+            <div className="admin-card-body space-y-1">
+              <div className="flex justify-between items-center py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="text-[14px] text-[#86868b]">Transactions</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading ? "—" : stats.totalTransactions.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="text-[14px] text-[#86868b]">Redemption Rate</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading ? "—" : `${redemptionRate}%`}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="text-[14px] text-[#86868b]">Avg Points/User</span>
+                <span className="text-[16px] font-semibold text-[#1d1d1f] tabular-nums">
+                  {loading || userStats.totalUsers === 0
+                    ? "—"
+                    : Math.round(stats.totalPointsEarned / userStats.totalUsers).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {/* Bottom: System config */}
-          <SystemConfigPanel rows={configRows} />
+        {/* Bottom Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Top Vouchers */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[rgba(175,82,222,0.08)] flex items-center justify-center">
+                    <Award className="w-4 h-4 text-[#AF52DE]" />
+                  </div>
+                  <span className="admin-card-title">Top Vouchers</span>
+                </div>
+                <a href="/admin/vouchers" className="text-[13px] text-[#007AFF] hover:text-[#0066D6] font-medium flex items-center gap-1 transition-colors">
+                  View all <ChevronRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+            <div className="p-0">
+              {loading ? (
+                <div className="admin-loading"><div className="admin-spinner"></div></div>
+              ) : voucherStats.topVouchers.length === 0 ? (
+                <div className="admin-empty">
+                  <p className="admin-empty-text">No voucher data yet</p>
+                </div>
+              ) : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Voucher</th>
+                      <th className="text-right">Uses</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {voucherStats.topVouchers.map((voucher, index) => (
+                      <tr key={voucher.id}>
+                        <td className="w-10 font-mono text-[#86868b] text-[13px]">{index + 1}</td>
+                        <td>
+                          <div className="font-medium text-[#1d1d1f]">{voucher.title}</div>
+                          <div className="text-[12px] text-[#86868b] mt-0.5">
+                            {voucher.points === 0 ? (
+                              <span className="text-[#34C759] font-medium">Free</span>
+                            ) : (
+                              `${voucher.points} pts`
+                            )}
+                          </div>
+                        </td>
+                        <td className="text-right">
+                          <span className="font-semibold text-[#1d1d1f] tabular-nums">{voucher.redemptions}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[rgba(90,200,250,0.12)] flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-[#5AC8FA]" />
+                  </div>
+                  <span className="admin-card-title">Recent Activity</span>
+                </div>
+                <a href="/admin/transactions" className="text-[13px] text-[#007AFF] hover:text-[#0066D6] font-medium flex items-center gap-1 transition-colors">
+                  View all <ChevronRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+            <div className="p-0">
+              {loading ? (
+                <div className="admin-loading"><div className="admin-spinner"></div></div>
+              ) : recentTransactions.length === 0 ? (
+                <div className="admin-empty">
+                  <p className="admin-empty-text">No transactions yet</p>
+                </div>
+              ) : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Type</th>
+                      <th className="text-right">Points</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentTransactions.slice(0, 6).map((tx) => (
+                      <tr key={tx.id}>
+                        <td>
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-b from-[#F5F5F7] to-[#E8E8ED] flex items-center justify-center text-[11px] font-semibold text-[#636366]">
+                              {tx.userInitials}
+                            </div>
+                            <div>
+                              <div className="font-medium text-[#1d1d1f] text-[13px]">{tx.userName}</div>
+                              <div className="text-[11px] text-[#86868b] mt-0.5">{tx.createdAtDisplay}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`admin-badge ${
+                            tx.type === 'earned' ? 'admin-badge-success' :
+                            tx.type === 'redeemed' ? 'admin-badge-info' :
+                            'admin-badge-neutral'
+                          }`}>
+                            {tx.type}
+                          </span>
+                        </td>
+                        <td className="text-right">
+                          <span className={`font-semibold tabular-nums ${
+                            tx.type === 'earned' ? 'text-[#34C759]' :
+                            tx.type === 'redeemed' ? 'text-[#FF453A]' :
+                            'text-[#1d1d1f]'
+                          }`}>
+                            {tx.type === 'earned' ? '+' : tx.type === 'redeemed' ? '-' : ''}{tx.points}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* System Config */}
+        <div className="mt-5">
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[rgba(142,142,147,0.12)] flex items-center justify-center">
+                    <Settings className="w-4 h-4 text-[#8E8E93]" />
+                  </div>
+                  <span className="admin-card-title">System Configuration</span>
+                </div>
+                <a href="/admin/settings" className="text-[13px] text-[#007AFF] hover:text-[#0066D6] font-medium flex items-center gap-1 transition-colors">
+                  Settings <ChevronRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+            <div className="admin-card-body">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {configRows.map((row) => (
+                  <div key={row.id} className="admin-config-item">
+                    <div className="text-[12px] font-semibold text-[#86868b] uppercase tracking-wider mb-2">{row.label}</div>
+                    <div className="text-[18px] font-semibold text-[#1d1d1f]">{row.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </AdminLayout>

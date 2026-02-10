@@ -71,6 +71,8 @@ export const useAuthStore = create<AuthState>()(
         if (typeof document !== 'undefined') {
           document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           document.cookie = 'user-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          // Clear saved login email so PIN modal doesn't show
+          localStorage.removeItem('last_login_email');
         }
       },
 

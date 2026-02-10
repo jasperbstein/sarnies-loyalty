@@ -2,28 +2,56 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authAPI, referralsAPI, IdentifyResponse } from '@/lib/api';
+import { authAPI, referralsAPI, pinAuthAPI, companiesAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
-import { AlertCircle, Loader2, Mail, Building2, Gift, Eye, EyeOff, ArrowLeft, ChevronRight, Clock } from 'lucide-react';
-import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { AlertCircle, Loader2, Mail, Building2, Gift, Eye, EyeOff, ArrowLeft, ChevronRight, Clock, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getLoginErrorMessage, getOtpErrorMessage, getErrorMessage } from '@/lib/errorMessages';
+import { getLoginErrorMessage, getErrorMessage } from '@/lib/errorMessages';
 import { io, Socket } from 'socket.io-client';
 import { getWebSocketUrl } from '@/lib/config';
+import PINLoginModal from '@/components/PINLoginModal';
 
 type AuthState =
   | 'INITIAL'
-  | 'PHONE_OTP'
-  | 'EMAIL_OTP'
   | 'MAGIC_LINK_SENT'
   | 'PASSWORD_LOGIN'
   | 'STAFF_REGISTER'
-  | 'UNKNOWN_EMAIL';
+  | 'PIN_LOGIN';
 
 interface ReferralInfo {
   valid: boolean;
   referrerName?: string;
   code: string;
+}
+
+interface CompanyInviteInfo {
+  code: string;
+  type: 'personal' | 'company';
+  invite_type?: 'employee' | 'customer';
+  direct_access?: boolean;
+  company: {
+    id: number;
+    name: string;
+    logo_url?: string;
+    discount_percentage?: number;
+  };
+}
+
+interface IdentifyResult {
+  identifier_type: string;
+  user_type: string;
+  auth_method: string | null;
+  existing_user: boolean;
+  registration_completed?: boolean;
+  next_step: string;
+  company?: {
+    id: number;
+    name: string;
+    logo_url?: string;
+    discount_percentage?: number;
+    default_branch?: string;
+  };
+  message?: string;
 }
 
 function LoginPageContent() {
@@ -33,17 +61,12 @@ function LoginPageContent() {
 
   // Core state
   const [authState, setAuthState] = useState<AuthState>('INITIAL');
-  const [identifier, setIdentifier] = useState('');
-  const [identifyResult, setIdentifyResult] = useState<IdentifyResponse | null>(null);
+  const [email, setEmail] = useState('');
+  const [identifyResult, setIdentifyResult] = useState<IdentifyResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // OTP state
-  const [otp, setOtp] = useState('');
-  const [cooldown, setCooldown] = useState(0);
-  const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Password state
+  // Password state (for staff)
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -52,10 +75,10 @@ function LoginPageContent() {
   const [staffBranch, setStaffBranch] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Remember me state - persist to localStorage for magic link flow
-  const [rememberMe, setRememberMe] = useState<string>('7d'); // Default 7 days
+  // Remember me state
+  const [rememberMe, setRememberMe] = useState<string>('7d');
 
-  // Save remember me preference to localStorage when it changes (for magic link flow)
+  // Save remember me preference to localStorage
   useEffect(() => {
     localStorage.setItem('remember_me_preference', rememberMe);
   }, [rememberMe]);
@@ -69,47 +92,90 @@ function LoginPageContent() {
   const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
   const [loadingReferral, setLoadingReferral] = useState(false);
 
-  // Biometric state
-  const {
-    isSupported: biometricSupported,
-    isEnabled: biometricEnabled,
-    isLoading: biometricLoading,
-    authenticateWithBiometric,
-    getStoredEmail,
-  } = useBiometricAuth();
-  const [biometricEmail, setBiometricEmail] = useState<string | null>(null);
+  // Company invite state
+  const [companyInviteInfo, setCompanyInviteInfo] = useState<CompanyInviteInfo | null>(null);
 
-  // Check for referral code on mount
+  // PIN login state
+  const [pinAvailable, setPinAvailable] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinEmail, setPinEmail] = useState('');
+
+  // Check for referral code or company invite on mount
   useEffect(() => {
     const refCode = searchParams.get('ref');
+    const companyCode = searchParams.get('company');
+
     if (refCode && !referralInfo) {
       validateReferralCode(refCode);
     }
+
+    if (companyCode && !companyInviteInfo) {
+      // Try to load from sessionStorage first (set by /join page)
+      const storedData = sessionStorage.getItem('company_invite_data');
+      if (storedData) {
+        try {
+          const data = JSON.parse(storedData);
+          setCompanyInviteInfo({
+            code: companyCode,
+            type: data.type,
+            invite_type: data.invite_type,
+            direct_access: data.direct_access,
+            company: data.company
+          });
+        } catch {
+          // If parsing fails, fetch from API
+          loadCompanyInvite(companyCode);
+        }
+      } else {
+        // Not in session storage, fetch from API
+        loadCompanyInvite(companyCode);
+      }
+    }
   }, [searchParams]);
 
-  // Check for stored biometric credentials
-  useEffect(() => {
-    if (!biometricLoading && biometricEnabled) {
-      const storedEmail = getStoredEmail();
-      if (storedEmail) {
-        setBiometricEmail(storedEmail);
-      }
+  const loadCompanyInvite = async (code: string) => {
+    try {
+      const response = await companiesAPI.lookupJoinCode(code);
+      const data = response.data;
+      setCompanyInviteInfo({
+        code: code,
+        type: data.type,
+        invite_type: data.invite_type,
+        direct_access: data.direct_access,
+        company: data.company
+      });
+      // Store for later use in registration
+      sessionStorage.setItem('company_invite_code', code);
+      sessionStorage.setItem('company_invite_data', JSON.stringify(data));
+    } catch {
+      // Invalid code, clear params
+      console.error('Invalid company invite code');
     }
-  }, [biometricLoading, biometricEnabled, getStoredEmail]);
+  };
 
-  // Cooldown timer effect
+  // Check for saved email and PIN availability on mount (for returning users)
   useEffect(() => {
-    if (cooldown > 0) {
-      cooldownTimerRef.current = setTimeout(() => {
-        setCooldown(cooldown - 1);
-      }, 1000);
-    }
-    return () => {
-      if (cooldownTimerRef.current) {
-        clearTimeout(cooldownTimerRef.current);
+    const checkSavedEmail = async () => {
+      const savedEmail = localStorage.getItem('last_login_email');
+      if (savedEmail) {
+        setEmail(savedEmail);
+
+        // Check if PIN is available for this email
+        try {
+          const pinResponse = await pinAuthAPI.checkByEmail(savedEmail);
+          if (pinResponse.data.pin_available) {
+            setPinEmail(savedEmail); // Store email for PIN modal
+            setPinAvailable(true);
+            setShowPinModal(true);
+          }
+        } catch {
+          // Ignore errors, user can still log in normally
+        }
       }
     };
-  }, [cooldown]);
+
+    checkSavedEmail();
+  }, []);
 
   // WebSocket connection for magic link verification
   useEffect(() => {
@@ -131,12 +197,25 @@ function LoginPageContent() {
       console.log(`✅ Joined magic link session: ${sessionId}`);
     });
 
-    socket.on('magic_link_verified', (data: { success: boolean; token: string; user: any }) => {
+    socket.on('magic_link_verified', (data: { success: boolean; token: string; user: any; needs_registration?: boolean }) => {
       console.log('🎉 Magic link verified via WebSocket!');
       if (data.success && data.token && data.user) {
-        setAuth({ ...data.user, type: 'employee' }, data.token);
-        toast.success("Welcome! You're now signed in.");
-        router.push('/app/home');
+        setAuth({ ...data.user, type: data.user.user_type || 'customer' }, data.token);
+
+        // Save email for next time (for returning users with PIN)
+        if (data.user.email) {
+          localStorage.setItem('last_login_email', data.user.email);
+        }
+
+        if (data.needs_registration || !data.user.registration_completed) {
+          toast.success("Email verified! Let's complete your profile.");
+          const refParam = referralInfo?.valid ? `&ref=${referralInfo.code}` : '';
+          const companyParam = companyInviteInfo ? `&company=${companyInviteInfo.code}` : '';
+          router.push(`/register?user_id=${data.user.id}${refParam}${companyParam}`);
+        } else {
+          toast.success("Welcome! You're now signed in.");
+          router.push('/app/home');
+        }
       }
     });
 
@@ -148,7 +227,7 @@ function LoginPageContent() {
       socket.disconnect();
       magicLinkSocketRef.current = null;
     };
-  }, [magicLinkSessionId, waitingForMagicLink, setAuth, router]);
+  }, [magicLinkSessionId, waitingForMagicLink, setAuth, router, referralInfo, companyInviteInfo]);
 
   // Cleanup WebSocket when leaving magic link state
   useEffect(() => {
@@ -180,176 +259,70 @@ function LoginPageContent() {
     }
   };
 
-  const formatPhoneNumber = (value: string) => {
-    let cleaned = value.replace(/[^\d+]/g, '');
-
-    if (!cleaned.startsWith('+66')) {
-      if (cleaned.startsWith('66')) {
-        cleaned = '+' + cleaned;
-      } else if (cleaned.startsWith('0')) {
-        cleaned = '+66' + cleaned.substring(1);
-      } else if (cleaned.length > 0 && !cleaned.startsWith('+')) {
-        cleaned = '+66' + cleaned;
-      }
-    }
-
-    if (cleaned.length > 12) {
-      cleaned = cleaned.substring(0, 12);
-    }
-
-    if (cleaned.length > 3) {
-      const prefix = cleaned.substring(0, 3);
-      const rest = cleaned.substring(3);
-
-      if (rest.length <= 1) {
-        return `${prefix} ${rest}`;
-      } else if (rest.length <= 5) {
-        return `${prefix} ${rest.substring(0, 1)} ${rest.substring(1)}`;
-      } else {
-        return `${prefix} ${rest.substring(0, 1)} ${rest.substring(1, 5)} ${rest.substring(5)}`;
-      }
-    }
-
-    return cleaned;
-  };
-
-  const handleIdentifierChange = (value: string) => {
-    // Check if it looks like a phone number
-    const isLikelyPhone = /^[+\d\s()-]+$/.test(value) && value.replace(/\D/g, '').length >= 3;
-
-    if (isLikelyPhone) {
-      setIdentifier(formatPhoneNumber(value));
-    } else {
-      setIdentifier(value);
-    }
-    setError('');
-  };
-
-  const handleIdentify = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!identifier.trim()) {
-      setError('Please enter your phone number or email address.');
+    const emailTrimmed = email.trim().toLowerCase();
+
+    if (!emailTrimmed) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!emailTrimmed.includes('@') || !emailTrimmed.includes('.')) {
+      setError('Please enter a valid email address.');
       return;
     }
 
     setLoading(true);
     setError('');
+    setPinAvailable(false);
 
     try {
-      const response = await authAPI.identify(identifier.replace(/\s/g, ''));
+      // First identify what kind of user this is
+      const response = await authAPI.identify(emailTrimmed);
       const result = response.data;
       setIdentifyResult(result);
 
-      // Route to appropriate state
-      switch (result.next_step) {
-        case 'send_otp':
-          // Auto-send OTP for phone
-          await handleSendOTP(identifier.replace(/\s/g, ''));
-          break;
-        case 'send_magic_link':
-          // Auto-send magic link for employees
-          await handleSendMagicLink(identifier.trim().toLowerCase());
-          break;
-        case 'enter_password':
-          setAuthState('PASSWORD_LOGIN');
-          break;
-        case 'staff_register':
+      // Route based on result
+      if (result.auth_method === 'password') {
+        // Staff/Admin - password login
+        if (result.next_step === 'staff_register') {
           setAuthState('STAFF_REGISTER');
           if (result.company?.default_branch) {
             setStaffBranch(result.company.default_branch);
           }
-          break;
-        case 'use_phone':
-          // For unknown emails, offer email-based OTP instead of rejecting
-          await handleSendEmailOTP(identifier.trim().toLowerCase());
-          break;
-        case 'verify_email':
-          toast.error('Your account is pending email verification. Please check your email.');
-          break;
-      }
-    } catch (err: any) {
-      const errorMessage = getErrorMessage(err, 'Unable to verify your information. Please try again.');
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendOTP = async (phone: string) => {
-    const cleanedPhone = phone.replace(/\s/g, '');
-
-    if (cooldown > 0) {
-      setError(`Please wait ${cooldown}s before requesting a new code.`);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await authAPI.sendOTP(cleanedPhone);
-      setAuthState('PHONE_OTP');
-      setCooldown(30);
-
-      if (response.data.otp) {
-        setOtp(response.data.otp);
-        toast.success(`OTP auto-filled: ${response.data.otp}`, { duration: 10000 });
-      } else {
-        toast.success('Verification code sent to your phone!');
-      }
-    } catch (err: any) {
-      const errorMessage = getErrorMessage(err, 'Unable to send verification code. Please try again.');
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      setError('Please enter a 6-digit code.');
-      return;
-    }
-
-    setLoading(true);
-    const cleanedPhone = identifier.replace(/\s/g, '');
-
-    try {
-      const response = await authAPI.verifyOTP(cleanedPhone, otp, rememberMe);
-      const { token, user, needs_registration } = response.data;
-
-      setAuth({ ...user, type: 'customer' }, token);
-
-      if (needs_registration || !user.registration_completed) {
-        toast.success('Phone verified! Please complete your profile.');
-        const refParam = referralInfo?.valid ? `&ref=${referralInfo.code}` : '';
-        router.push(`/register?phone=${encodeURIComponent(cleanedPhone)}${refParam}`);
-      } else {
-        // Apply referral if present
-        if (referralInfo?.valid) {
-          try {
-            await referralsAPI.applyCode({ code: referralInfo.code });
-            toast.success(`Referral from ${referralInfo.referrerName} applied!`);
-          } catch {
-            // Referral may already be applied or invalid
-          }
+        } else {
+          setAuthState('PASSWORD_LOGIN');
         }
-        toast.success('Welcome back!');
-        router.push('/app/home');
+      } else {
+        // Check if user has PIN set up (for customers/employees)
+        try {
+          const pinResponse = await pinAuthAPI.checkByEmail(emailTrimmed);
+          if (pinResponse.data.pin_available) {
+            setPinEmail(emailTrimmed); // Store email for PIN modal
+            setPinAvailable(true);
+            setShowPinModal(true);
+            return;
+          }
+        } catch {
+          // Ignore PIN check errors, fall through to magic link
+        }
+
+        // No PIN available, send magic link
+        await handleSendMagicLink(emailTrimmed);
       }
     } catch (err: any) {
-      const errorMessage = getOtpErrorMessage(err);
+      const errorMessage = getErrorMessage(err, 'Unable to process your request. Please try again.');
       setError(errorMessage);
-      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSendMagicLink = async (email: string) => {
+  const handleSendMagicLink = async (emailAddress: string) => {
     setLoading(true);
     try {
-      const response = await authAPI.sendMagicLink(email);
+      const response = await authAPI.sendMagicLink(emailAddress);
 
       if (response.data.sessionId) {
         setMagicLinkSessionId(response.data.sessionId);
@@ -367,69 +340,6 @@ function LoginPageContent() {
     }
   };
 
-  const handleSendEmailOTP = async (email: string) => {
-    if (cooldown > 0) {
-      setError(`Please wait ${cooldown}s before requesting a new code.`);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await authAPI.sendEmailOTP(email);
-      setAuthState('EMAIL_OTP');
-      setCooldown(30);
-      toast.success('Verification code sent to your email!');
-    } catch (err: any) {
-      const errorMessage = getErrorMessage(err, 'Unable to send verification code. Please try again.');
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyEmailOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      setError('Please enter a 6-digit code.');
-      return;
-    }
-
-    setLoading(true);
-    const emailLower = identifier.trim().toLowerCase();
-
-    try {
-      const response = await authAPI.verifyEmailOTP(emailLower, otp, rememberMe);
-      const { token, user, needs_registration } = response.data;
-
-      setAuth({ ...user, type: 'customer' }, token);
-
-      if (needs_registration || !user.registration_completed) {
-        toast.success('Email verified! Please complete your profile.');
-        const refParam = referralInfo?.valid ? `&ref=${referralInfo.code}` : '';
-        router.push(`/register?email=${encodeURIComponent(emailLower)}${refParam}`);
-      } else {
-        // Apply referral if present
-        if (referralInfo?.valid) {
-          try {
-            await referralsAPI.applyCode({ code: referralInfo.code });
-            toast.success(`Referral from ${referralInfo.referrerName} applied!`);
-          } catch {
-            // Referral may already be applied or invalid
-          }
-        }
-        toast.success('Welcome back!');
-        router.push('/app/home');
-      }
-    } catch (err: any) {
-      const errorMessage = getOtpErrorMessage(err);
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
@@ -439,10 +349,14 @@ function LoginPageContent() {
 
     setLoading(true);
     try {
-      const response = await authAPI.staffLogin(identifier.trim().toLowerCase(), password, rememberMe);
+      const response = await authAPI.staffLogin(email.trim().toLowerCase(), password, rememberMe);
       const { token, user } = response.data;
 
       setAuth({ ...user, type: user.role === 'admin' ? 'admin' : 'staff' }, token);
+
+      // Save email for next time
+      localStorage.setItem('last_login_email', email.trim().toLowerCase());
+
       toast.success('Welcome back!');
 
       if (user.role === 'admin') {
@@ -478,7 +392,7 @@ function LoginPageContent() {
     setLoading(true);
     try {
       await authAPI.staffRegister({
-        email: identifier.trim().toLowerCase(),
+        email: email.trim().toLowerCase(),
         password,
         name: staffName.trim(),
         branch: staffBranch || undefined
@@ -486,7 +400,7 @@ function LoginPageContent() {
 
       toast.success('Registration successful! Please check your email to verify your account.');
       setAuthState('INITIAL');
-      setIdentifier('');
+      setEmail('');
       setPassword('');
       setConfirmPassword('');
       setStaffName('');
@@ -502,11 +416,11 @@ function LoginPageContent() {
   const handleBack = () => {
     setAuthState('INITIAL');
     setError('');
-    setOtp('');
     setPassword('');
     setConfirmPassword('');
     setStaffName('');
     setIdentifyResult(null);
+    setPinAvailable(false);
   };
 
   const handleLineLogin = async () => {
@@ -528,8 +442,18 @@ function LoginPageContent() {
     }
   };
 
-  const getInputPlaceholder = () => {
-    return 'Phone number or email';
+  const handleUseMagicLinkFromPin = async () => {
+    setShowPinModal(false);
+    await handleSendMagicLink(pinEmail);
+  };
+
+  const handleClosePinModal = () => {
+    setShowPinModal(false);
+    setPinAvailable(false);
+    setPinEmail('');
+    // Clear saved email so user can enter a different one
+    localStorage.removeItem('last_login_email');
+    setEmail('');
   };
 
   return (
@@ -553,8 +477,75 @@ function LoginPageContent() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center px-5">
         <div className="w-full max-w-[380px]">
+          {/* Company Invite Banner - Different styling for employee vs customer */}
+          {companyInviteInfo && companyInviteInfo.invite_type === 'customer' && (
+            <div className="mb-4 p-4 bg-[#FEF3C7] border border-[#FCD34D] rounded-2xl">
+              <div className="flex items-center gap-3">
+                {companyInviteInfo.company.logo_url ? (
+                  <img
+                    src={companyInviteInfo.company.logo_url}
+                    alt={companyInviteInfo.company.name}
+                    className="w-10 h-10 rounded-lg object-cover border border-stone-100"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-[#D97706] rounded-full flex items-center justify-center">
+                    <Gift className="w-5 h-5 text-white" />
+                  </div>
+                )}
+                <div>
+                  <p
+                    className="text-[14px] font-bold text-[#92400E]"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    Join {companyInviteInfo.company.name} Loyalty
+                  </p>
+                  <p
+                    className="text-[12px] text-[#B45309]"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    Earn points and unlock exclusive rewards
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {companyInviteInfo && companyInviteInfo.invite_type !== 'customer' && (
+            <div className="mb-4 p-4 bg-[#ECFDF5] border border-[#A7F3D0] rounded-2xl">
+              <div className="flex items-center gap-3">
+                {companyInviteInfo.company.logo_url ? (
+                  <img
+                    src={companyInviteInfo.company.logo_url}
+                    alt={companyInviteInfo.company.name}
+                    className="w-10 h-10 rounded-lg object-cover border border-stone-100"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-[#059669] rounded-full flex items-center justify-center">
+                    <Building2 className="w-5 h-5 text-white" />
+                  </div>
+                )}
+                <div>
+                  <p
+                    className="text-[14px] font-bold text-[#065F46]"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    Joining via {companyInviteInfo.company.name}
+                  </p>
+                  <p
+                    className="text-[12px] text-[#047857]"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    {companyInviteInfo.company.discount_percentage
+                      ? `${companyInviteInfo.company.discount_percentage}% employee discount`
+                      : 'Employee benefits program'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Referral Banner */}
-          {referralInfo?.valid && (
+          {referralInfo?.valid && !companyInviteInfo && (
             <div className="mb-4 p-4 bg-[#FEF3C7] border border-[#F59E0B] rounded-2xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#F59E0B] rounded-full flex items-center justify-center">
@@ -593,17 +584,20 @@ function LoginPageContent() {
               </div>
             )}
 
-            {/* INITIAL STATE - Single Input */}
+            {/* INITIAL STATE - Email Input + LINE */}
             {authState === 'INITIAL' && (
-              <form onSubmit={handleIdentify} className="flex flex-col gap-4">
+              <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
                 <div>
                   <input
-                    type="text"
+                    type="email"
                     className="w-full h-[56px] px-4 rounded-[12px] border border-[#E5E5E5] text-[14px] text-[#1C1917] placeholder:text-[#78716C] focus:outline-none focus:border-[#1C1917] transition-colors"
                     style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    placeholder={getInputPlaceholder()}
-                    value={identifier}
-                    onChange={(e) => handleIdentifierChange(e.target.value)}
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError('');
+                    }}
                     autoFocus
                     required
                   />
@@ -611,7 +605,7 @@ function LoginPageContent() {
                     className="text-[12px] font-semibold text-[#78716C] mt-2"
                     style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                   >
-                    Enter your phone or work email to continue
+                    We'll send you a login link
                   </p>
                 </div>
 
@@ -627,11 +621,11 @@ function LoginPageContent() {
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      CHECKING...
+                      SENDING...
                     </>
                   ) : (
                     <>
-                      CONTINUE
+                      CONTINUE WITH EMAIL
                       <ChevronRight className="w-4 h-4" />
                     </>
                   )}
@@ -644,7 +638,7 @@ function LoginPageContent() {
                     className="text-[12px] text-[#A8A29E]"
                     style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                   >
-                    or continue with
+                    or
                   </span>
                   <div className="flex-1 h-px bg-[#E5E5E5]" />
                 </div>
@@ -664,204 +658,13 @@ function LoginPageContent() {
                   </svg>
                   Continue with LINE
                 </button>
-              </form>
-            )}
 
-            {/* PHONE_OTP STATE */}
-            {authState === 'PHONE_OTP' && (
-              <form onSubmit={handleVerifyOTP} className="flex flex-col gap-4">
-                <div>
-                  <input
-                    type="text"
-                    className="w-full h-[56px] px-4 rounded-[12px] border border-[#E5E5E5] text-center text-[24px] tracking-[0.5em] font-mono text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:border-[#1C1917] transition-colors"
-                    placeholder="------"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => {
-                      setOtp(e.target.value.replace(/\D/g, ''));
-                      setError('');
-                    }}
-                    autoFocus
-                    required
-                  />
-                  <p
-                    className="text-[12px] font-semibold text-[#78716C] mt-2 text-center"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    Enter the 6-digit code sent to {identifier}
-                  </p>
-                </div>
-
-                {/* Remember Me Selector */}
-                <div className="flex items-center gap-2 p-3 bg-[#F5F5F4] rounded-xl">
-                  <Clock className="w-4 h-4 text-[#78716C]" />
-                  <span
-                    className="text-[12px] text-[#78716C]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    Stay signed in for
-                  </span>
-                  <select
-                    className="flex-1 text-[12px] font-semibold text-[#1C1917] bg-transparent border-none focus:outline-none cursor-pointer"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    value={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.value)}
-                  >
-                    <option value="1d">1 day</option>
-                    <option value="7d">7 days</option>
-                    <option value="30d">30 days</option>
-                    <option value="90d">90 days</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full h-[56px] bg-[#1C1917] text-white rounded-[12px] font-bold text-[14px] hover:bg-[#292524] transition-colors disabled:opacity-50"
-                  style={{
-                    fontFamily: 'Spline Sans, sans-serif',
-                    letterSpacing: '1.5px'
-                  }}
-                  disabled={loading || otp.length !== 6}
+                <p
+                  className="text-[11px] text-[#A8A29E] text-center mt-2"
+                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                 >
-                  {loading ? 'VERIFYING...' : 'VERIFY CODE'}
-                </button>
-
-                <div className="flex justify-between">
-                  <button
-                    type="button"
-                    className="text-[12px] font-semibold text-[#57534E] hover:text-[#1C1917] transition-colors flex items-center gap-1"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    onClick={handleBack}
-                  >
-                    <ArrowLeft className="w-3 h-3" />
-                    Change Number
-                  </button>
-                  {cooldown === 0 ? (
-                    <button
-                      type="button"
-                      className="text-[12px] font-semibold text-[#1C1917]"
-                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                      onClick={() => handleSendOTP(identifier)}
-                    >
-                      Resend Code
-                    </button>
-                  ) : (
-                    <span
-                      className="text-[12px] font-semibold text-[#78716C]"
-                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    >
-                      Resend in {cooldown}s
-                    </span>
-                  )}
-                </div>
-              </form>
-            )}
-
-            {/* EMAIL_OTP STATE */}
-            {authState === 'EMAIL_OTP' && (
-              <form onSubmit={handleVerifyEmailOTP} className="flex flex-col gap-4">
-                <div className="text-center mb-2">
-                  <div className="w-12 h-12 bg-[#FEF3C7] rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Mail className="w-6 h-6 text-[#D97706]" />
-                  </div>
-                  <p
-                    className="text-[13px] text-[#57534E]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    We sent a code to
-                  </p>
-                  <p
-                    className="text-[14px] font-semibold text-[#1C1917]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    {identifier}
-                  </p>
-                </div>
-
-                <div>
-                  <input
-                    type="text"
-                    className="w-full h-[56px] px-4 rounded-[12px] border border-[#E5E5E5] text-center text-[24px] tracking-[0.5em] font-mono text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:border-[#1C1917] transition-colors"
-                    placeholder="------"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => {
-                      setOtp(e.target.value.replace(/\D/g, ''));
-                      setError('');
-                    }}
-                    autoFocus
-                    required
-                  />
-                  <p
-                    className="text-[12px] font-semibold text-[#78716C] mt-2 text-center"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    Enter the 6-digit code from your email
-                  </p>
-                </div>
-
-                {/* Remember Me Selector */}
-                <div className="flex items-center gap-2 p-3 bg-[#F5F5F4] rounded-xl">
-                  <Clock className="w-4 h-4 text-[#78716C]" />
-                  <span
-                    className="text-[12px] text-[#78716C]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    Stay signed in for
-                  </span>
-                  <select
-                    className="flex-1 text-[12px] font-semibold text-[#1C1917] bg-transparent border-none focus:outline-none cursor-pointer"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    value={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.value)}
-                  >
-                    <option value="1d">1 day</option>
-                    <option value="7d">7 days</option>
-                    <option value="30d">30 days</option>
-                    <option value="90d">90 days</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full h-[56px] bg-[#1C1917] text-white rounded-[12px] font-bold text-[14px] hover:bg-[#292524] transition-colors disabled:opacity-50"
-                  style={{
-                    fontFamily: 'Spline Sans, sans-serif',
-                    letterSpacing: '1.5px'
-                  }}
-                  disabled={loading || otp.length !== 6}
-                >
-                  {loading ? 'VERIFYING...' : 'VERIFY CODE'}
-                </button>
-
-                <div className="flex justify-between">
-                  <button
-                    type="button"
-                    className="text-[12px] font-semibold text-[#57534E] hover:text-[#1C1917] transition-colors flex items-center gap-1"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    onClick={handleBack}
-                  >
-                    <ArrowLeft className="w-3 h-3" />
-                    Change Email
-                  </button>
-                  {cooldown === 0 ? (
-                    <button
-                      type="button"
-                      className="text-[12px] font-semibold text-[#1C1917]"
-                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                      onClick={() => handleSendEmailOTP(identifier.trim().toLowerCase())}
-                    >
-                      Resend Code
-                    </button>
-                  ) : (
-                    <span
-                      className="text-[12px] font-semibold text-[#78716C]"
-                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                    >
-                      Resend in {cooldown}s
-                    </span>
-                  )}
-                </div>
+                  Quick sign-in for LINE users
+                </p>
               </form>
             )}
 
@@ -912,7 +715,7 @@ function LoginPageContent() {
                   className="text-[14px] font-semibold text-[#1C1917] mb-4"
                   style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                 >
-                  {identifier}
+                  {email}
                 </p>
 
                 <div className="bg-[#F5F5F4] rounded-lg px-4 py-3 mb-4">
@@ -965,29 +768,27 @@ function LoginPageContent() {
               </div>
             )}
 
-            {/* PASSWORD_LOGIN STATE */}
+            {/* PASSWORD_LOGIN STATE (Staff/Admin) */}
             {authState === 'PASSWORD_LOGIN' && (
               <form onSubmit={handlePasswordLogin} className="flex flex-col gap-4">
-                {/* Company/Role badge */}
-                {identifyResult && (
-                  <div className="mb-2 p-3 bg-[#F5F5F4] rounded-xl flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-[#57534E]" />
-                    <div className="flex-1">
-                      <p
-                        className="text-[13px] font-semibold text-[#1C1917]"
-                        style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                      >
-                        {identifier}
-                      </p>
-                      <p
-                        className="text-[11px] text-[#78716C]"
-                        style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                      >
-                        {identifyResult.user_type === 'admin' ? 'Admin Account' : 'Staff Account'}
-                      </p>
-                    </div>
+                {/* Staff badge */}
+                <div className="mb-2 p-3 bg-[#F5F5F4] rounded-xl flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-[#57534E]" />
+                  <div className="flex-1">
+                    <p
+                      className="text-[13px] font-semibold text-[#1C1917]"
+                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    >
+                      {email}
+                    </p>
+                    <p
+                      className="text-[11px] text-[#78716C]"
+                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    >
+                      {identifyResult?.user_type === 'admin' ? 'Admin Account' : 'Staff Account'}
+                    </p>
                   </div>
-                )}
+                </div>
 
                 <div className="relative">
                   <input
@@ -1110,7 +911,7 @@ function LoginPageContent() {
                     className="text-[14px] font-semibold text-[#1C1917]"
                     style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                   >
-                    {identifier}
+                    {email}
                   </p>
                 </div>
 
@@ -1201,39 +1002,6 @@ function LoginPageContent() {
               </form>
             )}
 
-            {/* UNKNOWN_EMAIL STATE */}
-            {authState === 'UNKNOWN_EMAIL' && (
-              <div className="text-center py-4">
-                <div className="w-16 h-16 bg-[#FEF2F2] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="w-8 h-8 text-[#DC2626]" />
-                </div>
-                <h3
-                  className="text-[18px] font-bold text-[#1C1917] mb-2"
-                  style={{ fontFamily: 'Spline Sans, sans-serif', lineHeight: 1.15 }}
-                >
-                  Email Not Recognized
-                </h3>
-                <p
-                  className="text-[14px] text-[#57534E] mb-4"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
-                  This email is not associated with any company account. Please use your phone number to register as a customer.
-                </p>
-
-                <button
-                  type="button"
-                  className="w-full h-[56px] bg-[#1C1917] text-white rounded-[12px] font-bold text-[14px] hover:bg-[#292524] transition-colors"
-                  style={{
-                    fontFamily: 'Spline Sans, sans-serif',
-                    letterSpacing: '1.5px'
-                  }}
-                  onClick={handleBack}
-                >
-                  USE PHONE NUMBER
-                </button>
-              </div>
-            )}
-
             {/* Terms */}
             <p
               className="text-[11px] text-[#A8A29E] text-center mt-6 leading-relaxed"
@@ -1244,14 +1012,34 @@ function LoginPageContent() {
           </div>
         </div>
 
+        {/* Staff Login Link */}
+        <div className="mt-auto pt-6 text-center">
+          <a
+            href="/staff/login"
+            className="text-[12px] text-[#78716C] hover:text-[#1C1917] transition-colors"
+            style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+          >
+            Staff login →
+          </a>
+        </div>
+
         {/* Footer */}
         <p
-          className="text-[11px] text-[#D6D3D1] mt-auto mb-6 pt-6"
+          className="text-[11px] text-[#D6D3D1] mb-6 pt-4"
           style={{ fontFamily: 'Instrument Sans, sans-serif' }}
         >
           © 2025 Sarnies
         </p>
       </div>
+
+      {/* PIN Login Modal */}
+      <PINLoginModal
+        isOpen={showPinModal}
+        email={pinEmail}
+        onClose={handleClosePinModal}
+        onUseMagicLink={handleUseMagicLinkFromPin}
+        rememberMe={rememberMe}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import { MapPin, Plus, Edit, X, Trash2, Search, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -154,12 +155,18 @@ export default function AdminOutletsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="min-h-screen admin-page animate-macos-fade">
+        <div className="admin-page-container">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Outlets</h2>
-            <p className="text-gray-600 mt-1">Manage store locations</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF9F0A] to-[#FF6B00] flex items-center justify-center shadow-lg">
+              <MapPin className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">Outlets</h1>
+              <p className="text-[14px] text-[#86868b] mt-0.5">Manage store locations</p>
+            </div>
           </div>
           <button
             onClick={() => {
@@ -167,39 +174,41 @@ export default function AdminOutletsPage() {
               resetForm();
               setShowForm(true);
             }}
-            className="btn btn-primary flex items-center gap-2"
+            className="admin-btn-primary h-[40px] px-5 flex items-center gap-2"
           >
-            <Plus size={20} />
+            <Plus size={18} />
             Add Outlet
           </button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search outlets..."
-              className="input pl-10 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="admin-card p-4 mb-6">
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
+              <input
+                type="text"
+                placeholder="Search outlets..."
+                className="w-full h-[40px] pl-10 pr-4 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select
+              className="admin-select w-40"
+              value={filterActive}
+              onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
-          <select
-            className="input w-40"
-            value={filterActive}
-            onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </div>
 
         {/* Form Modal */}
         {showForm && (
-          <div className="card bg-blue-50 border border-blue-200">
+          <div className="admin-card mb-6 bg-[rgba(0,122,255,0.04)] border border-[rgba(0,122,255,0.1)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-800">
                 {editingOutlet ? 'Edit Outlet' : 'Add New Outlet'}
@@ -339,7 +348,7 @@ export default function AdminOutletsPage() {
         )}
 
         {/* Outlets List */}
-        <div className="card">
+        <div className="admin-card overflow-hidden">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -353,55 +362,55 @@ export default function AdminOutletsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
+                  <tr className="border-b border-[rgba(0,0,0,0.06)] bg-[rgba(246,246,246,0.6)]">
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                       Outlet Name
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                       Address
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                       Phone
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                       Status
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
+                    <th className="text-left py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                       Hours
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">
+                    <th className="text-right py-3 px-4 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredOutlets.map((outlet) => (
-                    <tr key={outlet.id} className="border-b hover:bg-gray-50">
+                    <tr key={outlet.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.02)] transition-colors">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                            <MapPin size={16} className="text-amber-600" />
+                          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,10,0.12)] flex items-center justify-center">
+                            <MapPin size={16} className="text-[#FF9F0A]" />
                           </div>
-                          <span className="font-medium text-gray-900">{outlet.name}</span>
+                          <span className="text-[14px] font-medium text-[#1d1d1f]">{outlet.name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-600 max-w-xs truncate">
+                      <td className="py-3 px-4 text-[14px] text-[#636366] max-w-xs truncate">
                         {outlet.address}
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{outlet.phone || '-'}</td>
+                      <td className="py-3 px-4 text-[14px] text-[#636366]">{outlet.phone || '-'}</td>
                       <td className="py-3 px-4">
                         <button
                           onClick={() => handleToggleActive(outlet)}
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          className={`admin-badge cursor-pointer ${
                             outlet.is_active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'admin-badge-success'
+                              : 'admin-badge-error'
                           }`}
                         >
                           {outlet.is_active ? 'Active' : 'Inactive'}
                         </button>
                       </td>
-                      <td className="py-3 px-4 text-gray-600 text-sm">
+                      <td className="py-3 px-4 text-[13px] text-[#86868b]">
                         {outlet.opening_hours || '-'}
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -431,23 +440,41 @@ export default function AdminOutletsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="card bg-blue-50">
-            <div className="text-3xl font-bold text-blue-600">{outlets.length}</div>
-            <div className="text-sm text-blue-800">Total Outlets</div>
-          </div>
-          <div className="card bg-green-50">
-            <div className="text-3xl font-bold text-green-600">
-              {outlets.filter((o) => o.is_active).length}
+        <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(0,122,255,0.12)] flex items-center justify-center">
+                <MapPin size={20} className="text-[#007AFF]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{outlets.length}</div>
+                <div className="text-[12px] text-[#86868b]">Total Outlets</div>
+              </div>
             </div>
-            <div className="text-sm text-green-800">Active</div>
           </div>
-          <div className="card bg-red-50">
-            <div className="text-3xl font-bold text-red-600">
-              {outlets.filter((o) => !o.is_active).length}
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(52,199,89,0.12)] flex items-center justify-center">
+                <CheckCircle size={20} className="text-[#34C759]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{outlets.filter((o) => o.is_active).length}</div>
+                <div className="text-[12px] text-[#86868b]">Active</div>
+              </div>
             </div>
-            <div className="text-sm text-red-800">Inactive</div>
           </div>
+          <div className="admin-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(255,69,58,0.12)] flex items-center justify-center">
+                <XCircle size={20} className="text-[#FF453A]" />
+              </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1d1d1f]">{outlets.filter((o) => !o.is_active).length}</div>
+                <div className="text-[12px] text-[#86868b]">Inactive</div>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </AdminLayout>

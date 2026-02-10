@@ -80,7 +80,7 @@ router.get('/voucher/:user_id/:voucher_id', authenticate, async (req: AuthReques
     const voucherResult = await query(
       `SELECT * FROM vouchers
        WHERE id = $1 AND is_active = true
-       AND (expires_at IS NULL OR expires_at > NOW())`,
+       AND (expiry_date IS NULL OR expiry_date > NOW())`,
       [voucher_id]
     );
 
@@ -178,7 +178,7 @@ router.post('/verify', authenticate, async (req: AuthRequest, res: Response) => 
         return res.status(400).json({ error: 'Voucher is not active' });
       }
 
-      if (voucher.expires_at && new Date(voucher.expires_at) < new Date()) {
+      if (voucher.expiry_date && new Date(voucher.expiry_date) < new Date()) {
         return res.status(400).json({ error: 'Voucher has expired' });
       }
 

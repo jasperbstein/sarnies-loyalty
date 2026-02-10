@@ -45,56 +45,41 @@ describe('VoucherCard', () => {
       expect(screen.getByText('FREE')).toBeInTheDocument();
     });
 
-    it('renders FREE for employee perks', () => {
+    it('renders PERK label for employee perks', () => {
       render(<VoucherCard {...defaultProps} isEmployee={true} pointsRequired={100} />);
-      expect(screen.getByText('FREE')).toBeInTheDocument();
+      expect(screen.getByText('PERK')).toBeInTheDocument();
     });
   });
 
-  describe('emojis based on voucher type', () => {
-    it('shows coffee emoji for coffee items', () => {
-      render(<VoucherCard {...defaultProps} title="Free Coffee" voucherType="free_item" />);
-      expect(screen.getByText('☕')).toBeInTheDocument();
+  describe('fallback images based on voucher type', () => {
+    it('uses coffee image for coffee items', () => {
+      render(<VoucherCard {...defaultProps} title="Free Coffee" voucherType="free_item" imageUrl={undefined} />);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', '/images/content/vouchers/coffee.jpg');
     });
 
-    it('shows coffee emoji for latte items', () => {
-      render(<VoucherCard {...defaultProps} title="Free Latte" voucherType="free_item" />);
-      expect(screen.getByText('☕')).toBeInTheDocument();
+    it('uses pastry image for birthday items', () => {
+      render(<VoucherCard {...defaultProps} title="Birthday Cake" voucherType="free_item" imageUrl={undefined} />);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', '/images/content/vouchers/pastry.jpg');
     });
 
-    it('shows cake emoji for birthday items', () => {
-      render(<VoucherCard {...defaultProps} title="Birthday Cake" voucherType="free_item" />);
-      expect(screen.getByText('🎂')).toBeInTheDocument();
+    it('uses coffee-beans image for discounts', () => {
+      render(<VoucherCard {...defaultProps} voucherType="discount_amount" imageUrl={undefined} />);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', '/images/content/vouchers/coffee-beans.jpg');
     });
 
-    it('shows sandwich emoji for food items', () => {
-      render(<VoucherCard {...defaultProps} title="Free Sandwich" voucherType="free_item" />);
-      expect(screen.getByText('🥪')).toBeInTheDocument();
+    it('uses merch image for merch type', () => {
+      render(<VoucherCard {...defaultProps} voucherType="merch" imageUrl={undefined} />);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', '/images/content/vouchers/merch.jpg');
     });
 
-    it('shows money emoji for discounts', () => {
-      render(<VoucherCard {...defaultProps} voucherType="discount_amount" />);
-      expect(screen.getByText('💰')).toBeInTheDocument();
-    });
-
-    it('shows money emoji for percentage discounts', () => {
-      render(<VoucherCard {...defaultProps} voucherType="percentage_discount" />);
-      expect(screen.getByText('💰')).toBeInTheDocument();
-    });
-
-    it('shows shirt emoji for merch', () => {
-      render(<VoucherCard {...defaultProps} voucherType="merch" />);
-      expect(screen.getByText('👕')).toBeInTheDocument();
-    });
-
-    it('shows gift emoji for generic free items', () => {
-      render(<VoucherCard {...defaultProps} title="Mystery Gift" voucherType="free_item" />);
-      expect(screen.getByText('🎁')).toBeInTheDocument();
-    });
-
-    it('shows ticket emoji for unknown voucher types', () => {
-      render(<VoucherCard {...defaultProps} voucherType="unknown" />);
-      expect(screen.getByText('🎫')).toBeInTheDocument();
+    it('uses bakery image for generic free items', () => {
+      render(<VoucherCard {...defaultProps} title="Mystery Gift" voucherType="free_item" imageUrl={undefined} />);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', '/images/content/vouchers/bakery.jpg');
     });
   });
 
@@ -113,7 +98,7 @@ describe('VoucherCard', () => {
   describe('remaining count', () => {
     it('shows remaining count when maxPerDay and remainingToday are provided', () => {
       render(<VoucherCard {...defaultProps} maxPerDay={3} remainingToday={2} />);
-      expect(screen.getByText('2/3 left')).toBeInTheDocument();
+      expect(screen.getByText('2/3')).toBeInTheDocument();
     });
 
     it('does not show remaining count without maxPerDay', () => {
@@ -149,11 +134,11 @@ describe('VoucherCard', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      it('applies grid styles', () => {
+      it('applies card styles', () => {
         render(<VoucherCard {...defaultProps} />);
         const button = screen.getByRole('button');
-        expect(button.className).toContain('rounded-xl');
-        expect(button.className).toContain('border');
+        // Uses .card CSS class from design system instead of inline Tailwind
+        expect(button.className).toContain('card');
       });
     });
 
@@ -193,9 +178,10 @@ describe('VoucherCard', () => {
   });
 
   describe('image handling', () => {
-    it('shows emoji when no imageUrl provided', () => {
+    it('uses fallback image when no imageUrl provided', () => {
       render(<VoucherCard {...defaultProps} imageUrl={undefined} />);
-      expect(screen.getByText('☕')).toBeInTheDocument();
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', '/images/content/vouchers/coffee.jpg');
     });
 
     it('renders image when imageUrl provided', () => {

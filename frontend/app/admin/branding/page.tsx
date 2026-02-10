@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import { Palette, Save, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -186,20 +187,25 @@ export default function AdminBrandingPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="admin-page admin-page-container space-y-6 animate-macos-fade">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Branding & Customization</h2>
-            <p className="text-gray-600 mt-1">
-              Customize your app's appearance, colors, and configuration
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#AF52DE] to-[#8944AB] flex items-center justify-center shadow-lg">
+              <Palette className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">Branding & Customization</h1>
+              <p className="text-[14px] text-[#86868b]">
+                Customize your app's appearance, colors, and configuration
+              </p>
+            </div>
           </div>
 
           {hasChanges && (
             <div className="flex gap-2">
               <button
                 onClick={handleReset}
-                className="btn btn-secondary flex items-center gap-2"
+                className="h-10 px-4 rounded-lg border border-[rgba(0,0,0,0.1)] bg-white text-[#1d1d1f] text-[14px] font-medium flex items-center gap-2 hover:bg-[rgba(0,0,0,0.02)] transition-colors"
                 disabled={saving}
               >
                 <RotateCcw size={18} />
@@ -207,7 +213,7 @@ export default function AdminBrandingPage() {
               </button>
               <button
                 onClick={handleSave}
-                className="btn btn-primary flex items-center gap-2"
+                className="admin-btn-primary"
                 disabled={saving}
               >
                 <Save size={18} />
@@ -220,18 +226,18 @@ export default function AdminBrandingPage() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="card h-40 bg-gray-100 animate-pulse" />
+              <div key={i} className="admin-card h-40 animate-pulse bg-[rgba(0,0,0,0.04)]" />
             ))}
           </div>
         ) : (
           <div className="space-y-6">
             {Object.entries(brandingCategories).map(([category, keys]) => (
-              <div key={category} className="card">
+              <div key={category} className="admin-card p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Palette size={20} className="text-purple-600" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(175,82,222,0.12)] flex items-center justify-center">
+                    <Palette size={20} className="text-[#AF52DE]" />
                   </div>
-                  <h3 className="font-semibold text-gray-800">{category}</h3>
+                  <h3 className="text-[16px] font-semibold text-[#1d1d1f]">{category}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -267,9 +273,9 @@ export default function AdminBrandingPage() {
             ))}
 
             {/* Preview Section */}
-            <div className="card bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Palette size={20} />
+            <div className="admin-card p-6 bg-gradient-to-br from-[rgba(0,122,255,0.04)] to-[rgba(175,82,222,0.04)] border-[rgba(0,122,255,0.2)]">
+              <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-4 flex items-center gap-2">
+                <Palette size={20} className="text-[#007AFF]" />
                 Color Preview
               </h3>
 

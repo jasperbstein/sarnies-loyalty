@@ -14,6 +14,7 @@ import { isValidAppUser, isEmployeeUser } from '@/lib/authUtils';
 import { Home, Ticket, User, History, Newspaper, LogOut, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { PWAInstallPrompt } from './PWAInstallPrompt';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -129,15 +130,18 @@ export default function AppLayout({ children, hideNav = false }: AppLayoutProps)
       ];
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-bg-primary">
       {/* Main Content */}
       <main className="pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
         {children}
       </main>
 
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
+
       {/* Bottom Navigation - Clean, no shadows */}
       {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-stone-200 z-50 pb-safe">
+        <nav className="fixed bottom-4 left-4 right-4 h-[64px] bg-white/90 backdrop-blur-xl z-[999] rounded-2xl shadow-lg">
           <div className="max-w-screen-xl mx-auto h-full">
             <div className="flex justify-around items-center h-full">
               {navItems.map((item) => {
@@ -154,13 +158,13 @@ export default function AppLayout({ children, hideNav = false }: AppLayoutProps)
                     className="flex flex-col items-center justify-center py-2 px-4 min-w-[64px]"
                   >
                     <Icon
-                      className={`w-5 h-5 mb-1 ${
-                        isActive ? 'text-accent' : 'text-stone-400'
+                      className={`w-5 h-5 mb-1 transition-all duration-200 ease-smooth ${
+                        isActive ? 'text-text-primary scale-110 -translate-y-0.5' : 'text-stone-500'
                       }`}
-                      strokeWidth={isActive ? 2 : 1.5}
+                      strokeWidth={isActive ? 2.5 : 1.5}
                     />
-                    <span className={`text-xs font-medium uppercase tracking-wide ${
-                      isActive ? 'text-accent' : 'text-stone-400'
+                    <span className={`text-xs uppercase tracking-wide transition-all duration-200 ${
+                      isActive ? 'font-bold text-text-primary' : 'font-medium text-stone-500'
                     }`}>
                       {item.label}
                     </span>

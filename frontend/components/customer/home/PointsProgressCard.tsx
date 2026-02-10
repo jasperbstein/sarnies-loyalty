@@ -8,6 +8,7 @@
 
 import React, { useEffect, useState } from "react";
 import { settingsAPI } from "@/lib/api";
+import { useCountUp } from "@/hooks/useCountUp";
 
 interface PointsProgressCardProps {
   points: number;
@@ -95,53 +96,57 @@ export const PointsProgressCard: React.FC<PointsProgressCardProps> = ({
   const displayNextTier = nextTier || tierInfo.next;
   const nextTierAt = tierInfo.nextAt || nextRewardAt;
   const progress = tierInfo.progress;
+  const animatedPoints = useCountUp(points);
+
+  const getTierBadgeStyles = (t: string) => {
+    switch (t) {
+      case 'Platinum': return 'bg-stone-800 text-white';
+      case 'Gold': return 'bg-amber-100 text-amber-700';
+      case 'Silver': return 'bg-stone-200 text-stone-700';
+      case 'Bronze':
+      default: return 'bg-amber-50 text-amber-600';
+    }
+  };
 
   return (
     <div
-      className="w-full bg-white rounded-md p-6"
+      className="w-full bg-white rounded-md p-4"
       style={{
-        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-        border: '1px solid rgba(0,0,0,0.05)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(28,25,23,0.08)',
+        border: '1px solid #E8E5E1'
       }}
     >
       {/* Header Row */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <span className="text-label">
           YOUR POINTS
         </span>
-        <span className="text-xs font-semibold px-2 py-1 bg-stone-100 rounded text-stone-600">
-          {displayTier} Member
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${getTierBadgeStyles(displayTier)}`}>
+          {displayTier}
         </span>
       </div>
 
-      {/* Points Value */}
-      <p className="text-4xl font-semibold text-text-primary tracking-tight mb-4">
-        {points.toLocaleString()}
-      </p>
-
-      {/* Progress Section */}
-      <div className="space-y-2">
-        {/* Progress Bar */}
-        <div
-          className="h-1 rounded-sm bg-stone-100 overflow-hidden"
-        >
-          <div
-            className="h-full bg-amber-600 rounded-sm transition-all duration-500"
-            style={{ width: `${Math.min(progress * 100, 100)}%` }}
-          />
-        </div>
-
-        {/* Progress Labels */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-text-secondary">
-            {points.toLocaleString()} pts
+      {/* Points Value + Progress inline */}
+      <div className="flex items-end justify-between mb-2">
+        <p className="text-3xl font-semibold text-text-primary tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          {animatedPoints.toLocaleString()}
+        </p>
+        {displayNextTier && nextTierAt && (
+          <span className="text-[11px] font-medium text-text-tertiary pb-1">
+            {(nextTierAt - points).toLocaleString()} to {displayNextTier}
           </span>
-          {displayNextTier && nextTierAt && (
-            <span className="text-xs font-semibold text-text-tertiary">
-              {(nextTierAt - points).toLocaleString()} to {displayNextTier}
-            </span>
-          )}
-        </div>
+        )}
+      </div>
+
+      {/* Progress Bar */}
+      <div className="h-2 rounded-full bg-stone-200 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 progress-bar-shimmer ${progress > 0.9 ? 'progress-glow' : ''}`}
+          style={{
+            width: `${Math.min(progress * 100, 100)}%`,
+            background: 'linear-gradient(90deg, #DC2626, #EF4444, #DC2626)',
+          }}
+        />
       </div>
     </div>
   );

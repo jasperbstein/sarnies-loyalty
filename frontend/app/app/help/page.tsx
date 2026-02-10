@@ -5,11 +5,12 @@ import AppLayout from "@/components/AppLayout";
 import { useAuthStore } from "@/lib/store";
 import { Coffee, Gift, QrCode, CheckCircle, Clock, Repeat } from 'lucide-react';
 import { useRouter } from "next/navigation";
+import { isEmployeeUser } from '@/lib/authUtils';
 
 export default function HelpPage() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const isEmployee = user?.user_type === 'employee';
+  const isEmployee = isEmployeeUser(user);
 
   if (!isEmployee) {
     return (

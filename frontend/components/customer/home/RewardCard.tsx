@@ -5,7 +5,9 @@
  * Card with image, title, description, points, and stock
  */
 
-import React from "react";
+import React, { useState } from "react";
+import Image from "next/image";
+import { Gift } from "lucide-react";
 
 interface RewardCardProps {
   title: string;
@@ -25,44 +27,57 @@ export const RewardCard: React.FC<RewardCardProps> = ({
   onClick,
 }) => {
   const displayPoints = typeof points === 'number' ? `${points} pts` : points;
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-md overflow-hidden text-left hover:border-stone-200 transition-colors"
+      className="w-full bg-white rounded-2xl overflow-hidden text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ease-smooth active:scale-[0.98]"
       style={{
-        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-        border: '1px solid rgba(0,0,0,0.05)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
       }}
     >
       {/* Image */}
-      {imageUrl ? (
-        <div
-          className="w-full h-[100px] bg-stone-100 bg-cover bg-center"
-          style={{ backgroundImage: `url(${imageUrl})` }}
-        />
-      ) : (
-        <div className="w-full h-[100px] bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
-          <span className="text-3xl">🎁</span>
-        </div>
-      )}
+      <div className="w-full aspect-[4/3] bg-stone-100 relative overflow-hidden">
+        {/* Skeleton loader */}
+        {!imageLoaded && !imageError && imageUrl && (
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100 animate-pulse" />
+        )}
+
+        {imageUrl && !imageError ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            sizes="(max-width: 768px) 50vw, 25vw"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center">
+            <Gift className="w-8 h-8 text-stone-400" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+      </div>
 
       {/* Content */}
-      <div className="p-3 space-y-2">
-        <div>
-          <p className="text-sm font-semibold text-text-primary truncate">
-            {title}
-          </p>
-          <p className="text-sm text-text-secondary truncate">
-            {description}
-          </p>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-text-primary">
-            {displayPoints}
-          </span>
+      <div className="p-3">
+        <p className="text-[13px] font-semibold text-stone-800 truncate">
+          {title}
+        </p>
+        <div className="flex items-center justify-between mt-1.5">
+          {displayPoints === 'FREE' ? (
+            <span className="text-[11px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">FREE</span>
+          ) : (
+            <span className="text-[12px] font-bold text-stone-700">
+              {displayPoints}
+            </span>
+          )}
           {stock && (
-            <span className="text-xs font-bold text-text-tertiary">
+            <span className="text-[10px] font-medium text-stone-400">
               {stock}
             </span>
           )}

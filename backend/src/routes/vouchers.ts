@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { query } from '../db/database';
+import { query, transaction } from '../db/database';
 import { authenticate, requireAdmin, AuthRequest } from '../middleware/auth';
 import { generateQRToken, QR_TOKEN_EXPIRY_SECONDS } from '../utils/jwt';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,11 +56,18 @@ router.get('/all', authenticate, requireAdmin, async (req: AuthRequest, res: Res
         COUNT(vi.id) FILTER (WHERE vi.status = 'used') as times_redeemed,
         COUNT(vi.id) FILTER (WHERE vi.status = 'active') as active_redemptions,
         COUNT(DISTINCT vi.user_id) as unique_users,
-        MAX(vi.used_at) as last_redeemed_at
+        MAX(vi.used_at) as last_redeemed_at,
+        CASE
+          WHEN v.is_company_exclusive AND array_length(v.allowed_company_ids, 1) > 0 THEN
+            (SELECT json_agg(json_build_object('id', c.id, 'name', c.name))
+             FROM companies c
+             WHERE c.id = ANY(v.allowed_company_ids))
+          ELSE NULL
+        END as allowed_companies
       FROM vouchers v
       LEFT JOIN voucher_instances vi ON v.id = vi.voucher_id
       GROUP BY v.id
-      ORDER BY v.created_at DESC
+      ORDER BY v.is_featured DESC, v.created_at DESC
     `);
     res.json(result.rows);
   } catch (error) {
@@ -122,9 +129,10 @@ router.get('/employee/:userId/available', authenticate, async (req: AuthRequest,
       `SELECT
         v.id, v.title, v.description, v.image_url, v.points_required,
         v.cash_value, v.voucher_type, v.is_featured, v.is_active,
-        v.max_redemptions_per_user_per_day, v.expiry_date,
+        v.is_staff_voucher, v.target_user_types,
+        v.max_redemptions_per_user, v.expiry_date,
         COALESCE(today_counts.count, 0)::int as today_redemptions,
-        GREATEST(0, COALESCE(v.max_redemptions_per_user_per_day, 999) - COALESCE(today_counts.count, 0))::int as available_today
+        GREATEST(0, COALESCE(v.max_redemptions_per_user, 999) - COALESCE(today_counts.count, 0))::int as available_today
        FROM vouchers v
        LEFT JOIN (
          SELECT voucher_id, COUNT(*) as count
@@ -182,7 +190,7 @@ router.get('/customer/:customerId/available', authenticate, async (req: AuthRequ
         v.is_active,
         v.expiry_date,
         v.max_redemptions_per_user,
-        v.max_redemptions_per_user_per_day,
+        v.max_redemptions_per_user,
         COALESCE(user_redemptions.total_count, 0)::int as user_total_redemptions,
         COALESCE(user_redemptions.today_count, 0)::int as user_today_redemptions,
         CASE
@@ -211,8 +219,8 @@ router.get('/customer/:customerId/available', authenticate, async (req: AuthRequ
          OR COALESCE(user_redemptions.total_count, 0) < v.max_redemptions_per_user
        )
        AND (
-         v.max_redemptions_per_user_per_day IS NULL
-         OR COALESCE(user_redemptions.today_count, 0) < v.max_redemptions_per_user_per_day
+         v.max_redemptions_per_user IS NULL
+         OR COALESCE(user_redemptions.today_count, 0) < v.max_redemptions_per_user
        )
        ORDER BY
          CASE WHEN v.points_required <= $2 THEN 0 ELSE 1 END,
@@ -262,7 +270,9 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
       requires_minimum_purchase,
       valid_days_of_week,
       valid_outlets,
-      auto_expire_hours
+      auto_expire_hours,
+      is_company_exclusive,
+      allowed_company_ids
     } = req.body;
 
     // Sanitize title to prevent XSS
@@ -349,6 +359,15 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
       }
     }
 
+    // Validate target_user_types
+    const validUserTypes = ['customer', 'employee', 'staff', 'investor', 'media'];
+    if (target_user_types && Array.isArray(target_user_types)) {
+      const invalid = target_user_types.filter((t: string) => !validUserTypes.includes(t));
+      if (invalid.length > 0) {
+        return res.status(400).json({ error: `Invalid user types: ${invalid.join(', ')}` });
+      }
+    }
+
     // Validate redemption_window
     if (redemption_window && !['unlimited', 'once_per_day', 'once_per_week', 'once_per_month', 'once_per_shift'].includes(redemption_window)) {
       return res.status(400).json({ error: 'Invalid redemption_window' });
@@ -372,9 +391,9 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
         max_redemptions_per_user, max_redemptions_total,
         valid_from, valid_until, image_url,
         redemption_window, requires_minimum_purchase, valid_days_of_week,
-        valid_outlets, auto_expire_hours
+        valid_outlets, auto_expire_hours, is_company_exclusive, allowed_company_ids
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
        RETURNING *`,
       [
         title,
@@ -400,7 +419,9 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
         requires_minimum_purchase || null,
         valid_days_of_week || null,
         valid_outlets || null,
-        auto_expire_hours || null
+        auto_expire_hours || null,
+        is_company_exclusive ?? false,
+        allowed_company_ids || []
       ]
     );
 
@@ -454,7 +475,9 @@ router.patch('/:id', authenticate, requireAdmin, async (req: AuthRequest, res: R
       requires_minimum_purchase,
       valid_days_of_week,
       valid_outlets,
-      auto_expire_hours
+      auto_expire_hours,
+      is_company_exclusive,
+      allowed_company_ids
     } = req.body;
 
     // Validate title if provided
@@ -604,6 +627,14 @@ router.patch('/:id', authenticate, requireAdmin, async (req: AuthRequest, res: R
       updates.push(`auto_expire_hours = $${paramCount++}`);
       values.push(auto_expire_hours || null);
     }
+    if (is_company_exclusive !== undefined) {
+      updates.push(`is_company_exclusive = $${paramCount++}`);
+      values.push(is_company_exclusive);
+    }
+    if (allowed_company_ids !== undefined) {
+      updates.push(`allowed_company_ids = $${paramCount++}`);
+      values.push(allowed_company_ids || []);
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
@@ -646,7 +677,7 @@ router.post('/:id/redeem', authenticate, async (req: AuthRequest, res: Response)
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Get voucher details
+    // Get voucher details (no lock needed - vouchers are read-only during redemption)
     const voucherResult = await query('SELECT * FROM vouchers WHERE id = $1', [id]);
     if (voucherResult.rows.length === 0) {
       return res.status(404).json({ error: 'Voucher not found' });
@@ -658,13 +689,6 @@ router.post('/:id/redeem', authenticate, async (req: AuthRequest, res: Response)
       return res.status(400).json({ error: 'Voucher is not active' });
     }
 
-    // Get user details
-    const userResult = await query('SELECT * FROM users WHERE id = $1', [user_id]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    const user = userResult.rows[0];
-
     // Check if user type is allowed to redeem this voucher
     const userType = req.user?.type || 'customer';
     const allowedTypes = voucher.target_user_types || voucher.allowed_user_types || ['customer', 'employee'];
@@ -673,61 +697,6 @@ router.post('/:id/redeem', authenticate, async (req: AuthRequest, res: Response)
         error: 'This voucher is not available for your user type',
         allowed_types: allowedTypes
       });
-    }
-
-    // Check max redemptions per user per day
-    if (voucher.max_redemptions_per_user_per_day) {
-      const todayRedemptionsResult = await query(
-        `SELECT COUNT(*) as redemption_count FROM voucher_instances
-         WHERE voucher_id = $1 AND user_id = $2
-         AND status IN ('active', 'used')
-         AND DATE(redeemed_at) = CURRENT_DATE`,
-        [id, user_id]
-      );
-      const todayRedemptionCount = parseInt(todayRedemptionsResult.rows[0].redemption_count);
-
-      if (todayRedemptionCount >= voucher.max_redemptions_per_user_per_day) {
-        return res.status(400).json({
-          error: `You have already redeemed your daily drink today. Come back tomorrow!`,
-          limit: voucher.max_redemptions_per_user_per_day,
-          current: todayRedemptionCount
-        });
-      }
-    }
-
-    // Check max redemptions per user
-    if (voucher.max_redemptions_per_user) {
-      const userRedemptionsResult = await query(
-        `SELECT COUNT(*) as redemption_count FROM voucher_instances
-         WHERE voucher_id = $1 AND user_id = $2 AND status IN ('active', 'used')`,
-        [id, user_id]
-      );
-      const userRedemptionCount = parseInt(userRedemptionsResult.rows[0].redemption_count);
-
-      if (userRedemptionCount >= voucher.max_redemptions_per_user) {
-        return res.status(400).json({
-          error: `You have reached the maximum redemption limit for this voucher (${voucher.max_redemptions_per_user} times)`,
-          limit: voucher.max_redemptions_per_user,
-          current: userRedemptionCount
-        });
-      }
-    }
-
-    // Check max total redemptions
-    if (voucher.max_redemptions_total) {
-      const totalRedemptionsResult = await query(
-        `SELECT COUNT(*) as redemption_count FROM voucher_instances
-         WHERE voucher_id = $1 AND status IN ('active', 'used')`,
-        [id]
-      );
-      const totalRedemptionCount = parseInt(totalRedemptionsResult.rows[0].redemption_count);
-
-      if (totalRedemptionCount >= voucher.max_redemptions_total) {
-        return res.status(400).json({
-          error: 'This voucher has reached its total redemption limit',
-          limit: voucher.max_redemptions_total
-        });
-      }
     }
 
     // Check valid date range
@@ -744,82 +713,11 @@ router.post('/:id/redeem', authenticate, async (req: AuthRequest, res: Response)
         valid_until: voucher.valid_until
       });
     }
-
-    // Check expiry date
     if (voucher.expiry_date && new Date(voucher.expiry_date) < now) {
       return res.status(400).json({
         error: 'This voucher has expired',
         expiry_date: voucher.expiry_date
       });
-    }
-
-    // Determine cost and check balance based on payment method
-    let cost: number;
-    let currency: string;
-
-    // Handle free vouchers (no payment required)
-    if (voucher.is_free) {
-      cost = 0;
-      currency = 'free';
-    } else if (userType === 'investor' && payment_method === 'investor_credits') {
-      // Calculate investor cost with discount
-      cost = voucher.investor_credits_cost || Math.ceil(voucher.points_required * (100 - user.investor_discount_percentage) / 100);
-      currency = 'investor_credits';
-
-      // Check if using outlet or group credits
-      if (use_group_credits) {
-        if (!user.investor_group_credits_enabled) {
-          return res.status(400).json({ error: 'Group credits not enabled for this user' });
-        }
-        if (user.investor_group_credits_balance < cost) {
-          return res.status(400).json({
-            error: 'Insufficient group credits',
-            required: cost,
-            current: user.investor_group_credits_balance
-          });
-        }
-      } else {
-        if (!outlet_id) {
-          return res.status(400).json({ error: 'outlet_id required for outlet credits redemption' });
-        }
-        // Check outlet credits
-        const outletCreditResult = await query(
-          'SELECT credits_balance FROM investor_outlet_credits WHERE user_id = $1 AND outlet_id = $2',
-          [user_id, outlet_id]
-        );
-        if (outletCreditResult.rows.length === 0 || outletCreditResult.rows[0].credits_balance < cost) {
-          return res.status(400).json({
-            error: 'Insufficient outlet credits',
-            required: cost,
-            current: outletCreditResult.rows[0]?.credits_balance || 0
-          });
-        }
-      }
-    } else if (userType === 'media' && payment_method === 'media_budget') {
-      // Media budget redemption
-      cost = voucher.media_budget_cost_thb || voucher.cash_value;
-      currency = 'media_budget_thb';
-
-      const remaining = user.media_annual_budget_thb - user.media_spent_this_year_thb;
-      if (remaining < cost) {
-        return res.status(400).json({
-          error: 'Insufficient media budget',
-          required: cost,
-          remaining: remaining
-        });
-      }
-    } else {
-      // Regular points redemption
-      cost = voucher.points_required;
-      currency = 'points';
-
-      if (user.points_balance < cost) {
-        return res.status(400).json({
-          error: 'Insufficient points',
-          required: cost,
-          current: user.points_balance
-        });
-      }
     }
 
     // Calculate expiry based on voucher expiry_type
@@ -829,141 +727,222 @@ router.post('/:id/redeem', authenticate, async (req: AuthRequest, res: Response)
     } else if (voucher.expiry_type === 'fixed_date' && voucher.expiry_date) {
       expiresAt = new Date(voucher.expiry_date);
     } else {
-      // Default: 10 minutes for QR code
       expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     }
 
-    // Generate UUID and QR token
+    // Generate UUID and QR token before transaction (no DB needed)
     const uuid = uuidv4();
-    const customerId = user.id.toString().padStart(6, '0');
 
-    const qrData = {
-      type: 'voucher_redemption',
-      customer_id: customerId,
-      voucher_id: id.toString(),
-      voucher_instance_id: uuid,
-      expires_at: expiresAt.toISOString()
-    };
-
-    // Use centralized QR token expiry for payment QR codes (default: 120s)
-    // Note: The voucher instance has its own expires_at for the actual voucher validity
-    const qrToken = generateQRToken(qrData, `${QR_TOKEN_EXPIRY_SECONDS}s`);
-
-    // Generate QR code image as data URL
-    // Optimized for screen-to-phone scanning with higher error correction
-    const qrDataUrl = await QRCode.toDataURL(qrToken, {
-      width: 512,
-      margin: 4,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      errorCorrectionLevel: 'H' // High error correction (30%) for screen scanning
-    });
-
-    // Create voucher instance
-    const instanceResult = await query(
-      `INSERT INTO voucher_instances
-       (uuid, user_id, voucher_id, qr_code_data, status, redeemed_at, expires_at, is_reusable)
-       VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7)
-       RETURNING *`,
-      [uuid, user_id, id, qrToken, 'active', expiresAt, voucher.is_reusable || false]
-    );
-
-    // Update recurrence timestamps for user (if recurring voucher)
-    if (voucher.recurrence_type) {
-      const timestampColumn =
-        voucher.recurrence_type === 'daily' ? 'last_daily_voucher_generated_at' :
-        voucher.recurrence_type === 'weekly' ? 'last_weekly_voucher_generated_at' :
-        voucher.recurrence_type === 'monthly' ? 'last_monthly_voucher_generated_at' :
-        null;
-
-      if (timestampColumn) {
-        await query(
-          `UPDATE users SET ${timestampColumn} = NOW() WHERE id = $1`,
-          [user_id]
-        );
+    // All balance checks, voucher instance creation, and payment in one transaction
+    const result = await transaction(async (client) => {
+      // Lock user row to prevent race conditions on balance
+      const userResult = await client.query(
+        'SELECT * FROM users WHERE id = $1 FOR UPDATE',
+        [user_id]
+      );
+      if (userResult.rows.length === 0) {
+        throw { status: 404, error: 'User not found' };
       }
-    }
+      const user = userResult.rows[0];
 
-    // Deduct cost based on currency type (skip if free)
-    if (currency === 'free' || cost === 0) {
-      // No payment needed for free vouchers
-    } else if (currency === 'investor_credits') {
-      if (use_group_credits) {
-        // Deduct from group credits
-        const newBalance = user.investor_group_credits_balance - cost;
-        await query(
-          'UPDATE users SET investor_group_credits_balance = $1 WHERE id = $2',
-          [newBalance, user_id]
+      // Check redemption limits inside transaction
+      if (voucher.max_redemptions_per_user) {
+        const todayResult = await client.query(
+          `SELECT COUNT(*) as count FROM voucher_instances
+           WHERE voucher_id = $1 AND user_id = $2
+           AND status IN ('active', 'used')
+           AND DATE(redeemed_at) = CURRENT_DATE`,
+          [id, user_id]
         );
+        if (parseInt(todayResult.rows[0].count) >= voucher.max_redemptions_per_user) {
+          throw { status: 400, error: 'You have already redeemed your daily drink today. Come back tomorrow!' };
+        }
+      }
 
-        // Log credit transaction
-        await query(
+      if (voucher.max_redemptions_per_user) {
+        const userRedemptionsResult = await client.query(
+          `SELECT COUNT(*) as count FROM voucher_instances
+           WHERE voucher_id = $1 AND user_id = $2 AND status IN ('active', 'used')`,
+          [id, user_id]
+        );
+        if (parseInt(userRedemptionsResult.rows[0].count) >= voucher.max_redemptions_per_user) {
+          throw { status: 400, error: `You have reached the maximum redemption limit for this voucher (${voucher.max_redemptions_per_user} times)` };
+        }
+      }
+
+      if (voucher.max_redemptions_total) {
+        // Lock the voucher row to serialize total redemption count checks across users
+        await client.query('SELECT id FROM vouchers WHERE id = $1 FOR UPDATE', [id]);
+        const totalResult = await client.query(
+          `SELECT COUNT(*) as count FROM voucher_instances
+           WHERE voucher_id = $1 AND status IN ('active', 'used')`,
+          [id]
+        );
+        if (parseInt(totalResult.rows[0].count) >= voucher.max_redemptions_total) {
+          throw { status: 400, error: 'This voucher has reached its total redemption limit' };
+        }
+      }
+
+      // Determine cost and validate balance
+      let cost: number;
+      let currency: string;
+
+      if (voucher.is_free) {
+        cost = 0;
+        currency = 'free';
+      } else if (userType === 'investor' && payment_method === 'investor_credits') {
+        cost = voucher.investor_credits_cost || Math.ceil(voucher.points_required * (100 - user.investor_discount_percentage) / 100);
+        currency = 'investor_credits';
+
+        if (use_group_credits) {
+          if (!user.investor_group_credits_enabled) {
+            throw { status: 400, error: 'Group credits not enabled for this user' };
+          }
+          if (user.investor_group_credits_balance < cost) {
+            throw { status: 400, error: 'Insufficient group credits' };
+          }
+        } else {
+          if (!outlet_id) {
+            throw { status: 400, error: 'outlet_id required for outlet credits redemption' };
+          }
+          const outletCreditResult = await client.query(
+            'SELECT credits_balance FROM investor_outlet_credits WHERE user_id = $1 AND outlet_id = $2 FOR UPDATE',
+            [user_id, outlet_id]
+          );
+          if (outletCreditResult.rows.length === 0 || outletCreditResult.rows[0].credits_balance < cost) {
+            throw { status: 400, error: 'Insufficient outlet credits' };
+          }
+        }
+      } else if (userType === 'media' && payment_method === 'media_budget') {
+        cost = voucher.media_budget_cost_thb || voucher.cash_value;
+        currency = 'media_budget_thb';
+        const remaining = user.media_annual_budget_thb - user.media_spent_this_year_thb;
+        if (remaining < cost) {
+          throw { status: 400, error: 'Insufficient media budget' };
+        }
+      } else {
+        cost = voucher.points_required;
+        currency = 'points';
+        if (user.points_balance < cost) {
+          throw { status: 400, error: 'Insufficient points' };
+        }
+      }
+
+      // Create QR token
+      const customerId = user.id.toString().padStart(6, '0');
+      const qrData = {
+        type: 'voucher_redemption',
+        customer_id: customerId,
+        voucher_id: id.toString(),
+        voucher_instance_id: uuid,
+        expires_at: expiresAt.toISOString()
+      };
+      const qrToken = generateQRToken(qrData, `${QR_TOKEN_EXPIRY_SECONDS}s`);
+
+      // Create voucher instance
+      const instanceResult = await client.query(
+        `INSERT INTO voucher_instances
+         (uuid, user_id, voucher_id, qr_code_data, status, redeemed_at, expires_at, is_reusable)
+         VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7)
+         RETURNING *`,
+        [uuid, user_id, id, qrToken, 'active', expiresAt, voucher.is_reusable || false]
+      );
+
+      // Update recurrence timestamps
+      if (voucher.recurrence_type) {
+        const timestampColumn =
+          voucher.recurrence_type === 'daily' ? 'last_daily_voucher_generated_at' :
+          voucher.recurrence_type === 'weekly' ? 'last_weekly_voucher_generated_at' :
+          voucher.recurrence_type === 'monthly' ? 'last_monthly_voucher_generated_at' :
+          null;
+        if (timestampColumn) {
+          await client.query(
+            `UPDATE users SET ${timestampColumn} = NOW() WHERE id = $1`,
+            [user_id]
+          );
+        }
+      }
+
+      // Deduct cost
+      if (currency === 'free' || cost === 0) {
+        // No payment needed
+      } else if (currency === 'investor_credits') {
+        if (use_group_credits) {
+          const newBalance = user.investor_group_credits_balance - cost;
+          await client.query(
+            'UPDATE users SET investor_group_credits_balance = $1 WHERE id = $2',
+            [newBalance, user_id]
+          );
+          await client.query(
+            `INSERT INTO credit_transactions
+             (user_id, credit_type, transaction_type, credits_change, balance_after, voucher_id, outlet_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [user_id, 'investor_group', 'redemption', -cost, newBalance, id, null]
+          );
+        } else {
+          const outletResult = await client.query(
+            `UPDATE investor_outlet_credits
+             SET credits_balance = credits_balance - $1, updated_at = NOW()
+             WHERE user_id = $2 AND outlet_id = $3
+             RETURNING credits_balance`,
+            [cost, user_id, outlet_id]
+          );
+          await client.query(
+            `INSERT INTO credit_transactions
+             (user_id, credit_type, outlet_id, transaction_type, credits_change, balance_after, voucher_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [user_id, 'investor_outlet', outlet_id, 'redemption', -cost, outletResult.rows[0].credits_balance, id]
+          );
+        }
+      } else if (currency === 'media_budget_thb') {
+        const newSpent = parseFloat(user.media_spent_this_year_thb) + cost;
+        await client.query(
+          'UPDATE users SET media_spent_this_year_thb = $1 WHERE id = $2',
+          [newSpent, user_id]
+        );
+        await client.query(
           `INSERT INTO credit_transactions
-           (user_id, credit_type, transaction_type, credits_change, balance_after, voucher_id, outlet_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [user_id, 'investor_group', 'redemption', -cost, newBalance, id, null]
+           (user_id, credit_type, transaction_type, amount_thb, voucher_id, outlet_id)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [user_id, 'media', 'redemption', cost, id, outlet_id]
         );
       } else {
-        // Deduct from outlet credits
-        const outletCreditResult = await query(
-          `UPDATE investor_outlet_credits
-           SET credits_balance = credits_balance - $1, updated_at = NOW()
-           WHERE user_id = $2 AND outlet_id = $3
-           RETURNING credits_balance`,
-          [cost, user_id, outlet_id]
+        // Points
+        const newBalance = user.points_balance - cost;
+        await client.query(
+          'UPDATE users SET points_balance = $1 WHERE id = $2',
+          [newBalance, user_id]
         );
-        const newBalance = outletCreditResult.rows[0].credits_balance;
-
-        // Log credit transaction
-        await query(
-          `INSERT INTO credit_transactions
-           (user_id, credit_type, outlet_id, transaction_type, credits_change, balance_after, voucher_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [user_id, 'investor_outlet', outlet_id, 'redemption', -cost, newBalance, id]
+        await client.query(
+          `INSERT INTO transactions
+           (user_id, type, points_delta, amount_value, voucher_id)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [user_id, 'redeem', -cost, voucher.cash_value, id]
         );
       }
-    } else if (currency === 'media_budget_thb') {
-      // Deduct from media budget
-      const newSpent = parseFloat(user.media_spent_this_year_thb) + cost;
-      await query(
-        'UPDATE users SET media_spent_this_year_thb = $1 WHERE id = $2',
-        [newSpent, user_id]
-      );
 
-      // Log credit transaction
-      await query(
-        `INSERT INTO credit_transactions
-         (user_id, credit_type, transaction_type, amount_thb, voucher_id, outlet_id)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [user_id, 'media', 'redemption', cost, id, outlet_id]
-      );
-    } else {
-      // Deduct regular points
-      const newBalance = user.points_balance - cost;
-      await query(
-        'UPDATE users SET points_balance = $1 WHERE id = $2',
-        [newBalance, user_id]
-      );
+      return { instance: instanceResult.rows[0], qrToken };
+    });
 
-      // Create transaction record
-      await query(
-        `INSERT INTO transactions
-         (user_id, type, points_delta, amount_value, voucher_id)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [user_id, 'redeem', -cost, voucher.cash_value, id]
-      );
-    }
+    // Generate QR code image outside transaction (CPU-bound, no DB needed)
+    const qrDataUrl = await QRCode.toDataURL(result.qrToken, {
+      width: 512,
+      margin: 4,
+      color: { dark: '#000000', light: '#FFFFFF' },
+      errorCorrectionLevel: 'H'
+    });
 
     res.json({
       voucher_instance: {
-        ...instanceResult.rows[0],
-        qr_code_data: qrDataUrl, // Send the data URL instead of the token
+        ...result.instance,
+        qr_code_data: qrDataUrl,
         voucher: voucher
       }
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.status) {
+      return res.status(error.status).json({ error: error.error });
+    }
     console.error('Redeem voucher error:', error);
     res.status(500).json({ error: 'Failed to redeem voucher' });
   }

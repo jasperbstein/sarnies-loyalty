@@ -1,5 +1,5 @@
 {
-  "version": "2.6",
+  "version": "2.7",
   "children": [
     {
       "type": "frame",
@@ -60775,6 +60775,2811 @@
                   ]
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "m8JR3",
+      "x": -69,
+      "y": 16010,
+      "name": "Flow 1 — Guest Check-In & Wristband Issuance",
+      "width": 1100,
+      "fill": "#FFFFFF",
+      "cornerRadius": 12,
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "#E5E5E5"
+      },
+      "layout": "vertical",
+      "gap": 32,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "rqjYP",
+          "name": "title1",
+          "fill": "#1A1A1A",
+          "content": "Guest Check-In & Wristband Issuance",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "3Pp5C",
+          "name": "subtitle1",
+          "fill": "#666666",
+          "content": "How guests are identified and onboarded at arrival",
+          "fontFamily": "Inter",
+          "fontSize": 14
+        },
+        {
+          "type": "rectangle",
+          "id": "AOmXf",
+          "name": "divider1",
+          "fill": "#E5E5E5",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "frame",
+          "id": "PCJ8B",
+          "name": "step1",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "5tiy1",
+              "name": "step1num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "QRQyA",
+                  "x": 14,
+                  "y": 10,
+                  "name": "step1numTxt",
+                  "fill": "#FFFFFF",
+                  "content": "1",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZxIlQ",
+              "name": "step1content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WTbv5",
+                  "name": "step1title",
+                  "fill": "#1A1A1A",
+                  "content": "Guest Arrives at PISTA",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "0MJwH",
+                  "name": "step1desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Guest walks in freely. Cafe, spectator seating, social areas, retail — all open access. No wristband needed for these areas.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kQvSM",
+          "name": "arrow1",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "QPIFC",
+              "name": "arrow1icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "u9Eax",
+          "name": "decision",
+          "width": "fill_container",
+          "fill": "#FEF3C7",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#D97706"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "rPUIN",
+              "name": "decLabel",
+              "fill": "#D97706",
+              "content": "DECISION POINT",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "UfJ0d",
+              "name": "decTitle",
+              "fill": "#1A1A1A",
+              "content": "What does the guest want to do?",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "CCr9o",
+              "name": "decDesc",
+              "fill": "#666666",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "This determines whether a wristband is issued and what type of session is created.",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 13
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DXQvE",
+          "name": "pathsRow",
+          "width": "fill_container",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "B0vQX",
+              "name": "pathA",
+              "width": "fill_container",
+              "fill": "#F0FDF4",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#059669"
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Xik4R",
+                  "name": "pathALabel",
+                  "fill": "#059669",
+                  "content": "PATH A — WALK-IN / DINER",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "4nNSq",
+                  "name": "pathATitle",
+                  "fill": "#1A1A1A",
+                  "content": "No wristband needed",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "tslUx",
+                  "name": "pathADesc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Guest sits at cafe, orders via QR, pays immediately. No session created. Full walk-in experience.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eaXIZ",
+              "name": "pathB",
+              "width": "fill_container",
+              "fill": "#DBEAFE",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#2563EB"
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "QISDD",
+                  "name": "pathBLabel",
+                  "fill": "#2563EB",
+                  "content": "PATH B — PADEL PLAYER",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "YK11a",
+                  "name": "pathBTitle",
+                  "fill": "#1A1A1A",
+                  "content": "Colour 1 wristband",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "8DNC3",
+                  "name": "pathBDesc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Booked via Playtomic or walk-in court booking. Wristband issued at concierge. Session linked to court time. No expiry — linked to booking.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "0Clnm",
+              "name": "pathC",
+              "width": "fill_container",
+              "fill": "#F3E8FF",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#9333EA"
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "vgATY",
+                  "name": "pathCLabel",
+                  "fill": "#9333EA",
+                  "content": "PATH C — WELLNESS GUEST",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "XITyt",
+                  "name": "pathCTitle",
+                  "fill": "#1A1A1A",
+                  "content": "Colour 2 wristband",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "1pY3g",
+                  "name": "pathCDesc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pays for wellness access at concierge. Wristband issued with time-bound session. Access auto-expires. Photo + email + phone captured.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gD4XP",
+          "name": "arrow2",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "7DAW0",
+              "name": "arrow2icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "r14jT",
+          "name": "step2",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "7iv77",
+              "name": "step2num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sdPtp",
+                  "x": 13,
+                  "y": 10,
+                  "name": "step2numTxt",
+                  "fill": "#FFFFFF",
+                  "content": "2",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "imXqK",
+              "name": "step2content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hJTBk",
+                  "name": "step2title",
+                  "fill": "#1A1A1A",
+                  "content": "Concierge Check-In",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "FgLEZ",
+                  "name": "step2desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Concierge captures: photo (linked to session), email, phone number. Pulls up Playtomic booking if pre-booked padel. Selects session type (padel / wellness / hybrid). Issues colour-coded RFID/NFC wristband.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fKrtz",
+          "name": "arrow3",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "nNJTH",
+              "name": "arrow3icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jDF30",
+          "name": "step3",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "0zTRC",
+              "name": "step3num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ijkwi",
+                  "x": 13,
+                  "y": 10,
+                  "name": "step3numTxt",
+                  "fill": "#FFFFFF",
+                  "content": "3",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TVKH1",
+              "name": "step3content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "kq9PD",
+                  "name": "step3title",
+                  "fill": "#1A1A1A",
+                  "content": "Session Created in System",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "5Hsb0",
+                  "name": "step3desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Digital session record includes: start time, end time (wellness only), grace period (15 min), access permissions, F&B tab eligibility. Session state set to ACTIVE. Guest is now in the system.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rdakg",
+          "name": "arrow4",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "7f06j",
+              "name": "arrow4icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IxckO",
+          "name": "step4",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "h4W0g",
+              "name": "step4num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bycp4",
+                  "x": 13,
+                  "y": 10,
+                  "name": "step4numTxt",
+                  "fill": "#FFFFFF",
+                  "content": "4",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cJNJn",
+              "name": "step4content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "4sysU",
+                  "name": "step4title",
+                  "fill": "#1A1A1A",
+                  "content": "Guest Enters Venue",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "6sOeD",
+                  "name": "step4desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Padel players proceed to courts (no gate, booking-based). Wellness guests tap wristband at one of 2 access points to enter wellness area. Hybrid guests have both permissions active. F&B tab unlock available via wristband tap at any table.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IOPGw",
+          "name": "keybox",
+          "width": "fill_container",
+          "fill": "#F8F8F8",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E5E5"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "RlxsH",
+              "name": "keyLabel",
+              "fill": "#888888",
+              "content": "KEY PRINCIPLE",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "oAWfA",
+              "name": "keyDesc",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "The guest never needs to understand the system. Wristband colours are visual cues for staff only. Timing, access, and ordering rules are all enforced digitally and invisibly.",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "D0onV",
+      "x": 1231,
+      "y": 16010,
+      "name": "Flow 2 — Wellness Session Lifecycle",
+      "width": 1100,
+      "fill": "#FFFFFF",
+      "cornerRadius": 12,
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "#E5E5E5"
+      },
+      "layout": "vertical",
+      "gap": 32,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "pCMJr",
+          "name": "t2",
+          "fill": "#1A1A1A",
+          "content": "Wellness Session Lifecycle",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "6OWqk",
+          "name": "s2",
+          "fill": "#666666",
+          "content": "How wellness access is time-controlled through session states",
+          "fontFamily": "Inter",
+          "fontSize": 14
+        },
+        {
+          "type": "rectangle",
+          "id": "sPZGW",
+          "name": "div2",
+          "fill": "#E5E5E5",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "frame",
+          "id": "NjzaA",
+          "name": "statesRow",
+          "width": "fill_container",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "svxvz",
+              "name": "stateActive",
+              "width": "fill_container",
+              "fill": "#F0FDF4",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 2,
+                "fill": "#059669"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GQfrG",
+                  "name": "saLabel",
+                  "fill": "#059669",
+                  "content": "ACTIVE",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "UCPxa",
+                  "name": "saTitle",
+                  "fill": "#1A1A1A",
+                  "content": "Full Access",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "ExOdr",
+                  "name": "saDesc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Wristband grants entry to wellness area via 2 access points. Guest can use sauna, steam, ice baths freely. F&B ordering enabled at wellness tables (Add to Tab only). Locker access active.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MVj9q",
+              "name": "stateGrace",
+              "width": "fill_container",
+              "fill": "#FEF3C7",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 2,
+                "fill": "#D97706"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NWu6n",
+                  "name": "sgLabel",
+                  "fill": "#D97706",
+                  "content": "GRACE PERIOD",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "A1Xba",
+                  "name": "sgTitle",
+                  "fill": "#1A1A1A",
+                  "content": "Exit & Change Only",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "yzH29",
+                  "name": "sgDesc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "15-minute buffer after session ends. Guest can finish current activity, get changed, exit. No new F&B orders at wellness tables. Guest may finish existing items. Prompt to renew at concierge.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "diTri",
+              "name": "stateExpired",
+              "width": "fill_container",
+              "fill": "#FEE2E2",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 2,
+                "fill": "#DC2626"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nKcUl",
+                  "name": "seLabel",
+                  "fill": "#DC2626",
+                  "content": "EXPIRED",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "vhAN7",
+                  "name": "seTitle",
+                  "fill": "#1A1A1A",
+                  "content": "Access Disabled",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "AjeMQ",
+                  "name": "seDesc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "No re-entry once guest exits wellness. All F&B ordering disabled at wellness tables. Tab frozen. Guest must renew at concierge or checkout. Can remain as cafe walk-in.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "jBKNy",
+          "name": "transLabel",
+          "fill": "#888888",
+          "content": "STATE TRANSITIONS",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "700",
+          "letterSpacing": 2
+        },
+        {
+          "type": "frame",
+          "id": "eDszU",
+          "name": "transBox",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "bQeF8",
+              "name": "trans1",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E5E5"
+              },
+              "gap": 12,
+              "padding": [
+                14,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JFc4V",
+                  "name": "trans1from",
+                  "fill": "#059669",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "k4Keu",
+                      "name": "trans1fromTxt",
+                      "fill": "#FFFFFF",
+                      "content": "ACTIVE",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "icon_font",
+                  "id": "ehYB8",
+                  "name": "trans1arrow",
+                  "width": 18,
+                  "height": 18,
+                  "iconFontName": "arrow-right",
+                  "iconFontFamily": "lucide",
+                  "fill": "#AAAAAA"
+                },
+                {
+                  "type": "frame",
+                  "id": "7GCF3",
+                  "name": "trans1to",
+                  "fill": "#D97706",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PpCin",
+                      "name": "trans1toTxt",
+                      "fill": "#FFFFFF",
+                      "content": "GRACE",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "pgtOp",
+                  "name": "trans1desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Session end time reached. Automatic. 15-min grace starts.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Q0bEr",
+              "name": "trans2",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E5E5"
+              },
+              "gap": 12,
+              "padding": [
+                14,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "okhna",
+                  "name": "t2from",
+                  "fill": "#D97706",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "F3WHq",
+                      "name": "t2fromTxt",
+                      "fill": "#FFFFFF",
+                      "content": "GRACE",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "icon_font",
+                  "id": "0GGTi",
+                  "name": "t2arrow",
+                  "width": 18,
+                  "height": 18,
+                  "iconFontName": "arrow-right",
+                  "iconFontFamily": "lucide",
+                  "fill": "#AAAAAA"
+                },
+                {
+                  "type": "frame",
+                  "id": "mmNSQ",
+                  "name": "t2to",
+                  "fill": "#DC2626",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "1if4t",
+                      "name": "t2toTxt",
+                      "fill": "#FFFFFF",
+                      "content": "EXPIRED",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "nS7A4",
+                  "name": "t2desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Grace period (15 min) ends. Automatic. All access revoked on exit.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IHy2M",
+              "name": "trans3",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E5E5"
+              },
+              "gap": 12,
+              "padding": [
+                14,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PaBft",
+                  "name": "t3from",
+                  "fill": "#DC2626",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ciaKG",
+                      "name": "t3fromTxt",
+                      "fill": "#FFFFFF",
+                      "content": "EXPIRED",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "icon_font",
+                  "id": "apCes",
+                  "name": "t3arrow",
+                  "width": 18,
+                  "height": 18,
+                  "iconFontName": "arrow-right",
+                  "iconFontFamily": "lucide",
+                  "fill": "#AAAAAA"
+                },
+                {
+                  "type": "frame",
+                  "id": "yqPLz",
+                  "name": "t3to",
+                  "fill": "#059669",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "6i9CL",
+                      "name": "t3toTxt",
+                      "fill": "#FFFFFF",
+                      "content": "ACTIVE",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "Ixlsn",
+                  "name": "t3desc",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Guest renews at concierge. Manual. Same session + tab continues. New end time.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "cojlG",
+          "name": "enfLabel",
+          "fill": "#888888",
+          "content": "ENFORCEMENT MODEL",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "700",
+          "letterSpacing": 2
+        },
+        {
+          "type": "frame",
+          "id": "tFx2k",
+          "name": "enfBox",
+          "width": "fill_container",
+          "fill": "#F8F8F8",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E5E5"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "y49lx",
+              "name": "enfTitle",
+              "fill": "#1A1A1A",
+              "content": "System-enforced, not staff-policed",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "E9TGZ",
+              "name": "enfRow1",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "6Jvll",
+                  "name": "enfIcon1",
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "check",
+                  "iconFontFamily": "lucide",
+                  "fill": "#059669"
+                },
+                {
+                  "type": "text",
+                  "id": "wofqK",
+                  "name": "enfText1",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Guest is never removed mid-use from wellness facilities",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "j2KgZ",
+              "name": "enfRow2",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "cj9bq",
+                  "name": "enfIcon2",
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "check",
+                  "iconFontFamily": "lucide",
+                  "fill": "#059669"
+                },
+                {
+                  "type": "text",
+                  "id": "GToei",
+                  "name": "enfText2",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Once guest exits wellness, re-entry blocked if expired",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Qu1Dn",
+              "name": "enfRow3",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "6fFap",
+                  "name": "enfIcon3",
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "check",
+                  "iconFontFamily": "lucide",
+                  "fill": "#059669"
+                },
+                {
+                  "type": "text",
+                  "id": "giIsm",
+                  "name": "enfText3",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "F&B ordering disabled automatically — no staff intervention needed",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "joHQ7",
+              "name": "enfRow4",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "bEh76",
+                  "name": "enfIcon4",
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "check",
+                  "iconFontFamily": "lucide",
+                  "fill": "#059669"
+                },
+                {
+                  "type": "text",
+                  "id": "8VVs6",
+                  "name": "enfText4",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Staff dashboard shows real-time session states for situational awareness",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "6qlQX",
+              "name": "enfRow5",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "nyIks",
+                  "name": "enfIcon5",
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "shield",
+                  "iconFontFamily": "lucide",
+                  "fill": "#DC2626"
+                },
+                {
+                  "type": "text",
+                  "id": "zNSsH",
+                  "name": "enfText5",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Last resort: photo/ID capture for persistent overstay or disputes (staff-authorised only)",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nR6Tb",
+      "x": 2531,
+      "y": 16010,
+      "name": "Flow 3 — F&B Ordering Flow",
+      "width": 1100,
+      "fill": "#FFFFFF",
+      "cornerRadius": 12,
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "#E5E5E5"
+      },
+      "layout": "vertical",
+      "gap": 32,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "nrRZV",
+          "name": "f3title",
+          "fill": "#1A1A1A",
+          "content": "F&B Ordering Flow",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "zotQh",
+          "name": "f3sub",
+          "fill": "#666666",
+          "content": "How ordering works differently depending on guest type and table zone",
+          "fontFamily": "Inter",
+          "fontSize": 14
+        },
+        {
+          "type": "rectangle",
+          "id": "JAbDI",
+          "name": "f3div",
+          "fill": "#E5E5E5",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "frame",
+          "id": "rEfW2",
+          "name": "f3s1",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "vVqls",
+              "name": "f3s1num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "siwBG",
+                  "x": 14,
+                  "y": 10,
+                  "name": "f3s1numT",
+                  "fill": "#FFFFFF",
+                  "content": "1",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "8ZUyr",
+              "name": "f3s1c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "byvD8",
+                  "name": "f3s1t",
+                  "fill": "#1A1A1A",
+                  "content": "Guest Scans Table QR Code",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "eoBCj",
+                  "name": "f3s1d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Every table has a unique QR code. Scanning opens the ordering menu on the guest's phone. The system knows which table zone the guest is sitting at (cafe vs. wellness area).",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "baa5f",
+          "name": "f3arrow1",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "JObzX",
+              "name": "f3a1icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uihI7",
+          "name": "f3dec",
+          "width": "fill_container",
+          "fill": "#FEF3C7",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#D97706"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "bFBJP",
+              "name": "f3decL",
+              "fill": "#D97706",
+              "content": "SYSTEM CHECK",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "b8nA7",
+              "name": "f3decT",
+              "fill": "#1A1A1A",
+              "content": "Which table zone is the guest at?",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ejIAq",
+          "name": "f3paths",
+          "width": "fill_container",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "x9y13",
+              "name": "f3pCafe",
+              "width": "fill_container",
+              "fill": "#F0FDF4",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#059669"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": [
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xmEBy",
+                  "name": "f3pcL",
+                  "fill": "#059669",
+                  "content": "CAFE / RESTAURANT TABLE",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "R6GzZ",
+                  "name": "f3pcT",
+                  "fill": "#1A1A1A",
+                  "content": "Two payment options available",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "kFfgX",
+                  "name": "f3pcD",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Walk-in guests: Pay Now only (immediate payment, no tab).\n\nActivity guests (padel/wellness): Choose between Pay Now or Add to Tab. Tab requires one-time wristband tap to unlock.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Y9nxK",
+              "name": "f3pWell",
+              "width": "fill_container",
+              "fill": "#F3E8FF",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#9333EA"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": [
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bKdte",
+                  "name": "f3pwL",
+                  "fill": "#9333EA",
+                  "content": "WELLNESS TABLE",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "2jZho",
+                  "name": "f3pwT",
+                  "fill": "#1A1A1A",
+                  "content": "Add to Tab ONLY (no Pay Now)",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Nd7Vv",
+                  "name": "f3pwD",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Wellness tables are tab-only to prevent camping. Guests cannot pay-as-they-go to extend their stay.\n\nIf session is ACTIVE: ordering enabled.\nIf session is GRACE: no new orders.\nIf session is EXPIRED: ordering fully disabled.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UM77f",
+          "name": "f3arrow2",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "cn1nl",
+              "name": "f3a2icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "x1IId",
+          "name": "f3s2",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "6pLOO",
+              "name": "f3s2num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "BxoGv",
+                  "x": 13,
+                  "y": 10,
+                  "name": "f3s2numT",
+                  "fill": "#FFFFFF",
+                  "content": "2",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QktlK",
+              "name": "f3s2c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mq1Dv",
+                  "name": "f3s2t",
+                  "fill": "#1A1A1A",
+                  "content": "Guest Selects Payment Method",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "7zyg2",
+                  "name": "f3s2d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Before submitting any order, guest must explicitly choose: Pay Now or Add to Tab. Orders cannot be submitted without selecting one. This is a hard system requirement, not a staff judgement call.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "6gc4Z",
+          "name": "f3arrow3",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "xY4XE",
+              "name": "f3a3icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YXWA9",
+          "name": "f3s3",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Hxay5",
+              "name": "f3s3num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NnSG3",
+                  "x": 13,
+                  "y": 10,
+                  "name": "f3s3numT",
+                  "fill": "#FFFFFF",
+                  "content": "3",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "k7NMj",
+              "name": "f3s3c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "9uqaa",
+                  "name": "f3s3t",
+                  "fill": "#1A1A1A",
+                  "content": "Order Submitted to POS",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "H5VXz",
+                  "name": "f3s3d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pay Now: processed immediately via payment gateway. Add to Tab: order attached to guest session. All tab charges consolidated at final checkout.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DYEn5",
+          "name": "f3key",
+          "width": "fill_container",
+          "fill": "#F8F8F8",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E5E5"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "nWjdp",
+              "name": "f3keyL",
+              "fill": "#888888",
+              "content": "KEY RULES",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "8h8Ui",
+              "name": "f3keyD",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Food orders never extend wellness sessions. Wellness tables are Add to Tab only — no Pay Now option — preventing guests from camping. Removing a wristband does not change identity. Tab access requires a one-time wristband tap (see Flow 4).",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "GYA3s",
+      "x": -69,
+      "y": 17010,
+      "name": "Flow 4 — Tab Unlock (Wristband Tap)",
+      "width": 1100,
+      "fill": "#FFFFFF",
+      "cornerRadius": 12,
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "#E5E5E5"
+      },
+      "layout": "vertical",
+      "gap": 32,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "jJ0dJ",
+          "name": "f4title",
+          "fill": "#1A1A1A",
+          "content": "Tab Unlock — Wristband Tap",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "Swgou",
+          "name": "f4sub",
+          "fill": "#666666",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "How the one-time wristband tap links a guest device to their session for tab access",
+          "lineHeight": 1.4,
+          "fontFamily": "Inter",
+          "fontSize": 14
+        },
+        {
+          "type": "rectangle",
+          "id": "oQwjH",
+          "name": "f4div",
+          "fill": "#E5E5E5",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "frame",
+          "id": "JllqS",
+          "name": "f4s1",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "kLqYO",
+              "name": "f4s1num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "QVc7I",
+                  "x": 14,
+                  "y": 10,
+                  "name": "f4s1numT",
+                  "fill": "#FFFFFF",
+                  "content": "1",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oTYUR",
+              "name": "f4s1c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "21jBD",
+                  "name": "f4s1t",
+                  "fill": "#1A1A1A",
+                  "content": "Guest Scans QR & Sees Menu",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "shITi",
+                  "name": "f4s1d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Menu loads on guest phone. Pay Now is immediately available for all guests. Add to Tab button is visible but locked — requires wristband verification first.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VEwv5",
+          "name": "f4a1",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "CsAs9",
+              "name": "f4a1icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "7KhZR",
+          "name": "f4s2",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Q8vOB",
+              "name": "f4s2num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nzxD4",
+                  "x": 13,
+                  "y": 10,
+                  "name": "f4s2numT",
+                  "fill": "#FFFFFF",
+                  "content": "2",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "3tBKd",
+              "name": "f4s2c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Oh9BM",
+                  "name": "f4s2t",
+                  "fill": "#1A1A1A",
+                  "content": "Guest Taps Wristband to Unlock Tab",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "ZoNp4",
+                  "name": "f4s2d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "One-time tap on a designated reader: table-side reader (next to QR), concierge reader, or staff handheld device. This links the guest's phone/browser session to their wristband ID.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "N467U",
+          "name": "f4a2",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "i2Uul",
+              "name": "f4a2icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xIdtC",
+          "name": "f4s3",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "3XMQd",
+              "name": "f4s3num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MwkVz",
+                  "x": 13,
+                  "y": 10,
+                  "name": "f4s3numT",
+                  "fill": "#FFFFFF",
+                  "content": "3",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CqzXW",
+              "name": "f4s3c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qrX1N",
+                  "name": "f4s3t",
+                  "fill": "#1A1A1A",
+                  "content": "Session Verified — Tab Unlocked",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "zSrEd",
+                  "name": "f4s3d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "System confirms active session exists for this wristband. Add to Tab is now enabled for the rest of the visit. No repeated taps required — one tap is enough.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sHlRL",
+          "name": "f4a3",
+          "width": "fill_container",
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "a1gOW",
+              "name": "f4a3icon",
+              "width": 24,
+              "height": 24,
+              "iconFontName": "arrow-down",
+              "iconFontFamily": "lucide",
+              "fill": "#AAAAAA"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nQZTL",
+          "name": "f4s4",
+          "width": "fill_container",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "0SLpv",
+              "name": "f4s4num",
+              "width": 40,
+              "height": 40,
+              "fill": "#0D6E6E",
+              "cornerRadius": 20,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KMJ7H",
+                  "x": 13,
+                  "y": 10,
+                  "name": "f4s4numT",
+                  "fill": "#FFFFFF",
+                  "content": "4",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xOKwL",
+              "name": "f4s4c",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "d4XT6",
+                  "name": "f4s4t",
+                  "fill": "#1A1A1A",
+                  "content": "Ongoing Ordering",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "XfMP6",
+                  "name": "f4s4d",
+                  "fill": "#666666",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Guest can freely order and Add to Tab from any table for the rest of their visit. If wellness session expires: Add to Tab disabled at wellness tables only — still available at cafe tables. Tab remains open until final checkout.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "E0hUA",
+          "name": "f4key",
+          "width": "fill_container",
+          "fill": "#DBEAFE",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#2563EB"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Ind6w",
+              "name": "f4keyL",
+              "fill": "#2563EB",
+              "content": "TECHNICAL NOTE",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "fknMg",
+              "name": "f4keyD",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "NFC web reading is limited on iOS. Table-side RFID readers with visual confirmation (LED light) are likely more reliable than phone-based NFC. The reader confirms the tap, the system links the device cookie/session to the wristband ID. This is a middleware component — custom build required.",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dS3sf",
+      "x": 1231,
+      "y": 17010,
+      "name": "Flow 5 — Session Renewal & Checkout",
+      "width": 1100,
+      "fill": "#FFFFFF",
+      "cornerRadius": 12,
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "#E5E5E5"
+      },
+      "layout": "vertical",
+      "gap": 32,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "gk3bg",
+          "name": "f5title",
+          "fill": "#1A1A1A",
+          "content": "Session Renewal & Checkout",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "UCg2e",
+          "name": "f5sub",
+          "fill": "#666666",
+          "content": "How guests extend their session or settle their bill and leave",
+          "fontFamily": "Inter",
+          "fontSize": 14
+        },
+        {
+          "type": "rectangle",
+          "id": "SO4Qd",
+          "name": "f5div",
+          "fill": "#E5E5E5",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "text",
+          "id": "PwUFo",
+          "name": "f5secL",
+          "fill": "#888888",
+          "content": "RENEWAL FLOW",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "700",
+          "letterSpacing": 2
+        },
+        {
+          "type": "frame",
+          "id": "FEsAd",
+          "name": "f5renBox",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "BhykN",
+              "name": "f5r1",
+              "width": "fill_container",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "kFVAt",
+                  "name": "f5r1num",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#D97706",
+                  "cornerRadius": 20,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pjMUn",
+                      "x": 14,
+                      "y": 10,
+                      "name": "f5r1numT",
+                      "fill": "#FFFFFF",
+                      "content": "1",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "imdAD",
+                  "name": "f5r1c",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P8k0j",
+                      "name": "f5r1t",
+                      "fill": "#1A1A1A",
+                      "content": "Session Approaches Expiry or Expires",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ktd3K",
+                      "name": "f5r1d",
+                      "fill": "#666666",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Staff dashboard flags sessions in Grace or Expired state. Guest may also notice ordering is disabled. System prompts renewal — not staff.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "8l1QQ",
+              "name": "f5a1",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "mCxen",
+                  "name": "f5a1icon",
+                  "width": 24,
+                  "height": 24,
+                  "iconFontName": "arrow-down",
+                  "iconFontFamily": "lucide",
+                  "fill": "#AAAAAA"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VddXD",
+              "name": "f5r2",
+              "width": "fill_container",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "71R6Z",
+                  "name": "f5r2num",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#D97706",
+                  "cornerRadius": 20,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ni2Zx",
+                      "x": 13,
+                      "y": 10,
+                      "name": "f5r2numT",
+                      "fill": "#FFFFFF",
+                      "content": "2",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OqPco",
+                  "name": "f5r2c",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "IjROo",
+                      "name": "f5r2t",
+                      "fill": "#1A1A1A",
+                      "content": "Guest Goes to Concierge",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "DaSYd",
+                      "name": "f5r2d",
+                      "fill": "#666666",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Renewal only happens at the concierge — never via QR menu. This maintains capacity control and a human checkpoint. Concierge extends the session: same wristband, same tab, new end time. No bill settlement required at renewal.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "id": "m3mow",
+          "name": "f5div2",
+          "fill": "#E5E5E5",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "text",
+          "id": "WTn5h",
+          "name": "f5coL",
+          "fill": "#888888",
+          "content": "CHECKOUT FLOW",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "700",
+          "letterSpacing": 2
+        },
+        {
+          "type": "frame",
+          "id": "l6Z0i",
+          "name": "f5coBox",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "W6Ujc",
+              "name": "f5c1",
+              "width": "fill_container",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ISld4",
+                  "name": "f5c1num",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#0D6E6E",
+                  "cornerRadius": 20,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XqI3i",
+                      "x": 14,
+                      "y": 10,
+                      "name": "f5c1numT",
+                      "fill": "#FFFFFF",
+                      "content": "1",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "KaPHn",
+                  "name": "f5c1c",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uw1UP",
+                      "name": "f5c1t",
+                      "fill": "#1A1A1A",
+                      "content": "Guest Decides to Leave",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "sja82",
+                      "name": "f5c1d",
+                      "fill": "#666666",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Guest approaches concierge to checkout. This can happen at any point — during active session, grace, or after expiry.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "3Jmq3",
+              "name": "f5ca1",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "v25GG",
+                  "name": "f5ca1i",
+                  "width": 24,
+                  "height": 24,
+                  "iconFontName": "arrow-down",
+                  "iconFontFamily": "lucide",
+                  "fill": "#AAAAAA"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Eb7Hz",
+              "name": "f5c2",
+              "width": "fill_container",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wXXBQ",
+                  "name": "f5c2num",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#0D6E6E",
+                  "cornerRadius": 20,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HTkDZ",
+                      "x": 13,
+                      "y": 10,
+                      "name": "f5c2numT",
+                      "fill": "#FFFFFF",
+                      "content": "2",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "H2p4p",
+                  "name": "f5c2c",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "VeKze",
+                      "name": "f5c2t",
+                      "fill": "#1A1A1A",
+                      "content": "Consolidated Bill Presented",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "0FR6Z",
+                      "name": "f5c2d",
+                      "fill": "#666666",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "One single bill covering: wellness access fee, all F&B charges added to tab, any court fees (if not pre-paid via Playtomic). Guest pays once. No itemised confusion.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "6OC3h",
+              "name": "f5ca2",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "PWHN8",
+                  "name": "f5ca2i",
+                  "width": 24,
+                  "height": 24,
+                  "iconFontName": "arrow-down",
+                  "iconFontFamily": "lucide",
+                  "fill": "#AAAAAA"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IkmHF",
+              "name": "f5c3",
+              "width": "fill_container",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mpKji",
+                  "name": "f5c3num",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#0D6E6E",
+                  "cornerRadius": 20,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "N3229",
+                      "x": 13,
+                      "y": 10,
+                      "name": "f5c3numT",
+                      "fill": "#FFFFFF",
+                      "content": "3",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Wnwg9",
+                  "name": "f5c3c",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kSMFQ",
+                      "name": "f5c3t",
+                      "fill": "#1A1A1A",
+                      "content": "Wristband Deactivated",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "y5Wbg",
+                      "name": "f5c3d",
+                      "fill": "#666666",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Wristband returned and deactivated in the system. Session closed. All access permissions revoked. Guest may remain as a walk-in cafe guest — no wristband needed for open areas.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wsP7w",
+          "name": "f5key",
+          "width": "fill_container",
+          "fill": "#F8F8F8",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E5E5"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "ATZz9",
+              "name": "f5keyL",
+              "fill": "#888888",
+              "content": "KEY PRINCIPLE",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "afa1N",
+              "name": "f5keyD",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "The checkout experience mirrors a hotel spa: one bill, no surprises, no mid-session interruptions. Renewal extends seamlessly without forcing payment. The venue feels premium because the system handles complexity invisibly.",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "500"
             }
           ]
         }

@@ -131,7 +131,8 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
       allow_staff_self_registration,
       staff_email_domain,
       staff_default_branch,
-      is_active
+      is_active,
+      users_collect_points
     } = req.body;
 
     if (!name) {
@@ -152,8 +153,8 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
         name, slug, logo_url, description, discount_percentage,
         contact_email, contact_phone, allow_employee_self_registration,
         email_domain, allow_staff_self_registration, staff_email_domain,
-        staff_default_branch, is_active
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        staff_default_branch, is_active, users_collect_points
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
         name,
@@ -168,7 +169,8 @@ router.post('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respo
         allow_staff_self_registration || false,
         staff_email_domain,
         staff_default_branch,
-        is_active !== undefined ? is_active : true
+        is_active !== undefined ? is_active : true,
+        users_collect_points !== undefined ? users_collect_points : false // Default false for company employees
       ]
     );
 
@@ -212,7 +214,8 @@ const updateCompanyHandler = async (req: AuthRequest, res: Response) => {
       allow_staff_self_registration,
       staff_email_domain,
       staff_default_branch,
-      is_active
+      is_active,
+      users_collect_points
     } = req.body;
 
     // Get old company data for audit trail
@@ -280,6 +283,10 @@ const updateCompanyHandler = async (req: AuthRequest, res: Response) => {
     if (is_active !== undefined) {
       updates.push(`is_active = $${paramCount++}`);
       values.push(is_active);
+    }
+    if (users_collect_points !== undefined) {
+      updates.push(`users_collect_points = $${paramCount++}`);
+      values.push(users_collect_points);
     }
 
     if (updates.length === 0) {
@@ -732,8 +739,12 @@ router.get('/join/:code', async (req, res: Response) => {
           });
         }
 
+        // Personal invites have their own invite_type (defaults to 'employee')
+        const inviteType = invite.invite_type || 'employee';
+
         return res.json({
           type: 'personal',
+          invite_type: inviteType, // 'employee' or 'customer'
           direct_access: true,
           invite_id: invite.id,
           email: invite.email, // May be null
@@ -742,15 +753,16 @@ router.get('/join/:code', async (req, res: Response) => {
             name: invite.company_name,
             slug: invite.slug,
             logo_url: invite.logo_url,
-            discount_percentage: invite.discount_percentage,
+            // Only show discount for employee invites
+            discount_percentage: inviteType === 'employee' ? invite.discount_percentage : undefined,
             description: invite.description
           }
         });
       }
     }
 
-    // Check if it's a company invite code (8 chars)
-    const companyResult = await query(
+    // Check if it's an EMPLOYEE invite code (8 chars) - for company benefits
+    const employeeInviteResult = await query(
       `SELECT id, name, slug, logo_url, discount_percentage, description,
               email_domain, allow_employee_self_registration
        FROM companies
@@ -758,10 +770,11 @@ router.get('/join/:code', async (req, res: Response) => {
       [upperCode]
     );
 
-    if (companyResult.rows.length > 0) {
-      const company = companyResult.rows[0];
+    if (employeeInviteResult.rows.length > 0) {
+      const company = employeeInviteResult.rows[0];
       return res.json({
         type: 'company',
+        invite_type: 'employee', // Employee invite - gets company benefits
         direct_access: false,
         requires_verification: true,
         verification_options: {
@@ -774,6 +787,32 @@ router.get('/join/:code', async (req, res: Response) => {
           slug: company.slug,
           logo_url: company.logo_url,
           discount_percentage: company.discount_percentage,
+          description: company.description
+        }
+      });
+    }
+
+    // Check if it's a CUSTOMER invite code (8 chars) - regular membership
+    const customerInviteResult = await query(
+      `SELECT id, name, slug, logo_url, discount_percentage, description
+       FROM companies
+       WHERE customer_invite_code = $1 AND is_active = true`,
+      [upperCode]
+    );
+
+    if (customerInviteResult.rows.length > 0) {
+      const company = customerInviteResult.rows[0];
+      return res.json({
+        type: 'company',
+        invite_type: 'customer', // Customer invite - regular membership
+        direct_access: true, // Customers don't need verification
+        requires_verification: false,
+        company: {
+          id: company.id,
+          name: company.name,
+          slug: company.slug,
+          logo_url: company.logo_url,
+          // No discount for customers - they earn points instead
           description: company.description
         }
       });

@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PISTA — Ecosystem Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #8B7230;
+  --gold-light: #F5F0E5;
+  --gold-dark: #6B5820;
+  --ink: #1C1917;
+  --ink-light: #3D3835;
+  --ink-muted: #57534E;
+  --blue: #2563EB;
+  --blue-light: #EFF6FF;
+  --blue-muted: #60A5FA;
+  --green: #15803D;
+  --green-light: #F0FDF4;
+  --red: #DC2626;
+  --red-light: #FEF2F2;
+  --surface: #F7F6F4;
+  --border: #B8B3AE;
+  --bg: #FAFAF9;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 3px rgba(28,25,23,.06), 0 1px 2px rgba(28,25,23,.04);
+  --shadow-md: 0 4px 12px rgba(28,25,23,.08), 0 2px 4px rgba(28,25,23,.06);
+  --shadow-lg: 0 12px 32px rgba(28,25,23,.10), 0 4px 8px rgba(28,25,23,.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.8;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 1600px;
+  width: 94%;
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 8rem 0 5rem;
+  text-align: center;
+}
+.hero-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3rem, 5.5vw, 5rem);
+  font-weight: 300;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+.hero-sub {
+  font-size: 1.25rem;
+  color: var(--ink-light);
+  font-weight: 400;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+/* ── SECTIONS ── */
+.section {
+  padding: 7rem 0;
+  border-top: none;
+  position: relative;
+}
+.section-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: .6rem;
+}
+.section h2 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+  letter-spacing: -.01em;
+}
+.section h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 3.5rem 0 1.5rem;
+  letter-spacing: .01em;
+}
+.section p {
+  color: var(--ink-light);
+  margin-bottom: 1.25rem;
+  max-width: 800px;
+  font-size: 1.05rem;
+  line-height: 1.85;
+}
+.section p strong { color: var(--ink); font-weight: 700; }
+
+/* ── CARDS ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+@media (max-width: 640px) { .card-grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .5rem;
+}
+.card p {
+  font-size: 1rem;
+  color: var(--ink-light);
+  margin-bottom: .25rem;
+  max-width: none;
+  line-height: 1.75;
+}
+
+/* ── FLOWCHARTS ── */
+.flow-wrap {
+  margin: 3rem 0;
+  overflow-x: auto;
+  padding: 2rem 0;
+}
+.flow-wrap svg {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 960px;
+  height: auto;
+}
+
+/* ── TAGS ── */
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 100px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.tag-platform { background: var(--gold-light); color: var(--gold-dark); }
+.tag-business { background: var(--blue-light); color: var(--blue); }
+.tag-guest { background: var(--green-light); color: var(--green); }
+
+/* ── JOURNEY SECTION ── */
+.journey {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  margin: 2.5rem 0;
+  box-shadow: var(--shadow-sm);
+}
+.journey-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: .75rem;
+  flex-wrap: wrap;
+}
+.journey-num {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+.journey-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.journey-desc {
+  font-size: 1.05rem;
+  color: var(--ink-light);
+  margin-bottom: 1.5rem;
+  line-height: 1.75;
+}
+.journey-note {
+  font-size: 1rem;
+  color: var(--ink-muted);
+  font-style: italic;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  line-height: 1.75;
+}
+
+/* ── RISKS ── */
+.risk-item {
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--red);
+  background: var(--red-light);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 1rem 0;
+}
+.risk-item p { margin: 0; font-size: 1.05rem; max-width: none; line-height: 1.8; }
+.risk-item strong { color: var(--ink); }
+
+.question-item {
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--gold);
+  background: var(--gold-light);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 1rem 0;
+}
+.question-item p { margin: 0; font-size: 1.05rem; max-width: none; line-height: 1.8; }
+
+/* ── LISTS ── */
+ul { margin: .75rem 0 1.75rem 1.5rem; color: var(--ink-light); }
+li { margin-bottom: .5rem; font-size: 1.05rem; line-height: 1.75; }
+li strong { color: var(--ink); font-weight: 700; }
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center;
+  padding: 4rem 0 3rem;
+  border-top: none;
+  position: relative;
+  font-size: .9rem;
+  color: var(--ink-muted);
+  letter-spacing: .05em;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(231,229,228,.6);
+  padding: .85rem 0;
+}
+.nav-inner {
+  max-width: 1600px;
+  width: 94%;
+  margin: 0 auto;
+  padding: 0 3rem;
+  display: flex;
+  align-items: center;
+  gap: 2.25rem;
+  overflow-x: auto;
+}
+.nav-brand {
+  font-family: 'Fraunces', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav a {
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .15s;
+  letter-spacing: .02em;
+}
+.nav a:hover { color: var(--ink); }
+
+/* ── VENDOR CARD ── */
+.vendor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  margin: 1rem 0;
+  box-shadow: var(--shadow-sm);
+}
+.vendor-card h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: .5rem;
+}
+.vendor-card p {
+  font-size: 1rem;
+  color: var(--ink-light);
+  margin-bottom: .2rem;
+  max-width: none;
+  line-height: 1.75;
+}
+
+/* ── SCROLL ANIMATION ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── LOYALTY LAYERS ── */
+.layer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem 2.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+}
+.layer-card:hover { box-shadow: var(--shadow-md); }
+.layer-num {
+  font-family: 'Fraunces', serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--gold);
+  margin-bottom: .25rem;
+}
+.layer-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .6rem;
+}
+.layer-card p {
+  font-size: 1.05rem;
+  color: var(--ink-light);
+  margin-bottom: .5rem;
+  max-width: none;
+  line-height: 1.8;
+}
+.layer-card ul {
+  margin: .5rem 0 .75rem 1.25rem;
+}
+
+/* ── SCROLL PROGRESS BAR ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+  z-index: 200;
+  transition: width .1s linear;
+}
+
+/* ── ACTIVE NAV STATE ── */
+.nav a.active { color: var(--gold); }
+
+/* ── PRESENT MODE ── */
+.present-btn {
+  margin-left: auto;
+  padding: 6px 20px;
+  background: var(--gold);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s;
+}
+.present-btn:hover { background: var(--gold-dark); }
+
+.present-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #0F0E0C;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.present-overlay.active { display: flex; }
+
+.present-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+  overflow-y: auto;
+}
+.present-slide.active-slide {
+  opacity: 1;
+  pointer-events: auto;
+}
+.present-slide .slide-content {
+  max-width: 1600px;
+  width: 100%;
+  background: var(--bg);
+  border-radius: 16px;
+  padding: 3.5rem;
+  box-shadow: 0 24px 64px rgba(0,0,0,.4);
+  transform-origin: center center;
+  overflow: hidden;
+}
+.slide-counter {
+  position: fixed;
+  bottom: 2rem;
+  right: 2.5rem;
+  font-size: .85rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.6);
+  z-index: 510;
+  display: none;
+  letter-spacing: .04em;
+}
+.present-overlay.active ~ .slide-counter,
+.slide-counter.visible { display: block; }
+
+/* ── ENHANCED REVEAL VARIANTS ── */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.reveal-stagger.visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Journey alternating entrance */
+.journey.reveal-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.journey.reveal-right {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.journey.reveal-left.visible,
+.journey.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── HERO ENTRANCE ── */
+@keyframes heroTitleIn {
+  from { opacity: 0; transform: scale(1.05); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes heroSubIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero.visible h1 {
+  animation: heroTitleIn .7s ease both;
+}
+.hero.visible .hero-sub {
+  animation: heroSubIn .6s ease .25s both;
+}
+
+/* ── SVG INTERACTIVITY ── */
+.flow-wrap svg rect,
+.flow-wrap svg polygon,
+.flow-wrap svg circle {
+  transition: filter .25s ease, opacity .25s ease, transform .25s ease;
+  cursor: pointer;
+}
+.flow-wrap svg rect:hover,
+.flow-wrap svg polygon:hover {
+  filter: drop-shadow(0 0 6px rgba(139,114,48,.4)) drop-shadow(0 0 14px rgba(139,114,48,.2));
+}
+.flow-wrap svg polygon:hover {
+  filter: drop-shadow(0 0 8px rgba(139,114,48,.5));
+}
+.flow-wrap svg .svg-dimmed { opacity: 0.15 !important; }
+.flow-wrap svg .svg-highlight {
+  filter: drop-shadow(0 0 8px rgba(201,169,98,.45)) drop-shadow(0 0 16px rgba(37,99,235,.2));
+}
+
+/* Pulse for decision diamonds and DENIED on hover */
+@keyframes subtlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.flow-wrap svg polygon:hover,
+.flow-wrap svg rect.denied-box:hover {
+  animation: subtlePulse 1.2s ease infinite;
+}
+
+/* ── SVG DRAW-IN ── */
+.flow-wrap svg path,
+.flow-wrap svg line {
+  transition: stroke-dashoffset .8s ease;
+}
+
+/* ── CARD HOVER LIFT ── */
+.card,
+.vendor-card,
+.layer-card,
+.journey {
+  transition: box-shadow .25s ease, transform .25s ease;
+}
+.card:hover,
+.vendor-card:hover,
+.layer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── GRADIENT DIVIDERS ── */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* ── SUBTLE BODY GRAIN ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+
+/* ── FOOTER GOLD SEPARATOR ── */
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* ── HELP OVERLAY ── */
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(15,14,12,.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.help-overlay.active { display: flex; }
+.help-card {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 2rem 2.5rem;
+  box-shadow: var(--shadow-lg);
+  max-width: 380px;
+  width: 90%;
+}
+.help-card h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  color: var(--ink);
+}
+.help-card dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .5rem 1.25rem;
+}
+.help-card dt {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: monospace;
+  background: var(--surface);
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.help-card dd {
+  font-size: .9rem;
+  color: var(--ink-light);
+  margin: 0;
+  line-height: 1.8;
+}
+
+/* ── COUNT-UP (no visible change until JS fires) ── */
+.count-up { display: inline; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .container { padding: 0 1.5rem; }
+  .nav-inner { padding: 0 1.5rem; gap: 1.25rem; }
+  .hero { padding: 5rem 0 3rem; }
+  .section { padding: 3.5rem 0; }
+  .journey { padding: 1.5rem; margin: 1.5rem 0; }
+  .present-slide { padding: 1.5rem; }
+  .present-slide .slide-content { padding: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">PISTA</a>
+    <a href="#system" data-nav>01 System</a>
+    <a href="#journeys" data-nav>02 Journeys</a>
+    <a href="#crossbusiness" data-nav>03 Cross-Business</a>
+    <a href="#risks" data-nav>04 Discussion</a>
+    <button class="present-btn" id="presentBtn">Present</button>
+  </div>
+</div>
+
+<!-- PRESENT MODE OVERLAY -->
+<div class="present-overlay" id="presentOverlay"></div>
+<div class="slide-counter" id="slideCounter"></div>
+
+<!-- HERO -->
+<div class="container">
+<div class="hero reveal" data-slide-group="hero">
+  <div class="hero-label">Ecosystem Overview</div>
+  <h1>PISTA</h1>
+  <p class="hero-sub">A multi-business venue where padel, dining, wellness, and fitness operate under one roof — connected by a single guest platform powered by Sarnies.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CORE 01: SYSTEM -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section reveal" id="system">
+  <div data-slide-group="system-architecture">
+  <div class="section-label">Core 01</div>
+  <h2>System</h2>
+  <h3>Architecture</h3>
+
+  <div class="flow-wrap">
+    <svg viewBox="0 0 960 680" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif"
+      <defs>
+        <filter id="sh1" x="-4%" y="-6%" width="108%" height="118%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/><feOffset in="b" dy="2" result="o"/>
+          <feComponentTransfer in="o" result="s"><feFuncA type="linear" slope=".08"/></feComponentTransfer>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="sh1b" x="-3%" y="-5%" width="106%" height="116%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feOffset in="b" dy="3" result="o"/>
+          <feComponentTransfer in="o" result="s"><feFuncA type="linear" slope=".10"/></feComponentTransfer>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="gGold1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+        <linearGradient id="gBlue1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+        <linearGradient id="gGreen1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ECFDF5"/><stop offset="100%" stop-color="#D1FAE5"/></linearGradient>
+        <linearGradient id="gSurf1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+        <marker id="aGo1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+        <marker id="aGr1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#78716C"/></marker>
+        <marker id="aBl1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#3B82F6"/></marker>
+      </defs>
+
+      <!-- ── TIER 1: GUEST ── y=20..72 -->
+      <rect x="330" y="20" width="300" height="52" rx="26" fill="url(#gGreen1)" stroke="#34D399" stroke-width="2" filter="url(#sh1)"/>
+      <text x="480" y="42" text-anchor="middle" font-size="16" font-weight="700" fill="#15803D">Guests / Clients</text>
+      <text x="480" y="59" text-anchor="middle" font-size="12" font-weight="500" fill="#374151">One identity, one wristband, one experience</text>
+
+      <!-- ── ARROWS: Guest ↔ Platform ── -->
+      <line x1="472" y1="72" x2="472" y2="114" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)"/>
+      <line x1="488" y1="114" x2="488" y2="72" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)" opacity=".35"/>
+
+      <!-- ── TIER 2: SARNIES PLATFORM ── y=118..178 (height 60) -->
+      <rect x="80" y="118" width="800" height="60" rx="12" fill="url(#gGold1)" stroke="#8B7230" stroke-width="2" filter="url(#sh1b)"/>
+      <text x="480" y="143" text-anchor="middle" font-size="18" font-weight="800" fill="#5C4A1E" letter-spacing=".03em">Sarnies Platform</text>
+      <text x="480" y="165" text-anchor="middle" font-size="13" font-weight="600" fill="#6B5820">
+        <tspan>Identity</tspan><tspan dx="8" fill="#C4A855">&#183;</tspan><tspan dx="8">Sessions</tspan><tspan dx="8" fill="#C4A855">&#183;</tspan><tspan dx="8">Payments</tspan><tspan dx="8" fill="#C4A855">&#183;</tspan><tspan dx="8">Loyalty</tspan><tspan dx="8" fill="#C4A855">&#183;</tspan><tspan dx="8">Access</tspan><tspan dx="8" fill="#C4A855">&#183;</tspan><tspan dx="8">Accounting</tspan>
+      </text>
+
+      <!-- ── ARROWS + LABELS: Platform → Adapters ── y=178..280 -->
+      <!-- Each arrow has a label pill centered on it -->
+
+      <!-- Col 1: POS  x=100 -->
+      <line x1="100" y1="178" x2="100" y2="280" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)"/>
+      <rect x="48" y="218" width="104" height="24" rx="6" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1"/>
+      <text x="100" y="235" text-anchor="middle" font-size="12" font-weight="600" fill="#5C4A1E">Orders / Menus</text>
+
+      <!-- Col 2: Loyalty  x=280 -->
+      <line x1="280" y1="178" x2="280" y2="280" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)"/>
+      <rect x="230" y="218" width="100" height="24" rx="6" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1"/>
+      <text x="280" y="235" text-anchor="middle" font-size="12" font-weight="600" fill="#5C4A1E">Earn / Redeem</text>
+
+      <!-- Col 3: NFC  x=480 -->
+      <line x1="480" y1="178" x2="480" y2="280" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)"/>
+      <rect x="426" y="218" width="108" height="24" rx="6" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1"/>
+      <text x="480" y="235" text-anchor="middle" font-size="12" font-weight="600" fill="#5C4A1E">Identity / Access</text>
+
+      <!-- Col 4: Booking  x=670 -->
+      <line x1="670" y1="178" x2="670" y2="280" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)"/>
+      <rect x="628" y="218" width="84" height="24" rx="6" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1"/>
+      <text x="670" y="235" text-anchor="middle" font-size="12" font-weight="600" fill="#5C4A1E">Availability</text>
+
+      <!-- Col 5: Payments  x=860 -->
+      <line x1="860" y1="178" x2="860" y2="280" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo1)"/>
+      <rect x="808" y="218" width="104" height="24" rx="6" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1"/>
+      <text x="860" y="235" text-anchor="middle" font-size="12" font-weight="600" fill="#5C4A1E">Charge / Settle</text>
+
+      <!-- ── TIER 3: ADAPTER BOXES ── y=284..348 (height 64) -->
+      <!-- Each box: 172w, 64h. Title 14px bold, description 11px lighter. Generous padding. -->
+      <rect x="14" y="284" width="172" height="64" rx="10" fill="url(#gSurf1)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh1)"/>
+      <text x="100" y="310" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">POS Integration</text>
+      <text x="100" y="330" text-anchor="middle" font-size="11" font-weight="500" fill="#78716C">Orders &#183; Menus &#183; Inventory</text>
+
+      <rect x="194" y="284" width="172" height="64" rx="10" fill="url(#gSurf1)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh1)"/>
+      <text x="280" y="310" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Loyalty Engine</text>
+      <text x="280" y="330" text-anchor="middle" font-size="11" font-weight="500" fill="#78716C">Points &#183; Tiers &#183; Rewards</text>
+
+      <rect x="374" y="284" width="212" height="64" rx="10" fill="url(#gSurf1)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh1)"/>
+      <text x="480" y="310" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">NFC / QR Access</text>
+      <text x="480" y="330" text-anchor="middle" font-size="11" font-weight="500" fill="#78716C">Wristbands &#183; Readers &#183; Gates</text>
+
+      <rect x="594" y="284" width="152" height="64" rx="10" fill="url(#gSurf1)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh1)"/>
+      <text x="670" y="310" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Booking</text>
+      <text x="670" y="330" text-anchor="middle" font-size="11" font-weight="500" fill="#78716C">Courts &#183; Spa &#183; Classes</text>
+
+      <rect x="754" y="284" width="192" height="64" rx="10" fill="url(#gSurf1)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh1)"/>
+      <text x="850" y="310" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Payments</text>
+      <text x="850" y="330" text-anchor="middle" font-size="11" font-weight="500" fill="#78716C">Card &#183; PromptPay &#183; Settle</text>
+
+      <!-- Dashed cross-connections between adapters -->
+      <line x1="186" y1="316" x2="194" y2="316" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="366" y1="316" x2="374" y2="316" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="586" y1="316" x2="594" y2="316" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="746" y1="316" x2="754" y2="316" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- ── ACCOUNTING STRIP ── y=368..394 -->
+      <rect x="320" y="368" width="320" height="26" rx="6" fill="#FAF5E8" stroke="#D4C08A" stroke-width="1"/>
+      <text x="480" y="386" text-anchor="middle" font-size="11" font-weight="700" fill="#5C4A1E">ACCOUNTING &amp; REPORTING</text>
+      <text x="680" y="386" text-anchor="start" font-size="11" font-weight="500" fill="#8B8580">Transaction logs, reporting</text>
+
+      <!-- ── ARROWS: Adapters → Businesses ── y=348..420 -->
+      <path d="M100,348 C100,380 130,400 130,416" stroke="#78716C" stroke-width="2" fill="none" marker-end="url(#aGr1)"/>
+      <path d="M280,348 C280,380 330,400 330,416" stroke="#78716C" stroke-width="2" fill="none" marker-end="url(#aGr1)"/>
+      <path d="M480,394 C480,400 540,410 540,416" stroke="#78716C" stroke-width="2" fill="none" marker-end="url(#aGr1)"/>
+      <path d="M860,348 C860,380 780,400 780,416" stroke="#78716C" stroke-width="2" fill="none" marker-end="url(#aGr1)"/>
+
+      <!-- ── TIER 4: BUSINESSES ── y=420..484 (height 64) -->
+      <rect x="40" y="420" width="180" height="64" rx="12" fill="url(#gBlue1)" stroke="#60A5FA" stroke-width="2" filter="url(#sh1)"/>
+      <text x="130" y="448" text-anchor="middle" font-size="15" font-weight="700" fill="#1D4ED8">Padel Courts</text>
+      <text x="130" y="468" text-anchor="middle" font-size="12" font-weight="500" fill="#4B5563">6 courts</text>
+
+      <rect x="240" y="420" width="180" height="64" rx="12" fill="url(#gBlue1)" stroke="#60A5FA" stroke-width="2" filter="url(#sh1)"/>
+      <text x="330" y="448" text-anchor="middle" font-size="15" font-weight="700" fill="#1D4ED8">Sarnies Caf&#233;</text>
+      <text x="330" y="468" text-anchor="middle" font-size="12" font-weight="500" fill="#4B5563">F&amp;B</text>
+
+      <rect x="440" y="420" width="200" height="64" rx="12" fill="url(#gBlue1)" stroke="#60A5FA" stroke-width="2" filter="url(#sh1)"/>
+      <text x="540" y="448" text-anchor="middle" font-size="15" font-weight="700" fill="#1D4ED8">Renaissance Bar</text>
+      <text x="540" y="468" text-anchor="middle" font-size="12" font-weight="500" fill="#4B5563">Bar &amp; Lounge</text>
+
+      <rect x="660" y="420" width="200" height="64" rx="12" fill="url(#gBlue1)" stroke="#60A5FA" stroke-width="2" filter="url(#sh1)"/>
+      <text x="760" y="448" text-anchor="middle" font-size="15" font-weight="700" fill="#1D4ED8">Gym / MMA</text>
+      <text x="760" y="468" text-anchor="middle" font-size="12" font-weight="500" fill="#4B5563">Fitness</text>
+
+      <!-- Cross-business flow -->
+      <path d="M220,452 C228,452 232,452 240,452" stroke="#60A5FA" stroke-width="2" fill="none" marker-end="url(#aBl1)" stroke-dasharray="5,3"/>
+      <path d="M420,452 C430,452 434,452 440,452" stroke="#60A5FA" stroke-width="2" fill="none" marker-end="url(#aBl1)" stroke-dasharray="5,3"/>
+      <path d="M640,452 C648,452 652,452 660,452" stroke="#60A5FA" stroke-width="2" fill="none" marker-end="url(#aBl1)" stroke-dasharray="5,3"/>
+
+      <!-- ── BOTTOM TEXT ── y=510 -->
+      <text x="480" y="510" text-anchor="middle" font-size="13" font-weight="600" fill="#3B82F6" letter-spacing=".03em">Guests move freely between all businesses &#8212; one wristband, one tab</text>
+
+      <!-- Others pill -->
+      <rect x="370" y="526" width="220" height="30" rx="15" fill="none" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="480" y="546" text-anchor="middle" font-size="12" font-weight="600" fill="#6B7280">+ Wellness, Shops, Others</text>
+
+      <!-- ── LEGEND ── y=580..620 -->
+      <rect x="80" y="580" width="800" height="44" rx="8" fill="#FAFAF9" stroke="#D1D5DB" stroke-width="1"/>
+      <rect x="104" y="593" width="14" height="14" rx="3" fill="url(#gGold1)" stroke="#8B7230" stroke-width="1"/>
+      <text x="126" y="605" font-size="12" font-weight="600" fill="#5C4A1E">Sarnies Platform</text>
+      <rect x="256" y="593" width="14" height="14" rx="3" fill="url(#gBlue1)" stroke="#60A5FA" stroke-width="1"/>
+      <text x="278" y="605" font-size="12" font-weight="600" fill="#1D4ED8">Business Partner</text>
+      <rect x="408" y="593" width="14" height="14" rx="3" fill="url(#gGreen1)" stroke="#34D399" stroke-width="1"/>
+      <text x="430" y="605" font-size="12" font-weight="600" fill="#15803D">Guest / Client</text>
+      <line x1="548" y1="600" x2="580" y2="600" stroke="#78716C" stroke-width="2" marker-end="url(#aGr1)"/>
+      <text x="590" y="605" font-size="12" font-weight="600" fill="#4B5563">Data flow</text>
+      <line x1="670" y1="600" x2="702" y2="600" stroke="#60A5FA" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#aBl1)"/>
+      <text x="712" y="605" font-size="12" font-weight="600" fill="#3B82F6">Cross-business</text>
+    </svg>
+  </div>
+
+  </div><!-- end system-architecture slide -->
+
+  <div data-slide-group="system-plugin">
+  <h3>How a Business Plugs In</h3>
+  <p>Any business at the venue can partner up. They plug in and become part of the ecosystem instantly — gaining access to shared guests, loyalty, payments, and bookings.</p>
+
+  <div class="flow-wrap">
+    <svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+      <defs>
+        <filter id="sh2" x="-4%" y="-6%" width="108%" height="118%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/><feOffset in="b" dy="2" result="o"/>
+          <feComponentTransfer in="o" result="s"><feFuncA type="linear" slope=".08"/></feComponentTransfer>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="gGold2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+        <linearGradient id="gSurf2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+        <marker id="aGo2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+      </defs>
+
+      <!-- Phase labels -->
+      <text x="130" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#6B7280" letter-spacing=".12em">DAY 1</text>
+      <text x="420" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#6B5820" letter-spacing=".12em">WEEK 1&#8211;2</text>
+      <text x="700" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#6B5820" letter-spacing=".12em">WEEK 3+</text>
+
+      <!-- Step 1 -->
+      <rect x="20" y="30" width="220" height="60" rx="10" fill="url(#gSurf2)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh2)"/>
+      <circle cx="46" cy="50" r="14" fill="#1C1917"/>
+      <text x="46" y="54" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">1</text>
+      <text x="146" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="#1C1917">Sets Up Shop</text>
+      <text x="146" y="70" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Business opens at the venue</text>
+
+      <line x1="240" y1="60" x2="290" y2="60" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo2)"/>
+
+      <!-- Step 2 -->
+      <rect x="296" y="30" width="250" height="60" rx="10" fill="url(#gGold2)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh2)"/>
+      <circle cx="322" cy="50" r="14" fill="#5C4A1E"/>
+      <text x="322" y="54" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">2</text>
+      <text x="436" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Connects to Platform</text>
+      <text x="436" y="70" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Links POS, booking, payments</text>
+
+      <line x1="546" y1="60" x2="584" y2="60" stroke="#8B7230" stroke-width="2" marker-end="url(#aGo2)"/>
+
+      <!-- Step 3 -->
+      <rect x="590" y="30" width="220" height="60" rx="10" fill="url(#gGold2)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh2)"/>
+      <circle cx="616" cy="50" r="14" fill="#5C4A1E"/>
+      <text x="616" y="54" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">3</text>
+      <text x="716" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Ecosystem Live</text>
+      <text x="716" y="70" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Shared guests, loyalty, data</text>
+
+      <!-- Detail sub-box -->
+      <line x1="421" y1="90" x2="421" y2="118" stroke="#8B7230" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <rect x="256" y="122" width="330" height="44" rx="8" fill="url(#gSurf2)" stroke="#8B7230" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="421" y="142" text-anchor="middle" font-size="13" font-weight="600" fill="#5C4A1E">Adapter installed: POS, Booking, Payments</text>
+      <text x="421" y="158" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">Config, not code &#8212; plug and play</text>
+    </svg>
+  </div>
+
+  <h3>What the Sarnies Platform Covers</h3>
+  <p>The shared service layer. The Sarnies Platform facilitates and connects — every business at the venue benefits from:</p>
+
+  <div class="card-grid reveal-stagger">
+    <div class="card">
+      <h4>Guest Check-In</h4>
+      <p>One profile per guest across all businesses. Check-in, wristband assignment, session tracking from arrival to departure.</p>
+    </div>
+    <div class="card">
+      <h4>Bookings &amp; Scheduling</h4>
+      <p>Courts, spa sessions, gym classes, any reservable service. Guests book once, access with their wristband.</p>
+    </div>
+    <div class="card">
+      <h4>Tap Payments / POS Integration</h4>
+      <p>Guests tap to pay at any business. One tab, multiple vendors, settled at checkout. Bridges different POS systems seamlessly.</p>
+    </div>
+    <div class="card">
+      <h4>Loyalty</h4>
+      <p>Cross-business loyalty that connects all venues. Points, perks, tiers — the system that makes guests come back.</p>
+    </div>
+    <div class="card">
+      <h4>Access Rules</h4>
+      <p>Who goes where. Capacity limits. Age-based restrictions. Booking requirements. Platform-defined, hardware-enforced.</p>
+    </div>
+    <div class="card">
+      <h4>Accounting &amp; Reporting</h4>
+      <p>Unified transaction view. Each business partner sees their own data. Point exchange ledger, business reporting, audit trail.</p>
+    </div>
+  </div>
+
+  </div><!-- end system-plugin slide -->
+
+  <div data-slide-group="system-vendors">
+  <h3>Vendor Categories</h3>
+  <p>Vendors are components, not foundations. Grouped by function. Any can be replaced without affecting the core.</p>
+
+  <div class="vendor-card"><h4>1. Access &amp; Identity Hardware</h4><p>NFC wristbands, readers, gates, lockers. Any NFC-compatible hardware works — identity lives in the platform.</p></div>
+  <div class="vendor-card"><h4>2. Booking &amp; Scheduling</h4><p>Courts, spa, gym classes, any reservable service. Platform syncs via adapter — swapping the system changes the adapter, nothing else.</p></div>
+  <div class="vendor-card"><h4>3. Point of Sale</h4><p>Order management, kitchen display, inventory. Different businesses can use different POS systems — the platform bridges them.</p></div>
+  <div class="vendor-card"><h4>4. Payment Processing</h4><p>Card processing, PromptPay, pay-as-you-go. An API call away — switching providers is a config change.</p></div>
+  <div class="vendor-card"><h4>5. Loyalty / CRM</h4><p>Each business can run their own loyalty program. Optionally connects to the Sarnies Platform for cross-business rewards.</p></div>
+  <div class="vendor-card"><h4>6. Accounting &amp; Reporting</h4><p>Transaction logs, point exchange ledger, business reporting. Unified view across the ecosystem.</p></div>
+
+  </div><!-- end system-vendors slide -->
+
+  <div data-slide-group="system-feasibility">
+  <h3>Technical Feasibility</h3>
+  <p>Intentionally high-level. The purpose is to demonstrate the platform is buildable — not to define how.</p>
+
+  <div class="flow-wrap">
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+      <defs>
+        <filter id="sh3" x="-4%" y="-6%" width="108%" height="118%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/><feOffset in="b" dy="2" result="o"/>
+          <feComponentTransfer in="o" result="s"><feFuncA type="linear" slope=".08"/></feComponentTransfer>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="gGold3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+        <linearGradient id="gBlue3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+        <linearGradient id="gGreen3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ECFDF5"/><stop offset="100%" stop-color="#D1FAE5"/></linearGradient>
+        <marker id="aGr3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#78716C"/></marker>
+      </defs>
+
+      <!-- Guest -->
+      <rect x="300" y="10" width="260" height="48" rx="24" fill="url(#gGreen3)" stroke="#34D399" stroke-width="2" filter="url(#sh3)"/>
+      <text x="430" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#15803D">Guest</text>
+      <text x="430" y="46" text-anchor="middle" font-size="11" font-weight="500" fill="#374151">Mobile App + Wristband</text>
+
+      <line x1="430" y1="58" x2="430" y2="88" stroke="#78716C" stroke-width="2" marker-end="url(#aGr3)"/>
+      <text x="458" y="78" font-size="11" font-weight="600" fill="#6B7280">API / NFC</text>
+
+      <!-- Platform -->
+      <rect x="140" y="92" width="580" height="52" rx="10" fill="url(#gGold3)" stroke="#8B7230" stroke-width="2" filter="url(#sh3)"/>
+      <text x="430" y="113" text-anchor="middle" font-size="15" font-weight="700" fill="#5C4A1E">Sarnies Platform</text>
+      <text x="430" y="132" text-anchor="middle" font-size="11" font-weight="500" fill="#6B5820">Identity &#183; Sessions &#183; POS &#183; Loyalty &#183; Access &#183; Accounting</text>
+
+      <!-- Adapter labels + arrows -->
+      <line x1="270" y1="144" x2="270" y2="172" stroke="#78716C" stroke-width="1.5" marker-end="url(#aGr3)"/>
+      <text x="270" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="#6B7280">POS adapter</text>
+      <line x1="430" y1="144" x2="430" y2="172" stroke="#78716C" stroke-width="1.5" marker-end="url(#aGr3)"/>
+      <text x="430" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="#6B7280">Booking adapter</text>
+      <line x1="590" y1="144" x2="590" y2="172" stroke="#78716C" stroke-width="1.5" marker-end="url(#aGr3)"/>
+      <text x="590" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="#6B7280">Service adapter</text>
+
+      <!-- Adapter Layer bar -->
+      <rect x="180" y="178" width="500" height="22" rx="5" fill="none" stroke="#8B7230" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="430" y="193" text-anchor="middle" font-size="10" font-weight="700" fill="#8B7230" letter-spacing=".12em">ADAPTER LAYER</text>
+
+      <line x1="270" y1="200" x2="270" y2="224" stroke="#78716C" stroke-width="1.5" marker-end="url(#aGr3)"/>
+      <line x1="430" y1="200" x2="430" y2="224" stroke="#78716C" stroke-width="1.5" marker-end="url(#aGr3)"/>
+      <line x1="590" y1="200" x2="590" y2="224" stroke="#78716C" stroke-width="1.5" marker-end="url(#aGr3)"/>
+
+      <!-- Vendor boxes -->
+      <rect x="195" y="228" width="150" height="36" rx="8" fill="url(#gBlue3)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh3)"/>
+      <text x="270" y="250" text-anchor="middle" font-size="13" font-weight="600" fill="#1D4ED8">POS Systems</text>
+
+      <rect x="355" y="228" width="150" height="36" rx="8" fill="url(#gBlue3)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh3)"/>
+      <text x="430" y="250" text-anchor="middle" font-size="13" font-weight="600" fill="#1D4ED8">Booking System</text>
+
+      <rect x="515" y="228" width="150" height="36" rx="8" fill="url(#gBlue3)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh3)"/>
+      <text x="590" y="250" text-anchor="middle" font-size="13" font-weight="600" fill="#1D4ED8">Vendor Services</text>
+
+      <!-- Infra sidebar -->
+      <rect x="20" y="92" width="100" height="52" rx="8" fill="#FAFAF9" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="70" y="113" text-anchor="middle" font-size="12" font-weight="600" fill="#4B5563">Cloud</text>
+      <text x="70" y="130" text-anchor="middle" font-size="10" font-weight="400" fill="#9CA3AF">primary</text>
+
+      <rect x="20" y="156" width="100" height="32" rx="8" fill="#FAFAF9" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="70" y="176" text-anchor="middle" font-size="12" font-weight="600" fill="#4B5563">Local Server</text>
+
+      <line x1="120" y1="118" x2="140" y2="118" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="120" y1="172" x2="140" y2="144" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- Footer note -->
+      <text x="430" y="284" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280" font-style="italic">New business = new adapter. Swap a vendor = swap its adapter. Platform unchanged.</text>
+    </svg>
+  </div>
+
+  <div class="card-grid reveal-stagger">
+    <div class="card">
+      <h4>Guest Layer</h4>
+      <p>Mobile app + wristband. App for booking, viewing tab. Band for everything on-site.</p>
+    </div>
+    <div class="card">
+      <h4>Platform Core</h4>
+      <p>Identity, sessions, payments, loyalty, access, accounting. Cloud-hosted with local fallback.</p>
+    </div>
+    <div class="card">
+      <h4>Business Adapters</h4>
+      <p>Connectors to each business partner's systems. New business = new adapter, not new platform.</p>
+    </div>
+    <div class="card">
+      <h4>Hardware Layer</h4>
+      <p>NFC readers, gates, kiosks, lockers. Works offline. Staff override at every point.</p>
+    </div>
+  </div>
+
+  <h3>Offline Resilience</h3>
+  <ul>
+    <li><strong>Full connectivity:</strong> Everything real-time, cloud-synced.</li>
+    <li><strong>Internet down:</strong> Local server handles access, tabs, sessions. Syncs on reconnect.</li>
+    <li><strong>Power outage:</strong> Battery backup on critical readers. Lockers fail-open. Staff goes manual.</li>
+  </ul>
+
+  <h3>Mobile Apps (Conceptual)</h3>
+  <ul>
+    <li><strong>Guest app:</strong> Book courts, view tab, loyalty points, nudges, digital receipt.</li>
+    <li><strong>Staff app:</strong> Check-in, manage wristbands, override access, handle exceptions, live occupancy.</li>
+  </ul>
+  </div><!-- end system-feasibility slide -->
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CORE 02: CUSTOMER JOURNEY -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section reveal" id="journeys">
+  <div data-slide-group="journeys-intro">
+  <div class="section-label">Core 02</div>
+  <h2>Customer Journeys</h2>
+  </div>
+
+  <!-- JOURNEY 1: Café Walk-In (simplest) -->
+  <div class="journey reveal-left" data-slide-group="journey-1">
+    <div class="journey-header">
+      <span class="journey-num">01</span>
+      <span class="journey-title">Cafe Walk-In Becomes a Member</span>
+      <span class="tag tag-guest">Conversion</span>
+    </div>
+    <p class="journey-desc">How a casual cafe visitor discovers the ecosystem and converts into a regular.</p>
+
+    <div class="flow-wrap">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+        <defs>
+          <filter id="sh4" x="-8%" y="-8%" width="116%" height="124%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/><feOffset in="b" dx="0" dy="2" result="o"/>
+            <feComponentTransfer in="o" result="s"><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+            <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="gGold4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+          <linearGradient id="gBlue4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+          <linearGradient id="gGreen4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ECFDF5"/><stop offset="100%" stop-color="#D1FAE5"/></linearGradient>
+          <linearGradient id="gSurf4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+          <linearGradient id="gDiamond4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8EC"/><stop offset="100%" stop-color="#FFF0D4"/></linearGradient>
+          <marker id="aGr4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#4A4540"/></marker>
+          <marker id="aGn4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#15803D"/></marker>
+          <marker id="aGo4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+        </defs>
+
+        <!-- Stage labels -->
+        <text x="75" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280" letter-spacing=".12em">CASUAL</text>
+        <text x="280" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280" letter-spacing=".12em">INTERESTED</text>
+        <text x="660" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="#15803D" letter-spacing=".12em">CONVERTED</text>
+
+        <!-- Box 1: Coffee (blue) -->
+        <rect x="16" y="32" width="118" height="54" rx="10" fill="url(#gBlue4)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh4)"/>
+        <text x="75" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">Coffee</text>
+        <text x="75" y="69" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">No wristband</text>
+
+        <!-- Arrow 1→2 -->
+        <line x1="134" y1="59" x2="168" y2="59" stroke="#4A4540" stroke-width="1.5" marker-end="url(#aGr4)"/>
+
+        <!-- Box 2: Discovers PISTA (surface) -->
+        <rect x="176" y="32" width="168" height="54" rx="10" fill="url(#gSurf4)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh4)"/>
+        <text x="260" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Discovers PISTA</text>
+        <text x="260" y="69" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Sees courts, asks staff</text>
+
+        <!-- Arrow 2→diamond -->
+        <line x1="344" y1="59" x2="376" y2="59" stroke="#4A4540" stroke-width="1.5" marker-end="url(#aGr4)"/>
+
+        <!-- Decision Diamond: Wants to try? -->
+        <polygon points="430,14 486,59 430,104 374,59" fill="url(#gDiamond4)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh4)"/>
+        <text x="430" y="55" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Wants to</text>
+        <text x="430" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">try?</text>
+
+        <!-- YES arrow → right -->
+        <line x1="486" y1="59" x2="530" y2="59" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn4)"/>
+        <text x="508" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">YES</text>
+
+        <!-- NO arrow → down -->
+        <line x1="430" y1="104" x2="430" y2="152" stroke="#4A4540" stroke-width="1.5" marker-end="url(#aGr4)"/>
+        <text x="443" y="134" font-size="12" font-weight="700" fill="#6B7280">NO</text>
+
+        <!-- Leaves happy (small surface box) -->
+        <rect x="376" y="160" width="108" height="34" rx="8" fill="url(#gSurf4)" stroke="#D1D5DB" stroke-width="1.2"/>
+        <text x="430" y="181" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Leaves happy</text>
+
+        <!-- Box 3: Registers (gold) + PLATFORM label -->
+        <rect x="538" y="32" width="172" height="54" rx="10" fill="url(#gGold4)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh4)"/>
+        <text x="624" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Registers</text>
+        <text x="624" y="69" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Phone, email &#8594; profile</text>
+        <text x="624" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#5C4A1E" letter-spacing=".12em">PLATFORM</text>
+
+        <!-- Arrow 3→4 -->
+        <line x1="710" y1="59" x2="744" y2="59" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo4)"/>
+
+        <!-- Box 4: Returns (green) -->
+        <rect x="752" y="32" width="112" height="54" rx="10" fill="url(#gGreen4)" stroke="#34D399" stroke-width="1.5" filter="url(#sh4)"/>
+        <text x="808" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#15803D">Returns</text>
+        <text x="808" y="69" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Full wristband</text>
+
+        <!-- Arrow down to Loyalty pill -->
+        <line x1="808" y1="86" x2="808" y2="130" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo4)"/>
+
+        <!-- Loyalty Kicks In pill (gold) -->
+        <rect x="710" y="138" width="196" height="56" rx="28" fill="url(#gGold4)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh4)"/>
+        <text x="808" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Loyalty Kicks In</text>
+        <text x="808" y="178" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">3 visits &#8594; 10% off F&amp;B</text>
+
+        <!-- Vertical dashed conversion line -->
+        <line x1="530" y1="20" x2="530" y2="230" stroke="#15803D" stroke-width="2" stroke-dasharray="6,4" opacity=".4"/>
+        <text x="530" y="248" text-anchor="middle" font-size="10" font-weight="700" fill="#15803D" opacity=".75" letter-spacing=".14em">CONVERSION POINT</text>
+
+        <!-- Legend -->
+        <text x="20" y="280" font-size="12" fill="#6B7280" font-weight="400">
+          <tspan font-weight="700" fill="#8B7230">&#9670;</tspan><tspan dx="4">Decision point</tspan>
+          <tspan dx="16" font-weight="700" fill="#15803D">&#9472;&#9472;</tspan><tspan dx="4">Conversion boundary</tspan>
+        </text>
+      </svg>
+    </div>
+    <p class="journey-note">The cafe is the top of the funnel. Every walk-in is a potential ecosystem member. Registration is the conversion moment.</p>
+  </div>
+
+  <!-- JOURNEY 2: Saturday Morning (typical full visit) -->
+  <div class="journey reveal-right" data-slide-group="journey-2">
+    <div class="journey-header">
+      <span class="journey-num">02</span>
+      <span class="journey-title">Saturday Morning at PISTA</span>
+      <span class="tag tag-guest">Typical Guest</span>
+    </div>
+    <p class="journey-desc">Pre-booked padel player uses multiple services — showing how the tab accumulates and settles at checkout.</p>
+
+    <div class="flow-wrap">
+      <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+        <defs>
+          <filter id="sh5" x="-8%" y="-8%" width="116%" height="124%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/><feOffset in="b" dx="0" dy="2" result="o"/>
+            <feComponentTransfer in="o" result="s"><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+            <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="gGold5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+          <linearGradient id="gBlue5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+          <linearGradient id="gGreen5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ECFDF5"/><stop offset="100%" stop-color="#D1FAE5"/></linearGradient>
+          <linearGradient id="gSurf5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+          <marker id="aGo5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+          <marker id="aGr5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#4A4540"/></marker>
+          <marker id="aGr5L" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M8,0 L0,3 L8,6Z" fill="#4A4540"/></marker>
+        </defs>
+
+        <!-- ==================== ROW 1 (left to right) ==================== -->
+
+        <!-- Step 1: Arrives (green pill) -->
+        <rect x="10" y="36" width="100" height="44" rx="22" fill="#15803D" filter="url(#sh5)"/>
+        <text x="60" y="63" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Arrives</text>
+        <circle cx="20" cy="36" r="14" fill="#1C1917"/>
+        <text x="20" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">1</text>
+
+        <!-- Arrow 1→2 -->
+        <line x1="110" y1="58" x2="144" y2="58" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo5)"/>
+
+        <!-- Step 2: Check-In (gold, PLATFORM) -->
+        <rect x="152" y="28" width="162" height="60" rx="10" fill="url(#gGold5)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="233" y="50" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Check-In</text>
+        <text x="233" y="66" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">QR or name lookup</text>
+        <text x="233" y="102" text-anchor="middle" font-size="10" font-weight="700" fill="#5C4A1E" letter-spacing=".12em">PLATFORM</text>
+        <circle cx="164" cy="28" r="14" fill="#1C1917"/>
+        <text x="164" y="33" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">2</text>
+
+        <!-- Arrow 2→3 -->
+        <line x1="314" y1="58" x2="348" y2="58" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo5)"/>
+
+        <!-- Step 3: Wristband Issued (gold, PLATFORM) -->
+        <rect x="356" y="28" width="170" height="60" rx="10" fill="url(#gGold5)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="441" y="50" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Wristband Issued</text>
+        <text x="441" y="66" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">NFC band assigned</text>
+        <text x="441" y="102" text-anchor="middle" font-size="10" font-weight="700" fill="#5C4A1E" letter-spacing=".12em">PLATFORM</text>
+        <circle cx="368" cy="28" r="14" fill="#1C1917"/>
+        <text x="368" y="33" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">3</text>
+
+        <!-- Arrow 3→4 -->
+        <line x1="526" y1="58" x2="560" y2="58" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo5)"/>
+
+        <!-- Step 4: Plays Padel (blue, PADEL COURTS, 3 lines) -->
+        <rect x="568" y="20" width="190" height="86" rx="10" fill="url(#gBlue5)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="663" y="43" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Plays Padel</text>
+        <text x="663" y="59" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Tap at court gate</text>
+        <text x="663" y="75" text-anchor="middle" font-size="12" font-weight="700" fill="#8B7230">800 THB &#8594; tab</text>
+        <text x="663" y="120" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing=".12em">PADEL COURTS</text>
+        <circle cx="580" cy="20" r="14" fill="#1C1917"/>
+        <text x="580" y="25" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">4</text>
+        <!-- Running tab annotation -->
+        <rect x="770" y="50" width="120" height="26" rx="13" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1.2"/>
+        <text x="830" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="#5C4A1E">Running: 800</text>
+
+        <!-- ==================== DROP DOWN from Step 4 ==================== -->
+        <line x1="663" y1="106" x2="663" y2="148" stroke="#4A4540" stroke-width="1.5" marker-end="url(#aGr5)"/>
+
+        <!-- ==================== ROW 2 (right to left) ==================== -->
+
+        <!-- Step 5: Lunch at F&B (blue, F&B OUTLET, 3 lines) -->
+        <rect x="568" y="156" width="190" height="86" rx="10" fill="url(#gBlue5)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="663" y="179" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Lunch at F&amp;B</text>
+        <text x="663" y="195" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">QR order, wristband tap</text>
+        <text x="663" y="211" text-anchor="middle" font-size="12" font-weight="700" fill="#8B7230">450 THB &#8594; tab</text>
+        <text x="663" y="256" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing=".12em">F&amp;B OUTLET</text>
+        <circle cx="580" cy="156" r="14" fill="#1C1917"/>
+        <text x="580" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">5</text>
+        <!-- Running tab annotation -->
+        <rect x="770" y="186" width="130" height="26" rx="13" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1.2"/>
+        <text x="835" y="204" text-anchor="middle" font-size="12" font-weight="700" fill="#5C4A1E">Running: 1,250</text>
+
+        <!-- Arrow 5←6 (right to left) -->
+        <line x1="568" y1="199" x2="534" y2="199" stroke="#4A4540" stroke-width="1.5" marker-end="url(#aGr5L)"/>
+
+        <!-- Step 6: Wellness Spa (blue, WELLNESS, 3 lines) -->
+        <rect x="344" y="156" width="182" height="86" rx="10" fill="url(#gBlue5)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="435" y="179" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Wellness Spa</text>
+        <text x="435" y="195" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Tap in, session booked</text>
+        <text x="435" y="211" text-anchor="middle" font-size="12" font-weight="700" fill="#8B7230">1,200 THB &#8594; tab</text>
+        <text x="435" y="256" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing=".12em">WELLNESS</text>
+        <circle cx="356" cy="156" r="14" fill="#1C1917"/>
+        <text x="356" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">6</text>
+        <!-- Running tab annotation -->
+        <rect x="360" y="248" width="150" height="26" rx="13" fill="#FFF8EC" stroke="#E8DCC0" stroke-width="1.2"/>
+        <text x="435" y="266" text-anchor="middle" font-size="12" font-weight="700" fill="#5C4A1E">Running: 2,450</text>
+
+        <!-- Arrow 6←7 (right to left) -->
+        <line x1="344" y1="199" x2="310" y2="199" stroke="#4A4540" stroke-width="1.5" marker-end="url(#aGr5L)"/>
+
+        <!-- Step 7: Checkout (gold, PLATFORM, 3 lines) -->
+        <rect x="118" y="156" width="184" height="86" rx="10" fill="url(#gGold5)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="210" y="179" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Checkout</text>
+        <text x="210" y="195" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Tab settled, band returned</text>
+        <text x="210" y="211" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Locker opens, points earned</text>
+        <text x="210" y="256" text-anchor="middle" font-size="10" font-weight="700" fill="#5C4A1E" letter-spacing=".12em">PLATFORM</text>
+        <circle cx="130" cy="156" r="14" fill="#1C1917"/>
+        <text x="130" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">7</text>
+
+        <!-- ==================== Context text ==================== -->
+        <text x="480" y="300" text-anchor="middle" font-size="12" font-weight="400" fill="#374151" font-style="italic">Each tap adds to the guest&#8217;s running tab. Checkout settles all at once.</text>
+
+        <!-- Arrow from Checkout down into Tab Summary -->
+        <line x1="210" y1="242" x2="210" y2="318" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo5)"/>
+
+        <!-- ==================== TAB SUMMARY BOX ==================== -->
+        <rect x="60" y="322" width="840" height="220" rx="12" fill="url(#gSurf5)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh5)"/>
+        <text x="480" y="350" text-anchor="middle" font-size="14" font-weight="700" fill="#374151" letter-spacing=".05em">TAB SUMMARY &#8212; Where the charges go</text>
+
+        <!-- Total Tab box -->
+        <rect x="100" y="370" width="160" height="52" rx="10" fill="url(#gGold5)" stroke="#8B7230" stroke-width="1.5"/>
+        <text x="180" y="391" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Total Tab</text>
+        <text x="180" y="408" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">2,450 THB</text>
+
+        <!-- Arrows from total to splits -->
+        <path d="M260,386 C290,386 305,376 338,376" stroke="#4A4540" stroke-width="1.5" fill="none" marker-end="url(#aGr5)"/>
+        <path d="M260,396 C290,396 305,396 338,396" stroke="#4A4540" stroke-width="1.5" fill="none" marker-end="url(#aGr5)"/>
+        <path d="M260,406 C290,406 305,416 338,416" stroke="#4A4540" stroke-width="1.5" fill="none" marker-end="url(#aGr5)"/>
+
+        <!-- Split boxes -->
+        <rect x="346" y="362" width="196" height="28" rx="8" fill="url(#gBlue5)" stroke="#60A5FA" stroke-width="1.2"/>
+        <text x="444" y="381" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">Padel Courts &#8212; 800</text>
+
+        <rect x="346" y="396" width="196" height="28" rx="8" fill="url(#gBlue5)" stroke="#60A5FA" stroke-width="1.2"/>
+        <text x="444" y="415" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">F&amp;B Outlet &#8212; 450</text>
+
+        <rect x="346" y="430" width="196" height="28" rx="8" fill="url(#gBlue5)" stroke="#60A5FA" stroke-width="1.2"/>
+        <text x="444" y="449" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">Wellness Spa &#8212; 1,200</text>
+
+        <!-- Arrow splits → payment -->
+        <line x1="542" y1="396" x2="588" y2="396" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo5)"/>
+
+        <!-- Payment box -->
+        <rect x="596" y="370" width="190" height="52" rx="10" fill="url(#gGold5)" stroke="#8B7230" stroke-width="1.5"/>
+        <text x="691" y="391" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Charged to card</text>
+        <text x="691" y="408" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Card / PromptPay / cash</text>
+
+        <!-- Platform note -->
+        <text x="691" y="444" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Platform distributes revenue</text>
+        <text x="691" y="460" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">to each business automatically</text>
+      </svg>
+    </div>
+    <p class="journey-note">One guest, three businesses, one tab, one checkout. The platform tracks every charge and distributes to each business automatically.</p>
+  </div>
+
+  <!-- JOURNEY 3: Gym Regular -->
+  <div class="journey reveal-left" data-slide-group="journey-3">
+    <div class="journey-header">
+      <span class="journey-num">03</span>
+      <span class="journey-title">The Gym Regular</span>
+      <span class="tag tag-business">3rd Party</span>
+    </div>
+    <p class="journey-desc">How an independent business benefits from being on the platform without building anything themselves.</p>
+
+    <div class="flow-wrap">
+      <svg viewBox="0 0 880 280" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+        <defs>
+          <filter id="sh6" x="-8%" y="-8%" width="116%" height="124%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b1"/><feOffset in="b1" dx="0" dy="2" result="o1"/>
+            <feComponentTransfer in="o1" result="s1"><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+            <feMerge><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="gGold6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+          <linearGradient id="gBlue6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+          <linearGradient id="gSurf6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+          <marker id="aGr6" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#4A4540"/></marker>
+          <marker id="aGo6" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+        </defs>
+
+        <!-- Green pill: Gym Member -->
+        <rect x="10" y="20" width="120" height="58" rx="29" fill="#15803D" filter="url(#sh6)"/>
+        <text x="70" y="43" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Gym Member</text>
+        <text x="70" y="59" text-anchor="middle" font-size="12" font-weight="400" fill="#bbf7d0">Daily visit</text>
+
+        <!-- Arrow 1 -->
+        <line x1="134" y1="49" x2="168" y2="49" stroke="#57534E" stroke-width="1.5" marker-end="url(#aGr6)"/>
+
+        <!-- Box 1: Taps In (blue) -->
+        <rect x="174" y="20" width="140" height="58" rx="10" fill="url(#gBlue6)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh6)"/>
+        <text x="244" y="30" text-anchor="middle" font-size="10" font-weight="700" fill="#8B7230" letter-spacing=".12em">PLATFORM</text>
+        <text x="244" y="46" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Taps In</text>
+        <text x="244" y="62" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Membership OK</text>
+
+        <!-- Arrow 2 -->
+        <line x1="318" y1="49" x2="352" y2="49" stroke="#57534E" stroke-width="1.5" marker-end="url(#aGr6)"/>
+
+        <!-- Box 2: Works Out (blue) -->
+        <rect x="358" y="20" width="140" height="58" rx="10" fill="url(#gBlue6)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh6)"/>
+        <text x="428" y="30" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing=".12em">GYM</text>
+        <text x="428" y="46" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Works Out</text>
+        <text x="428" y="62" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Gym as normal</text>
+
+        <!-- Arrow 3 -->
+        <line x1="502" y1="49" x2="536" y2="49" stroke="#57534E" stroke-width="1.5" marker-end="url(#aGr6)"/>
+
+        <!-- Box 3: Protein Shake (blue) -->
+        <rect x="542" y="20" width="140" height="58" rx="10" fill="url(#gBlue6)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh6)"/>
+        <text x="612" y="30" text-anchor="middle" font-size="10" font-weight="700" fill="#8B7230" letter-spacing=".12em">PLATFORM</text>
+        <text x="612" y="46" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Protein Shake</text>
+        <text x="612" y="62" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Taps to pay</text>
+
+        <!-- Arrow 4 (gold) -->
+        <line x1="686" y1="49" x2="720" y2="49" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo6)"/>
+
+        <!-- Box 4: Earns Loyalty (gold, 3 text lines) -->
+        <rect x="726" y="14" width="144" height="72" rx="10" fill="url(#gGold6)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh6)"/>
+        <text x="798" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#8B7230" letter-spacing=".12em">PLATFORM</text>
+        <text x="798" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Earns Loyalty</text>
+        <text x="798" y="57" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Gym + cafe &#8594; pool</text>
+        <text x="798" y="72" text-anchor="middle" font-size="12" font-weight="400" fill="#8B7230">Cross-business points</text>
+
+        <!-- Down arrow to gold pill -->
+        <line x1="798" y1="90" x2="798" y2="124" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo6)"/>
+
+        <!-- Gold pill: 20 visits -->
+        <rect x="726" y="130" width="144" height="38" rx="19" fill="url(#gGold6)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh6)"/>
+        <text x="798" y="154" text-anchor="middle" font-size="13" font-weight="700" fill="#5C4A1E">20 visits &#8594; free pass</text>
+
+        <!-- Bottom legend boxes -->
+        <rect x="60" y="200" width="360" height="56" rx="10" fill="url(#gBlue6)" stroke="#60A5FA" stroke-width="1.5"/>
+        <text x="240" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">What Gym Built</text>
+        <text x="240" y="240" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Classes, equipment, memberships</text>
+
+        <rect x="440" y="200" width="360" height="56" rx="10" fill="url(#gGold6)" stroke="#8B7230" stroke-width="1.5"/>
+        <text x="620" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">What Sarnies Provides</text>
+        <text x="620" y="240" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Tap access, payments, cross-loyalty, analytics</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- JOURNEY 4: Family Visit -->
+  <div class="journey reveal-right" data-slide-group="journey-4">
+    <div class="journey-header">
+      <span class="journey-num">04</span>
+      <span class="journey-title">Family Visit</span>
+      <span class="tag tag-guest">Group</span>
+    </div>
+    <p class="journey-desc">Multiple people, one tab, different activities, access rules enforced automatically.</p>
+
+    <div class="flow-wrap">
+      <svg viewBox="0 0 880 460" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+        <defs>
+          <filter id="sh7" x="-8%" y="-8%" width="116%" height="124%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b1"/><feOffset in="b1" dx="0" dy="2" result="o1"/>
+            <feComponentTransfer in="o1" result="s1"><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+            <feMerge><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="gGold7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+          <linearGradient id="gBlue7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+          <linearGradient id="gRed7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF1F2"/><stop offset="100%" stop-color="#FFE4E6"/></linearGradient>
+          <linearGradient id="gSurf7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+          <marker id="aGo7" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+          <marker id="aGr7" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#4A4540"/></marker>
+        </defs>
+
+        <!-- ROW 1: Green pill + 2 gold boxes -->
+        <!-- Green pill: Family Arrives -->
+        <rect x="10" y="16" width="150" height="58" rx="29" fill="#15803D" filter="url(#sh7)"/>
+        <text x="85" y="39" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Family Arrives</text>
+        <text x="85" y="55" text-anchor="middle" font-size="12" font-weight="400" fill="#bbf7d0">Dad + Mom + 2 kids</text>
+
+        <!-- Arrow to Group Check-In -->
+        <line x1="164" y1="45" x2="198" y2="45" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo7)"/>
+
+        <!-- Gold box: Group Check-In -->
+        <rect x="204" y="16" width="160" height="58" rx="10" fill="url(#gGold7)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="284" y="39" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Group Check-In</text>
+        <text x="284" y="55" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Dad = lead, one card</text>
+
+        <!-- Arrow to 4 Wristbands -->
+        <line x1="368" y1="45" x2="402" y2="45" stroke="#8B7230" stroke-width="1.5" marker-end="url(#aGo7)"/>
+
+        <!-- Gold box: 4 Wristbands (tall, 3 lines incl red warning) -->
+        <rect x="408" y="8" width="200" height="86" rx="10" fill="url(#gGold7)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="508" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">4 Wristbands</text>
+        <text x="508" y="47" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Kids = child bands (limits)</text>
+        <text x="508" y="64" text-anchor="middle" font-size="11" font-weight="600" fill="#DC2626">Age-verified, spend-capped,</text>
+        <text x="508" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#DC2626">zone-restricted</text>
+
+        <!-- Split arrows from wristbands box down to 3 activity boxes -->
+        <path d="M460,94 C460,114 200,130 200,150" stroke="#57534E" stroke-width="1.5" fill="none" marker-end="url(#aGr7)"/>
+        <path d="M508,94 C508,114 440,130 440,150" stroke="#57534E" stroke-width="1.5" fill="none" marker-end="url(#aGr7)"/>
+        <path d="M556,94 C556,114 670,130 670,150" stroke="#57534E" stroke-width="1.5" fill="none" marker-end="url(#aGr7)"/>
+
+        <!-- ROW 2: Three activity boxes -->
+        <!-- Dad -> Padel (blue) -->
+        <rect x="120" y="156" width="160" height="58" rx="10" fill="url(#gBlue7)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="200" y="179" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Dad &#8594; Padel</text>
+        <text x="200" y="195" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Court access granted</text>
+
+        <!-- Mom -> Wellness (blue) -->
+        <rect x="360" y="156" width="160" height="58" rx="10" fill="url(#gBlue7)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="440" y="179" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Mom &#8594; Wellness</text>
+        <text x="440" y="195" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Spa session booked</text>
+
+        <!-- Kids -> Cafe (blue) -->
+        <rect x="590" y="156" width="160" height="58" rx="10" fill="url(#gBlue7)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="670" y="179" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Kids &#8594; Cafe</text>
+        <text x="670" y="195" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Snacks, spend cap active</text>
+
+        <!-- SYSTEM-ENFORCED label above diamond -->
+        <text x="670" y="236" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626" letter-spacing=".12em">SYSTEM-ENFORCED</text>
+
+        <!-- Arrow from Kids box down to diamond -->
+        <line x1="670" y1="214" x2="670" y2="244" stroke="#DC2626" stroke-width="1.5"/>
+
+        <!-- Diamond: 14-yr-old tries spa -->
+        <polygon points="670,250 710,278 670,306 630,278" fill="url(#gRed7)" stroke="#DC2626" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="670" y="274" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">14-yr-old</text>
+        <text x="670" y="287" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">tries spa</text>
+
+        <!-- Arrow from diamond right to DENIED -->
+        <line x1="714" y1="278" x2="762" y2="278" stroke="#DC2626" stroke-width="1.5"/>
+
+        <!-- DENIED box (red) -->
+        <rect x="768" y="264" width="80" height="28" rx="8" fill="url(#gRed7)" stroke="#F87171" stroke-width="1.5"/>
+        <text x="808" y="283" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">DENIED</text>
+
+        <!-- Converge dashed lines down to checkout bar -->
+        <line x1="200" y1="214" x2="200" y2="334" stroke="#57534E" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="440" y1="214" x2="440" y2="334" stroke="#57534E" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="670" y1="306" x2="670" y2="334" stroke="#57534E" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+        <!-- Gold checkout bar -->
+        <rect x="110" y="340" width="660" height="40" rx="10" fill="url(#gGold7)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh7)"/>
+        <text x="440" y="365" text-anchor="middle" font-size="13" font-weight="700" fill="#5C4A1E">Single Checkout &#8212; 4 bands, 3 businesses, Dad pays once</text>
+
+        <!-- Legend boxes -->
+        <rect x="110" y="400" width="210" height="44" rx="8" fill="url(#gRed7)" stroke="#FCA5A5" stroke-width="1.5"/>
+        <text x="215" y="418" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">System-Enforced</text>
+        <text x="215" y="433" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">NFC blocks at hardware level</text>
+
+        <rect x="335" y="400" width="210" height="44" rx="8" fill="url(#gGold7)" stroke="#8B7230" stroke-width="1.5"/>
+        <text x="440" y="418" text-anchor="middle" font-size="13" font-weight="700" fill="#5C4A1E">Platform-Managed</text>
+        <text x="440" y="433" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">Spend caps, zone rules in config</text>
+
+        <rect x="560" y="400" width="210" height="44" rx="8" fill="url(#gSurf7)" stroke="#D1D5DB" stroke-width="1.5"/>
+        <text x="665" y="418" text-anchor="middle" font-size="13" font-weight="700" fill="#374151">Auto-Denied</text>
+        <text x="665" y="433" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">Age-gated areas rejected automatically</text>
+      </svg>
+    </div>
+    <p class="journey-note">Discussion point: age-based access restrictions (e.g. minors denied spa/bar) can be configured per-business or venue-wide, enforced automatically via wristband type.</p>
+  </div>
+
+  <!-- JOURNEY 5: When Things Go Wrong -->
+  <div class="journey reveal-left" data-slide-group="journey-5">
+    <div class="journey-header">
+      <span class="journey-num">05</span>
+      <span class="journey-title">When Things Go Wrong</span>
+      <span class="tag tag-platform">Operations</span>
+    </div>
+    <p class="journey-desc">Every tech failure has a human fallback. The platform degrades gracefully.</p>
+
+    <div class="flow-wrap">
+      <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+        <defs>
+          <filter id="sh8" x="-8%" y="-8%" width="116%" height="124%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b1"/><feOffset in="b1" dx="0" dy="2" result="o1"/>
+            <feComponentTransfer in="o1" result="s1"><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+            <feMerge><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="gRed8" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF1F2"/><stop offset="100%" stop-color="#FFE4E6"/></linearGradient>
+          <linearGradient id="gGreen8" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ECFDF5"/><stop offset="100%" stop-color="#D1FAE5"/></linearGradient>
+          <linearGradient id="gSurf8" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+          <marker id="aGn8" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#15803D"/></marker>
+        </defs>
+
+        <!-- Column headers -->
+        <text x="120" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626" letter-spacing=".12em">PROBLEM</text>
+        <text x="430" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="#374151" letter-spacing=".12em">RESPONSE</text>
+        <text x="745" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="#15803D" letter-spacing=".12em">RESOLUTION</text>
+
+        <!-- ═══ ROW 1: Lost Wristband (LOW) ═══ -->
+        <rect x="10" y="30" width="220" height="56" rx="10" fill="url(#gRed8)" stroke="#F87171" stroke-width="1.5" filter="url(#sh8)"/>
+        <circle cx="30" cy="50" r="12" fill="#DC2626"/><text x="30" y="54" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">!</text>
+        <text x="130" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Lost Wristband</text>
+        <text x="130" y="64" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Can&#8217;t tap anywhere</text>
+        <rect x="192" y="33" width="34" height="16" rx="8" fill="#FCD34D"/>
+        <text x="209" y="44" text-anchor="middle" font-size="9" font-weight="700" fill="#78350F">LOW</text>
+
+        <line x1="234" y1="58" x2="298" y2="58" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="304" y="34" width="252" height="48" rx="10" fill="url(#gSurf8)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="430" y="54" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">Staff lookup &#8594; kill old band</text>
+        <text x="430" y="70" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">&#8594; issue new one</text>
+
+        <line x1="560" y1="58" x2="624" y2="58" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="630" y="42" width="130" height="32" rx="16" fill="url(#gGreen8)" stroke="#34D399" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="695" y="63" text-anchor="middle" font-size="13" font-weight="700" fill="#15803D">~2 min fix</text>
+
+        <!-- ═══ ROW 2: Tab Dispute (MED) ═══ -->
+        <rect x="10" y="102" width="220" height="56" rx="10" fill="url(#gRed8)" stroke="#F87171" stroke-width="1.5" filter="url(#sh8)"/>
+        <circle cx="30" cy="122" r="12" fill="#DC2626"/><text x="30" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">!</text>
+        <text x="130" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Tab Dispute</text>
+        <text x="130" y="136" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">&#8220;I didn&#8217;t order that&#8221;</text>
+        <rect x="189" y="105" width="37" height="16" rx="8" fill="#FB923C"/>
+        <text x="207" y="116" text-anchor="middle" font-size="9" font-weight="700" fill="#7C2D12">MED</text>
+
+        <line x1="234" y1="130" x2="298" y2="130" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="304" y="106" width="252" height="48" rx="10" fill="url(#gSurf8)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="430" y="126" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">Timestamped order log</text>
+        <text x="430" y="142" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">with location + band ID</text>
+
+        <line x1="560" y1="130" x2="624" y2="130" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="630" y="114" width="160" height="32" rx="16" fill="url(#gGreen8)" stroke="#34D399" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="710" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">Manager void</text>
+        <text x="710" y="141" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">~5 min review</text>
+
+        <!-- ═══ ROW 3: Power Outage (HIGH) ═══ -->
+        <rect x="10" y="174" width="220" height="56" rx="10" fill="url(#gRed8)" stroke="#F87171" stroke-width="1.5" filter="url(#sh8)"/>
+        <circle cx="30" cy="194" r="12" fill="#DC2626"/><text x="30" y="198" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">!</text>
+        <text x="130" y="192" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Power Outage</text>
+        <text x="130" y="208" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Systems go dark</text>
+        <rect x="187" y="177" width="40" height="16" rx="8" fill="#EF4444"/>
+        <text x="207" y="188" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">HIGH</text>
+
+        <line x1="234" y1="202" x2="298" y2="202" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="304" y="178" width="252" height="48" rx="10" fill="url(#gSurf8)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="430" y="198" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">Offline cache on readers,</text>
+        <text x="430" y="214" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">syncs on reconnect</text>
+
+        <line x1="560" y1="202" x2="624" y2="202" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="630" y="186" width="170" height="32" rx="16" fill="url(#gGreen8)" stroke="#34D399" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="715" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">Manual fallback</text>
+        <text x="715" y="213" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">Auto + ~15 min</text>
+
+        <!-- ═══ ROW 4: Walk-Out (LOW) ═══ -->
+        <rect x="10" y="246" width="220" height="56" rx="10" fill="url(#gRed8)" stroke="#F87171" stroke-width="1.5" filter="url(#sh8)"/>
+        <circle cx="30" cy="266" r="12" fill="#DC2626"/><text x="30" y="270" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">!</text>
+        <text x="130" y="264" text-anchor="middle" font-size="14" font-weight="700" fill="#374151">Walk-Out</text>
+        <text x="130" y="280" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">No checkout after 30m</text>
+        <rect x="192" y="249" width="34" height="16" rx="8" fill="#FCD34D"/>
+        <text x="209" y="260" text-anchor="middle" font-size="9" font-weight="700" fill="#78350F">LOW</text>
+
+        <line x1="234" y1="274" x2="298" y2="274" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="304" y="250" width="252" height="48" rx="10" fill="url(#gSurf8)" stroke="#D1D5DB" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="430" y="270" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">Auto-settle tab, deactivate band,</text>
+        <text x="430" y="286" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">send receipt</text>
+
+        <line x1="560" y1="274" x2="624" y2="274" stroke="#15803D" stroke-width="1.5" marker-end="url(#aGn8)"/>
+
+        <rect x="630" y="258" width="170" height="32" rx="16" fill="url(#gGreen8)" stroke="#34D399" stroke-width="1.5" filter="url(#sh8)"/>
+        <text x="715" y="272" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">Auto-resolved</text>
+        <text x="715" y="285" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">after 30 min</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CORE 03: CROSS-BUSINESS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section reveal" id="crossbusiness">
+  <div data-slide-group="crossbusiness-intro">
+  <div class="section-label">Core 03</div>
+  <h2>Cross-Business</h2>
+  <p>The moat. What makes the ecosystem sticky and what no single vendor can replicate. A 3-layer loyalty model where every business can participate at the level that suits them.</p>
+  </div>
+
+  <div data-slide-group="crossbusiness-diagram">
+  <h3>3-Layer Loyalty Model</h3>
+
+  <div class="flow-wrap">
+    <svg viewBox="0 0 880 720" xmlns="http://www.w3.org/2000/svg" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+      <defs>
+        <filter id="sh9" x="-8%" y="-8%" width="116%" height="124%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b1"/><feOffset in="b1" dx="0" dy="2" result="o1"/>
+          <feComponentTransfer in="o1" result="s1"><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+          <feMerge><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="gGold9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAF5E8"/><stop offset="100%" stop-color="#F0E8D0"/></linearGradient>
+        <linearGradient id="gBlue9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0F6FF"/><stop offset="100%" stop-color="#DBEAFE"/></linearGradient>
+        <linearGradient id="gGreen9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ECFDF5"/><stop offset="100%" stop-color="#D1FAE5"/></linearGradient>
+        <linearGradient id="gSurf9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEFEFE"/><stop offset="100%" stop-color="#F5F4F2"/></linearGradient>
+        <linearGradient id="gDiamond9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8EC"/><stop offset="100%" stop-color="#FFF0D4"/></linearGradient>
+        <linearGradient id="gRed9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF1F2"/><stop offset="100%" stop-color="#FFE4E6"/></linearGradient>
+        <marker id="aGn9" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#34D399"/></marker>
+        <marker id="aBl9" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#60A5FA"/></marker>
+        <marker id="aGo9" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#8B7230"/></marker>
+        <marker id="aRd9" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#DC2626"/></marker>
+      </defs>
+
+      <!-- ====== LAYER 1: OWN LOYALTY (y 0..90) ====== -->
+      <text x="24" y="16" font-size="10" font-weight="700" fill="#374151" letter-spacing=".12em">LAYER 1 &#8212; OWN LOYALTY</text>
+      <text x="24" y="30" font-size="12" font-weight="400" fill="#6B7280">(per business, simple, no cross-accounting)</text>
+
+      <!-- 5 blue boxes in a row -->
+      <rect x="24" y="42" width="130" height="40" rx="8" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="89" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">Padel Courts</text>
+      <text x="89" y="71" text-anchor="middle" font-size="10" font-weight="400" fill="#6B7280">Padel Points</text>
+
+      <rect x="170" y="42" width="130" height="40" rx="8" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="235" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">F&amp;B Outlet</text>
+      <text x="235" y="71" text-anchor="middle" font-size="10" font-weight="400" fill="#6B7280">F&amp;B Points</text>
+
+      <rect x="316" y="42" width="130" height="40" rx="8" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="381" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">Gym / MMA</text>
+      <text x="381" y="71" text-anchor="middle" font-size="10" font-weight="400" fill="#6B7280">Gym Points</text>
+
+      <rect x="462" y="42" width="130" height="40" rx="8" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="527" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">Wellness</text>
+      <text x="527" y="71" text-anchor="middle" font-size="10" font-weight="400" fill="#6B7280">Spa Points</text>
+
+      <rect x="608" y="42" width="130" height="40" rx="8" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="673" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">Bar</text>
+      <text x="673" y="71" text-anchor="middle" font-size="10" font-weight="400" fill="#6B7280">Bar Points</text>
+
+      <!-- Annotation -->
+      <text x="776" y="58" font-size="12" font-weight="400" fill="#6B7280" font-style="italic">Each runs</text>
+      <text x="776" y="72" font-size="12" font-weight="400" fill="#6B7280" font-style="italic">independently</text>
+
+      <!-- Separator -->
+      <line x1="24" y1="98" x2="856" y2="98" stroke="#D1D5DB" stroke-width="1" stroke-dasharray="6,4"/>
+
+      <!-- ====== LAYER 2: WELCOME GIFTS (y 100..390) ====== -->
+      <text x="24" y="120" font-size="10" font-weight="700" fill="#15803D" letter-spacing=".12em">LAYER 2 &#8212; WELCOME GIFTS</text>
+      <text x="24" y="134" font-size="12" font-weight="400" fill="#6B7280">(ecosystem-wide, every registered guest gets perks)</text>
+
+      <!-- Central green pill -->
+      <rect x="280" y="148" width="320" height="48" rx="24" fill="url(#gGreen9)" stroke="#34D399" stroke-width="2" filter="url(#sh9)"/>
+      <text x="440" y="167" text-anchor="middle" font-size="14" font-weight="700" fill="#15803D">Guest Registers at PISTA</text>
+      <text x="440" y="183" text-anchor="middle" font-size="12" font-weight="400" fill="#374151">Platform distributes welcome offers</text>
+
+      <!-- Fan-out arrows from pill bottom to 5 gift boxes -->
+      <path d="M310,196 C270,196 170,214 110,230" stroke="#15803D" stroke-width="1.5" fill="none" marker-end="url(#aGn9)"/>
+      <path d="M370,196 C350,210 310,222 296,230" stroke="#15803D" stroke-width="1.5" fill="none" marker-end="url(#aGn9)"/>
+      <path d="M440,196 L440,230" stroke="#15803D" stroke-width="1.5" fill="none" marker-end="url(#aGn9)"/>
+      <path d="M510,196 C530,210 570,222 584,230" stroke="#15803D" stroke-width="1.5" fill="none" marker-end="url(#aGn9)"/>
+      <path d="M570,196 C610,196 710,214 770,230" stroke="#15803D" stroke-width="1.5" fill="none" marker-end="url(#aGn9)"/>
+
+      <!-- 5 welcome gift boxes -->
+      <rect x="40" y="234" width="140" height="34" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="110" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">10% off first game</text>
+
+      <rect x="226" y="234" width="140" height="34" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="296" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">Free coffee on visit 1</text>
+
+      <rect x="380" y="234" width="120" height="34" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="440" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">Free trial class</text>
+
+      <rect x="514" y="234" width="140" height="34" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="584" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">15% off first session</text>
+
+      <rect x="700" y="234" width="140" height="34" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="770" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">Welcome drink</text>
+
+      <!-- Italic note -->
+      <text x="440" y="290" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280" font-style="italic">Each business absorbs their own welcome perk cost</text>
+
+      <!-- Sub-header: HOW WELCOME GIFTS GET REDEEMED -->
+      <path d="M440,298 L440,310" stroke="#15803D" stroke-width="1" fill="none" stroke-dasharray="3,2"/>
+      <text x="440" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#374151" letter-spacing=".12em">HOW WELCOME GIFTS GET REDEEMED</text>
+
+      <!-- 4-step horizontal flow -->
+      <rect x="60" y="340" width="168" height="42" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="144" y="356" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">1. Registration</text>
+      <text x="144" y="370" text-anchor="middle" font-size="10" font-weight="400" fill="#374151">Guest signs up at PISTA</text>
+
+      <path d="M228,361 L268,361" stroke="#8B7230" stroke-width="1.5" fill="none" marker-end="url(#aGo9)"/>
+
+      <rect x="276" y="340" width="168" height="42" rx="8" fill="url(#gGold9)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="360" y="356" text-anchor="middle" font-size="12" font-weight="700" fill="#5C4A1E">2. Push Notification</text>
+      <text x="360" y="370" text-anchor="middle" font-size="10" font-weight="400" fill="#374151">Offers sent to guest app</text>
+
+      <path d="M444,361 L484,361" stroke="#8B7230" stroke-width="1.5" fill="none" marker-end="url(#aGo9)"/>
+
+      <rect x="492" y="340" width="168" height="42" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="576" y="356" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">3. Guest Opens App</text>
+      <text x="576" y="370" text-anchor="middle" font-size="10" font-weight="400" fill="#374151">Views available perks</text>
+
+      <path d="M660,361 L700,361" stroke="#8B7230" stroke-width="1.5" fill="none" marker-end="url(#aGo9)"/>
+
+      <rect x="708" y="340" width="130" height="42" rx="8" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="773" y="356" text-anchor="middle" font-size="12" font-weight="700" fill="#1D4ED8">4. Redeem</text>
+      <text x="773" y="370" text-anchor="middle" font-size="10" font-weight="400" fill="#374151">At any venue</text>
+
+      <!-- Separator -->
+      <line x1="24" y1="400" x2="856" y2="400" stroke="#D1D5DB" stroke-width="1" stroke-dasharray="6,4"/>
+
+      <!-- ====== LAYER 3: COLLAB EXCHANGE (y 400..700) ====== -->
+      <text x="24" y="424" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing=".12em">LAYER 3 &#8212; COLLAB EXCHANGE</text>
+      <text x="24" y="438" font-size="12" font-weight="400" fill="#6B7280">(optional cross-deals between specific businesses)</text>
+
+      <!-- OPTIONAL badge -->
+      <rect x="760" y="416" width="74" height="20" rx="10" fill="none" stroke="#60A5FA" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="797" y="430" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing=".06em">OPTIONAL</text>
+
+      <!-- Main flow: Padel -> Sarnies Exchange -> F&B -->
+      <rect x="40" y="456" width="170" height="48" rx="10" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="125" y="474" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">Padel Courts</text>
+      <text x="125" y="490" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">&#8220;Show 500 pts...&#8221;</text>
+
+      <path d="M210,480 L290,480" stroke="#60A5FA" stroke-width="1.5" fill="none" marker-end="url(#aBl9)"/>
+      <text x="250" y="472" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8">verify</text>
+
+      <rect x="298" y="452" width="224" height="56" rx="10" fill="url(#gGold9)" stroke="#8B7230" stroke-width="2" filter="url(#sh9)"/>
+      <text x="410" y="474" text-anchor="middle" font-size="14" font-weight="700" fill="#5C4A1E">Sarnies Exchange</text>
+      <text x="410" y="490" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">Validates points, applies benefit</text>
+
+      <path d="M522,480 L590,480" stroke="#60A5FA" stroke-width="1.5" fill="none" marker-end="url(#aBl9)"/>
+      <text x="556" y="472" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8">redeem</text>
+
+      <rect x="598" y="456" width="170" height="48" rx="10" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="683" y="474" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">F&amp;B Outlet</text>
+      <text x="683" y="490" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">&#8220;...get 20% off meal&#8221;</text>
+
+      <!-- Arrow down to decision diamond -->
+      <path d="M410,508 L410,530" stroke="#8B7230" stroke-width="1.5" fill="none" marker-end="url(#aGo9)"/>
+
+      <!-- Decision diamond -->
+      <polygon points="410,534 468,568 410,602 352,568" fill="url(#gDiamond9)" stroke="#8B7230" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="410" y="565" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">Points</text>
+      <text x="410" y="577" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">sufficient?</text>
+
+      <!-- YES arrow right -->
+      <path d="M468,568 L540,568" stroke="#15803D" stroke-width="1.5" fill="none" marker-end="url(#aGn9)"/>
+      <text x="504" y="560" text-anchor="middle" font-size="10" font-weight="700" fill="#15803D">YES</text>
+
+      <rect x="548" y="548" width="200" height="40" rx="8" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="648" y="563" text-anchor="middle" font-size="12" font-weight="700" fill="#15803D">20% off F&amp;B applied</text>
+      <text x="648" y="578" text-anchor="middle" font-size="10" font-weight="400" fill="#374151">Deducted from padel points</text>
+
+      <!-- NO arrow left -->
+      <path d="M352,568 L280,568" stroke="#DC2626" stroke-width="1.5" fill="none" marker-end="url(#aRd9)"/>
+      <text x="316" y="560" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">NO</text>
+
+      <rect x="80" y="548" width="192" height="40" rx="8" fill="url(#gRed9)" stroke="#F87171" stroke-width="1.5" filter="url(#sh9)"/>
+      <text x="176" y="563" text-anchor="middle" font-size="12" font-weight="700" fill="#DC2626">Need 50 more points</text>
+      <text x="176" y="578" text-anchor="middle" font-size="10" font-weight="400" fill="#374151">Shown in guest app</text>
+
+      <!-- Italic note -->
+      <text x="440" y="618" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280" font-style="italic">Like a credit card network: The platform provides the rails, doesn&#8217;t own the banks.</text>
+      <text x="440" y="634" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280" font-style="italic">Businesses settle between themselves.</text>
+
+      <!-- Credit card analogy legend -->
+      <rect x="100" y="650" width="680" height="58" rx="8" fill="url(#gSurf9)" stroke="#D1D5DB" stroke-width="1"/>
+      <text x="440" y="667" text-anchor="middle" font-size="10" font-weight="700" fill="#374151" letter-spacing=".12em">CREDIT CARD ANALOGY</text>
+
+      <!-- Sarnies = Visa -->
+      <rect x="120" y="678" width="120" height="22" rx="11" fill="url(#gGold9)" stroke="#8B7230" stroke-width="1"/>
+      <text x="180" y="693" text-anchor="middle" font-size="10" font-weight="700" fill="#5C4A1E">Sarnies = Visa</text>
+
+      <!-- Padel = Bank A -->
+      <rect x="264" y="678" width="120" height="22" rx="11" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1"/>
+      <text x="324" y="693" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8">Padel = Bank A</text>
+
+      <!-- F&B = Bank B -->
+      <rect x="408" y="678" width="120" height="22" rx="11" fill="url(#gBlue9)" stroke="#60A5FA" stroke-width="1"/>
+      <text x="468" y="693" text-anchor="middle" font-size="10" font-weight="700" fill="#1D4ED8">F&amp;B = Bank B</text>
+
+      <!-- Points = Currency -->
+      <rect x="552" y="678" width="130" height="22" rx="11" fill="url(#gGreen9)" stroke="#34D399" stroke-width="1"/>
+      <text x="617" y="693" text-anchor="middle" font-size="10" font-weight="700" fill="#15803D">Points = Currency</text>
+    </svg>
+  </div>
+
+  </div><!-- end crossbusiness-diagram slide -->
+
+  <!-- Layer descriptions as cards -->
+  <div data-slide-group="crossbusiness-layers">
+  <div class="layer-card">
+    <div class="layer-num">Layer 1</div>
+    <div class="layer-title">Own Loyalty (per business)</div>
+    <p>Each business runs its own points program. My customers earn my points, spend my points. Simple, no cross-business accounting needed. Optionally connect to the Sarnies Platform for cross-visibility.</p>
+  </div>
+
+  <div class="layer-card">
+    <div class="layer-num">Layer 2</div>
+    <div class="layer-title">Welcome Gifts (ecosystem-wide)</div>
+    <p>Every business agrees to give a standard welcome perk to any registered PISTA guest. 10% off first visit, free item, etc. Each business absorbs their own cost — it's their marketing spend for being in the ecosystem. The Sarnies Platform distributes the offer digitally on registration.</p>
+  </div>
+
+  <div class="layer-card">
+    <div class="layer-num">Layer 3</div>
+    <div class="layer-title">Collab Exchange (optional, between specific businesses)</div>
+    <p>Two businesses agree to a special cross-deal: "Show 500 padel points, get 20% off a meal." This needs a <strong>centralized exchange system</strong> — like a credit card network. Sarnies acts as the clearinghouse: validates points, applies the benefit. Businesses settle between themselves.</p>
+    <ul>
+      <li><strong>Sarnies provides the rails</strong> — it doesn't own the banks</li>
+      <li><strong>Each deal is opt-in</strong> — businesses negotiate terms directly</li>
+      <li><strong>Scalable</strong> — any two partners can create a collab at any time</li>
+    </ul>
+  </div>
+  </div><!-- end crossbusiness-layers slide -->
+
+  <div data-slide-group="crossbusiness-moat">
+  <h3>What Makes This Defensible</h3>
+  <p>Any venue can install wristband readers. Any cafe can run a POS. But a <strong>cross-business loyalty system</strong> that makes guests feel like the whole venue knows them — that's what keeps people coming back and what makes new businesses want to join.</p>
+
+  <h3>Future Scale</h3>
+  <p>Same loyalty works outside PISTA. Earn points here, spend at partner venues. Or another venue adopts the platform — their members join the same loyalty network.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 04: RISKS & OPEN QUESTIONS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section reveal" id="risks">
+  <div data-slide-group="risks">
+  <div class="section-label">04</div>
+  <h2>Discussion Points</h2>
+  <p style="color: var(--ink-muted); font-size: .95rem; margin-top: -.5rem;">Internal — for us to align on before the meeting.</p>
+
+  <h3>Known Risks</h3>
+  <div class="risk-item"><p><strong>Vendor dependency.</strong> If a POS or booking system changes terms, the platform is affected. Mitigation: the Sarnies Platform abstracts vendors — swapping one doesn't break the guest experience.</p></div>
+  <div class="risk-item"><p><strong>Hardware failure.</strong> Readers, gates, or kiosks go down. Mitigation: offline cache + manual staff override at every touchpoint.</p></div>
+  <div class="risk-item"><p><strong>Check-in bottleneck.</strong> 13 sqm check-in area. Peak Saturdays = 50+ arrivals in 30 min. Mitigation: self-service kiosk, pre-registration via app, staggered slots.</p></div>
+  <div class="risk-item"><p><strong>3rd party adoption.</strong> Getting operators to adopt requires clear value: more customers, less tech overhead, loyalty that drives repeats.</p></div>
+  <div class="risk-item"><p><strong>Data &amp; privacy.</strong> PDPA (Thailand) governs guest data. Consent required. Platform must handle cleanly.</p></div>
+  </div><!-- end risks slide -->
+
+  <div data-slide-group="risks-questions">
+  <h3>Open Questions</h3>
+  <div class="question-item"><p><strong>Payment model.</strong> Three supported options, each with different friction and fit:<br>
+    1. <strong>Pre-loaded credits</strong> — water park style, guest loads balance upfront<br>
+    2. <strong>Membership billing</strong> — gym style, recurring charge covers access<br>
+    3. <strong>Pay-as-you-go</strong> — tap and charge directly at each touchpoint</p></div>
+  <div class="question-item"><p><strong>Wristband economics.</strong> Two sourcing paths:<br>
+    <strong>Reusable silicone:</strong> ~$1.20–3.50/unit at 1,000+ qty (ShopNFC, RFIDSilicone). Premium feel, needs sanitization + inventory management.<br>
+    <strong>Disposable Tyvek/fabric:</strong> ~$0.50–1.25/unit (NFCntag, Tagstand). Simpler ops, less premium, higher ongoing cost.</p></div>
+  <div class="question-item"><p><strong>Minors &amp; children.</strong> Do kids under 12 get wristbands? What zones are restricted? Age-based access can be configured per-business (e.g. bar, spa) or venue-wide. Discussion point — not a hard rule yet.</p></div>
+  </div><!-- end risks-questions slide -->
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  PISTA Ecosystem Overview — Internal
+</div>
+
+</div><!-- /container -->
+
+<!-- HELP OVERLAY -->
+<div class="help-overlay" id="helpOverlay">
+  <div class="help-card">
+    <h3>Keyboard Shortcuts</h3>
+    <dl>
+      <dt>P</dt><dd>Toggle Present Mode</dd>
+      <dt>&rarr; / Space</dt><dd>Next slide</dd>
+      <dt>&larr;</dt><dd>Previous slide</dd>
+      <dt>Esc</dt><dd>Exit Present Mode</dd>
+      <dt>?</dt><dd>Toggle this help</dd>
+    </dl>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ── SCROLL PROGRESS BAR ──
+  const progressBar = document.getElementById('scrollProgress');
+  function updateProgress() {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  // ── ACTIVE NAV TRACKER ──
+  const navLinks = document.querySelectorAll('.nav a[data-nav]');
+  const sections = document.querySelectorAll('.section[id], .hero');
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id || '';
+        navLinks.forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -50% 0px' });
+  sections.forEach(s => navObserver.observe(s));
+
+  // ── SMOOTH SCROLL ──
+  document.querySelectorAll('.nav a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // ── SCROLL REVEAL (enhanced with stagger) ──
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // Stagger children if reveal-stagger
+        if (e.target.classList.contains('reveal-stagger')) {
+          Array.from(e.target.children).forEach((child, i) => {
+            child.style.transitionDelay = (i * 80) + 'ms';
+          });
+          // Force reflow then add visible
+          void e.target.offsetHeight;
+        }
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal, .reveal-stagger, .reveal-left, .reveal-right').forEach(el => revealObserver.observe(el));
+
+  // ── SVG DRAW-IN ANIMATION ──
+  const flowObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const svg = entry.target.querySelector('svg');
+        if (!svg || svg.dataset.drawn) return;
+        svg.dataset.drawn = '1';
+        // Animate paths via stroke-dashoffset
+        svg.querySelectorAll('path, line').forEach(p => {
+          const len = p.getTotalLength ? p.getTotalLength() : 200;
+          p.style.strokeDasharray = len;
+          p.style.strokeDashoffset = len;
+          requestAnimationFrame(() => {
+            p.style.strokeDashoffset = '0';
+          });
+        });
+        // Scale-in boxes
+        svg.querySelectorAll('rect, polygon').forEach((el, i) => {
+          el.style.transform = 'scale(0.96)';
+          el.style.opacity = '0.6';
+          el.style.transition = `transform .5s ease ${i * 30}ms, opacity .5s ease ${i * 30}ms, filter .25s ease`;
+          requestAnimationFrame(() => {
+            el.style.transform = 'scale(1)';
+            el.style.opacity = '1';
+          });
+        });
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.flow-wrap').forEach(fw => flowObserver.observe(fw));
+
+  // ── SVG CLICK HIGHLIGHT ──
+  document.querySelectorAll('.flow-wrap svg').forEach(svg => {
+    svg.addEventListener('click', e => {
+      const target = e.target.closest('rect, polygon, circle');
+      const allEls = svg.querySelectorAll('rect, polygon, circle, path, line, text');
+      if (!target || target.tagName === 'svg') {
+        // Click away — reset
+        allEls.forEach(el => {
+          el.classList.remove('svg-dimmed', 'svg-highlight');
+        });
+        return;
+      }
+      // Dim everything, highlight clicked + its connected elements
+      allEls.forEach(el => el.classList.add('svg-dimmed'));
+      target.classList.remove('svg-dimmed');
+      target.classList.add('svg-highlight');
+      // Un-dim text inside or near the clicked element
+      const parent = target.parentElement;
+      if (parent) {
+        parent.querySelectorAll('text').forEach(t => t.classList.remove('svg-dimmed'));
+      }
+      // Un-dim sibling texts that share approximate position
+      svg.querySelectorAll('text').forEach(t => {
+        const tx = parseFloat(t.getAttribute('x')) || 0;
+        const ty = parseFloat(t.getAttribute('y')) || 0;
+        const rx = parseFloat(target.getAttribute('x') || target.getAttribute('cx')) || 0;
+        const ry = parseFloat(target.getAttribute('y') || target.getAttribute('cy')) || 0;
+        const w = parseFloat(target.getAttribute('width')) || 60;
+        const h = parseFloat(target.getAttribute('height')) || 60;
+        if (tx >= rx - 10 && tx <= rx + w + 10 && ty >= ry - 10 && ty <= ry + h + 10) {
+          t.classList.remove('svg-dimmed');
+        }
+      });
+    });
+  });
+
+  // ── NUMBER COUNT-UP (Tab Summary) ──
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const svg = entry.target.querySelector('svg');
+      if (!svg || svg.dataset.counted) return;
+      svg.dataset.counted = '1';
+      svg.querySelectorAll('text').forEach(t => {
+        const text = t.textContent;
+        const match = text.match(/([\d,]+)\s*THB/);
+        if (match) {
+          const target = parseInt(match[1].replace(/,/g, ''), 10);
+          const prefix = text.split(match[1])[0];
+          const suffix = text.split(match[1])[1];
+          let start = 0;
+          const duration = 800;
+          const startTime = performance.now();
+          function tick(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(eased * target);
+            t.textContent = prefix + current.toLocaleString() + suffix;
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }
+      });
+    });
+  }, { threshold: 0.3 });
+  // Observe the journey-2 flow wraps (Tab Summary is in journey 2)
+  document.querySelectorAll('[data-slide-group="journey-2"] .flow-wrap').forEach(fw => countObserver.observe(fw));
+
+  // ── PRESENT MODE ──
+  const overlay = document.getElementById('presentOverlay');
+  const counter = document.getElementById('slideCounter');
+  const slideGroups = document.querySelectorAll('[data-slide-group]');
+  let slides = [];
+  let currentSlide = 0;
+  let presenting = false;
+
+  function buildSlides() {
+    overlay.innerHTML = '';
+    slides = [];
+    slideGroups.forEach(group => {
+      const slide = document.createElement('div');
+      slide.className = 'present-slide';
+      const content = document.createElement('div');
+      content.className = 'slide-content';
+      content.appendChild(group.cloneNode(true));
+      // Ensure cloned reveals are visible
+      content.querySelectorAll('.reveal, .reveal-stagger, .reveal-left, .reveal-right').forEach(el => {
+        el.classList.add('visible');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      content.querySelectorAll('.reveal-stagger > *').forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      // Make SVG paths visible in slides
+      content.querySelectorAll('path, line').forEach(p => {
+        p.style.strokeDashoffset = '0';
+        p.style.strokeDasharray = 'none';
+      });
+      content.querySelectorAll('rect, polygon').forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      slide.appendChild(content);
+      overlay.appendChild(slide);
+      slides.push(slide);
+    });
+  }
+
+  function scaleSlide(slide) {
+    const content = slide.querySelector('.slide-content');
+    if (!content) return;
+    // Reset scale first to measure natural size
+    content.style.transform = 'scale(1)';
+    const pad = 80; // padding around the card
+    const maxW = window.innerWidth - pad;
+    const maxH = window.innerHeight - pad;
+    const naturalW = content.scrollWidth;
+    const naturalH = content.scrollHeight;
+    const scaleX = maxW / naturalW;
+    const scaleY = maxH / naturalH;
+    const scale = Math.min(1, scaleX, scaleY);
+    content.style.transform = 'scale(' + scale + ')';
+  }
+
+  function goToSlide(i) {
+    currentSlide = Math.max(0, Math.min(i, slides.length - 1));
+    slides.forEach((s, idx) => s.classList.toggle('active-slide', idx === currentSlide));
+    counter.textContent = (currentSlide + 1) + ' / ' + slides.length;
+    // Scale active slide to fit
+    requestAnimationFrame(() => scaleSlide(slides[currentSlide]));
+  }
+
+  function enterPresent() {
+    buildSlides();
+    presenting = true;
+    overlay.classList.add('active');
+    counter.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+    goToSlide(0);
+  }
+
+  function exitPresent() {
+    presenting = false;
+    overlay.classList.remove('active');
+    counter.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('presentBtn').addEventListener('click', () => {
+    presenting ? exitPresent() : enterPresent();
+  });
+
+  window.addEventListener('resize', () => {
+    if (presenting && slides[currentSlide]) scaleSlide(slides[currentSlide]);
+  });
+
+  document.addEventListener('keydown', e => {
+    // Help overlay toggle
+    if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+      e.preventDefault();
+      document.getElementById('helpOverlay').classList.toggle('active');
+      return;
+    }
+
+    if (presenting) {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        goToSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToSlide(currentSlide - 1);
+      } else if (e.key === 'Escape') {
+        exitPresent();
+      }
+    }
+
+    if (e.key === 'p' || e.key === 'P') {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      presenting ? exitPresent() : enterPresent();
+    }
+  });
+
+  // Close help on click outside card
+  document.getElementById('helpOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -7,10 +7,12 @@
 export type UserType = 'customer' | 'employee' | 'staff' | 'admin' | 'investor' | 'media';
 
 // Valid user types that can access the main app (/app/*)
-export const APP_USER_TYPES: UserType[] = ['customer', 'employee', 'staff'];
+// Note: staff should NOT access /app/* - they use /staff/* portal
+export const APP_USER_TYPES: UserType[] = ['customer', 'employee'];
 
 // User types that can access staff routes (/staff/*)
-export const STAFF_USER_TYPES: UserType[] = ['staff', 'employee', 'admin'];
+// Note: employees are customers with company benefits - they do NOT get staff access
+export const STAFF_USER_TYPES: UserType[] = ['staff', 'admin'];
 
 // User types that can access admin routes (/admin/*)
 export const ADMIN_USER_TYPES: UserType[] = ['admin'];
@@ -60,6 +62,7 @@ export const PUBLIC_ROUTES = [
   '/join',
   '/auth/verify',
   '/auth/verify-staff',
+  '/staff/login',
   '/staff/register',
   '/staff/forgot-password',
   '/staff/reset-password',

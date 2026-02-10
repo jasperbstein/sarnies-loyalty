@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import Modal from '@/components/Modal';
-import Button from '@/components/Button';
+import Button from '@/components/ui/Button';
 import { settingsAPI, transactionsAPI } from '@/lib/api';
 import { Settings as SettingsIcon, Edit2, Save, X, Database, Users, Receipt } from 'lucide-react';
 import toast from 'react-hot-toast';

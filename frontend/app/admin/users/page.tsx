@@ -510,8 +510,8 @@ function AdminUsersPageContent() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gradient-to-b from-[#F5F5F7] to-[#ECECEE] animate-macos-fade">
-        <div className="max-w-[1600px] mx-auto px-8 py-8">
+      <div className="min-h-screen admin-page animate-macos-fade">
+        <div className="admin-page-container">
           {/* Header */}
           <div className="admin-page-header mb-6">
             <div className="flex items-center gap-3">
@@ -645,35 +645,33 @@ function AdminUsersPageContent() {
 
           {/* Table Container */}
           <div className="admin-card overflow-hidden">
-            {/* Bulk actions */}
+            {/* Bulk actions - Glass Selection Bar */}
             {selectedUsers.length > 0 && (
-              <div className="bg-gradient-to-b from-[#2997FF] to-[#007AFF] text-white px-6 py-4 border-b border-[rgba(0,0,0,0.1)]">
-                <div className="flex items-center justify-between">
-                  <div className="text-[14px] font-semibold">
-                    {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="h-[36px] px-3 rounded-lg bg-white/20 hover:bg-white/30 text-[13px] font-medium transition-all flex items-center gap-2 backdrop-blur-sm">
-                      <Tag size={16} />
-                      Add Tags
-                    </button>
-                    <button className="h-[36px] px-3 rounded-lg bg-white/20 hover:bg-white/30 text-[13px] font-medium transition-all flex items-center gap-2 backdrop-blur-sm">
-                      <UserX size={16} />
-                      Disable
-                    </button>
-                    <button
-                      onClick={() => setSelectedUsers([])}
-                      className="h-[36px] px-3 rounded-lg bg-white/20 hover:bg-white/30 text-[13px] font-medium transition-all backdrop-blur-sm"
-                    >
-                      Clear
-                    </button>
-                  </div>
+              <div className="admin-bulk-action-bar mx-4 mt-4 flex items-center justify-between text-white">
+                <div className="text-[14px] font-semibold">
+                  {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="h-[36px] px-3 rounded-lg bg-white/20 hover:bg-white/30 text-[13px] font-medium transition-all flex items-center gap-2 backdrop-blur-sm">
+                    <Tag size={16} />
+                    Add Tags
+                  </button>
+                  <button className="h-[36px] px-3 rounded-lg bg-white/20 hover:bg-white/30 text-[13px] font-medium transition-all flex items-center gap-2 backdrop-blur-sm">
+                    <UserX size={16} />
+                    Disable
+                  </button>
+                  <button
+                    onClick={() => setSelectedUsers([])}
+                    className="h-[36px] px-3 rounded-lg bg-white/20 hover:bg-white/30 text-[13px] font-medium transition-all backdrop-blur-sm"
+                  >
+                    Clear
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* Table header */}
-            <div className="flex items-center h-[48px] px-4 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(246,246,246,0.6)] text-[11px] font-semibold uppercase tracking-[0.03em] text-[#86868b]">
+            {/* Table header - Glass effect */}
+            <div className="flex items-center h-[48px] px-4 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(250,247,242,0.7)] backdrop-blur-[8px] text-[11px] font-semibold uppercase tracking-[0.03em] text-[#86868b]">
               <div className="w-10 flex items-center">
                 <input
                   type="checkbox"

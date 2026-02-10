@@ -5,10 +5,20 @@ import AppLayout from "@/components/AppLayout";
 import { useTabSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useAuthStore } from "@/lib/store";
 import { usersAPI } from "@/lib/api";
-import VoucherInstanceCard from "@/components/VoucherInstanceCard";
 import QRModal from "@/components/QRModal";
 import toast from 'react-hot-toast';
-import { Plus, Gift, Minus } from 'lucide-react';
+import { Gift } from 'lucide-react';
+import { PullToRefresh } from '@/components/PullToRefresh';
+import { isEmployeeUser } from '@/lib/authUtils';
+
+/**
+ * ActivityPage - Transaction history and voucher activity
+ * Sarnies Design System v2.0
+ *
+ * Responsive breakpoints:
+ * - Mobile: < 768px (full width cards)
+ * - Tablet/Desktop: centered max-width container
+ */
 
 interface VoucherInstance {
   id: number;
@@ -28,16 +38,7 @@ interface VoucherInstance {
   voucher_type: string;
 }
 
-interface Transaction {
-  id: number;
-  type: 'earned' | 'redeemed' | 'adjusted';
-  points: number;
-  description: string;
-  location?: string;
-  created_at: string;
-}
-
-type FilterValue = 'all' | 'earned' | 'redeemed';
+type FilterValue = 'all' | 'active' | 'used';
 
 export default function ActivityPage() {
   const [filter, setFilter] = useState<FilterValue>("all");
@@ -75,6 +76,10 @@ export default function ActivityPage() {
     }
   };
 
+  const handleRefresh = async () => {
+    await fetchVoucherInstances();
+  };
+
   const handleVoucherClick = (instance: VoucherInstance) => {
     if (instance.computed_status === 'active') {
       setSelectedInstance(instance);
@@ -82,53 +87,31 @@ export default function ActivityPage() {
     }
   };
 
-  // Group transactions by date
-  const groupedTransactions = useMemo(() => {
-    // Convert voucher instances to transaction-like items
-    type TransactionItem = {
-      id: number;
-      type: 'earned' | 'redeemed';
-      points: number;
-      description: string;
-      location: string;
-      created_at: string;
-      instance: VoucherInstance;
-    };
+  // Group voucher instances by date
+  const groupedVouchers = useMemo(() => {
+    // Filter based on status
+    const filtered = filter === 'all' ? voucherInstances :
+      filter === 'active' ? voucherInstances.filter(v => v.computed_status === 'active') :
+      filter === 'used' ? voucherInstances.filter(v => v.computed_status === 'used' || v.computed_status === 'expired') :
+      voucherInstances;
 
-    const items: TransactionItem[] = voucherInstances.map(v => ({
-      id: v.id,
-      type: 'redeemed' as const,
-      points: -v.points_required,
-      description: v.title,
-      location: '',
-      created_at: v.redeemed_at,
-      instance: v
-    }));
-
-    // Filter based on selected filter
-    const filtered = filter === 'all' ? items :
-      filter === 'redeemed' ? items.filter(i => i.type === 'redeemed') :
-      filter === 'earned' ? items.filter(i => i.type === 'earned') :
-      items;
-
-    // Group by date
-    const groups: Record<string, typeof items> = {};
+    const groups: Record<string, VoucherInstance[]> = {};
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-    filtered.forEach(item => {
-      const date = new Date(item.created_at).toDateString();
+    filtered.forEach(voucher => {
+      const date = new Date(voucher.redeemed_at).toDateString();
       let label = date;
       if (date === today) label = 'TODAY';
       else if (date === yesterday) label = 'YESTERDAY';
-      else label = new Date(item.created_at).toLocaleDateString('en-US', {
+      else label = new Date(voucher.redeemed_at).toLocaleDateString('en-US', {
         weekday: 'long',
         month: 'short',
         day: 'numeric'
       }).toUpperCase();
 
       if (!groups[label]) groups[label] = [];
-      groups[label].push(item);
+      groups[label].push(voucher);
     });
 
     return groups;
@@ -137,120 +120,143 @@ export default function ActivityPage() {
   if (!mounted || !hasHydrated) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-2 border-[#1C1917] border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center min-h-screen bg-stone-50">
+          <div className="w-8 h-8 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
         </div>
       </AppLayout>
     );
   }
 
-  const isEmployee = user?.user_type === 'employee';
+  const isEmployee = isEmployeeUser(user);
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen bg-white">
-        {/* Header */}
-        <header className="bg-white px-5 py-4 flex items-center justify-center">
-          <h1 className="text-[18px] font-semibold text-[#1C1917]">
-            Activity
-          </h1>
-        </header>
-
-        {/* Filter Tabs */}
-        <div className="bg-white px-5 py-4 flex gap-2">
-          {(['all', 'earned', 'redeemed'] as FilterValue[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
-                filter === f
-                  ? 'bg-[#1C1917] text-white'
-                  : 'bg-transparent text-[#57534E] border border-[#E5E5E5] hover:border-[#1C1917]'
-              }`}
-            >
-              {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 px-5 pb-24 space-y-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-[#1C1917] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : Object.keys(groupedTransactions).length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 rounded-full bg-[#F5F5F4] flex items-center justify-center mb-4">
-                <Gift className="w-8 h-8 text-[#78716C]" />
-              </div>
-              <h3 className="text-[16px] font-semibold text-[#1C1917] mb-1">
-                No activity yet
-              </h3>
-              <p className="text-[14px] text-[#78716C]">
-                Your points and voucher history will appear here.
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="flex flex-col min-h-screen bg-stone-50">
+          {/* Responsive container */}
+          <div className="max-w-2xl lg:max-w-4xl mx-auto w-full">
+            {/* Header */}
+            <header className="bg-stone-50 px-4 md:px-6 pt-4 pb-2">
+              <h1 className="text-xl font-semibold text-stone-900">
+                Activity
+              </h1>
+              <p className="text-sm text-stone-500 mt-1">
+                Your points and voucher history
               </p>
+            </header>
+
+            {/* Filter Tabs */}
+            <div className="px-4 md:px-6 py-4 flex gap-2">
+              {([
+                { value: 'all', label: 'All' },
+                { value: 'active', label: 'Active' },
+                { value: 'used', label: 'Used' }
+              ] as { value: FilterValue; label: string }[]).map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    filter === f.value
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
-          ) : (
-            Object.entries(groupedTransactions).map(([date, items]) => (
-              <div key={date}>
-                {/* Date Label */}
-                <p className="text-[11px] font-semibold text-[#78716C] tracking-[1px] mb-3">
-                  {date}
-                </p>
 
-                {/* Activity Items */}
-                <div className="space-y-3">
-                  {items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => item.instance && handleVoucherClick(item.instance)}
-                      className="w-full flex items-center gap-3 p-4 bg-white rounded-xl border border-[#F0F0F0] shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-left transition-all hover:shadow-md active:scale-[0.99]"
-                    >
-                      {/* Icon */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        item.type === 'earned'
-                          ? 'bg-[#F0FDF4]'
-                          : 'bg-[#FFFBEB]'
-                      }`}>
-                        {item.type === 'earned' ? (
-                          <Plus className="w-[18px] h-[18px] text-[#059669]" />
-                        ) : (
-                          <Minus className="w-[18px] h-[18px] text-[#D97706]" />
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-[14px] font-semibold text-[#1C1917]">
-                          {item.description}
-                        </h4>
-                        <p className="text-[12px] text-[#78716C]">
-                          {new Date(item.created_at).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          })}
-                          {item.location && ` \u2022 ${item.location}`}
-                        </p>
-                      </div>
-
-                      {/* Points */}
-                      <span className={`text-[16px] font-bold flex-shrink-0 ${
-                        item.type === 'earned'
-                          ? 'text-[#059669]'
-                          : 'text-[#D97706]'
-                      }`}>
-                        {item.type === 'earned' ? '+' : ''}{item.points}
-                      </span>
-                    </button>
-                  ))}
+            {/* Content */}
+            <div className="flex-1 px-4 md:px-6 pb-24 space-y-5">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-6 h-6 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
                 </div>
-              </div>
-            ))
-          )}
+              ) : Object.keys(groupedVouchers).length === 0 ? (
+                <div className="bg-white rounded-xl border border-stone-200 p-8 text-center">
+                  <div className="w-14 h-14 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
+                    <Gift className="w-7 h-7 text-stone-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-stone-900 mb-1">
+                    {filter === 'active' ? 'No active vouchers' : filter === 'used' ? 'No used vouchers' : 'No activity yet'}
+                  </h3>
+                  <p className="text-sm text-stone-500">
+                    {filter === 'active' ? 'Redeem vouchers to see them here.' : filter === 'used' ? 'Used vouchers will appear here.' : 'Your redeemed vouchers will appear here.'}
+                  </p>
+                </div>
+              ) : (
+                Object.entries(groupedVouchers).map(([date, vouchers]) => (
+                  <div key={date}>
+                    {/* Date Label */}
+                    <p className="text-xs font-semibold text-stone-500 tracking-wider mb-3 uppercase">
+                      {date}
+                    </p>
+
+                    {/* Voucher Items */}
+                    <div className="space-y-3">
+                      {vouchers.map((voucher) => (
+                        <button
+                          key={voucher.id}
+                          onClick={() => handleVoucherClick(voucher)}
+                          disabled={voucher.computed_status !== 'active'}
+                          className={`w-full flex items-center gap-3 p-4 bg-white rounded-xl border border-stone-200 text-left transition-all ${
+                            voucher.computed_status === 'active'
+                              ? 'hover:border-stone-300 active:scale-[0.99]'
+                              : 'opacity-60'
+                          }`}
+                        >
+                          {/* Icon */}
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            voucher.computed_status === 'active'
+                              ? 'bg-green-50'
+                              : voucher.computed_status === 'used'
+                              ? 'bg-stone-100'
+                              : 'bg-red-50'
+                          }`}>
+                            <Gift className={`w-5 h-5 ${
+                              voucher.computed_status === 'active'
+                                ? 'text-green-600'
+                                : voucher.computed_status === 'used'
+                                ? 'text-stone-400'
+                                : 'text-red-400'
+                            }`} />
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold text-stone-900">
+                              {voucher.title}
+                            </h4>
+                            <p className="text-xs text-stone-500">
+                              {new Date(voucher.redeemed_at).toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                              {voucher.used_at && ` • Used ${new Date(voucher.used_at).toLocaleDateString()}`}
+                            </p>
+                          </div>
+
+                          {/* Status Badge */}
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-lg flex-shrink-0 ${
+                            voucher.computed_status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : voucher.computed_status === 'used'
+                              ? 'bg-stone-100 text-stone-500'
+                              : 'bg-red-100 text-red-600'
+                          }`}>
+                            {voucher.computed_status === 'active' ? 'Active' : voucher.computed_status === 'used' ? 'Used' : 'Expired'}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </PullToRefresh>
 
       {selectedInstance && (
         <QRModal

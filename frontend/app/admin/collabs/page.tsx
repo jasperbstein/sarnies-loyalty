@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import {
   Search,
   Plus,
@@ -434,81 +435,87 @@ export default function CollabsPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-[1600px] mx-auto px-6 py-8">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-[32px] font-bold text-stone-900 tracking-tight">Partner Collabs</h1>
-              <p className="text-stone-500 mt-1">Manage cross-company partnership offers</p>
+      <div className="admin-page animate-macos-fade">
+        <div className="admin-page-container">
+          <div className="flex flex-col gap-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#0055CC] flex items-center justify-center shadow-lg">
+                  <UserPlus className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">Partner Collabs</h1>
+                  <p className="text-[14px] text-[#86868b]">Manage cross-company partnership offers</p>
+                </div>
+              </div>
+              {activeTab !== 'partners' && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="admin-btn-primary"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Offer
+                </button>
+              )}
+              {activeTab === 'partners' && (
+                <button
+                  onClick={() => setShowAddPartnerModal(true)}
+                  className="admin-btn-primary"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Partner
+                </button>
+              )}
             </div>
-            {activeTab !== 'partners' && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="h-11 px-5 rounded-xl bg-gradient-to-b from-stone-800 to-stone-900 text-white text-[14px] font-semibold flex items-center gap-2 hover:from-stone-700 hover:to-stone-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-              >
-                <Plus className="w-4 h-4" />
-                Create Offer
-              </button>
-            )}
-            {activeTab === 'partners' && (
-              <button
-                onClick={() => setShowAddPartnerModal(true)}
-                className="h-11 px-5 rounded-xl bg-gradient-to-b from-stone-800 to-stone-900 text-white text-[14px] font-semibold flex items-center gap-2 hover:from-stone-700 hover:to-stone-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-              >
-                <Plus className="w-4 h-4" />
-                Add Partner
-              </button>
-            )}
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl border border-stone-200 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <Send className="w-5 h-5 text-blue-600" />
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="admin-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(0,122,255,0.12)] flex items-center justify-center">
+                    <Send className="w-5 h-5 text-[#007AFF]" />
+                  </div>
+                  <div>
+                    <p className="text-[24px] font-bold text-[#1d1d1f]">{stats.totalOutgoing}</p>
+                    <p className="text-[12px] text-[#86868b]">Outgoing Offers</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[24px] font-bold text-stone-900">{stats.totalOutgoing}</p>
-                  <p className="text-[12px] text-stone-500">Outgoing Offers</p>
+              </div>
+              <div className="admin-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(52,199,89,0.12)] flex items-center justify-center">
+                    <Check className="w-5 h-5 text-[#34C759]" />
+                  </div>
+                  <div>
+                    <p className="text-[24px] font-bold text-[#1d1d1f]">{stats.activeOutgoing}</p>
+                    <p className="text-[12px] text-[#86868b]">Active Offers</p>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(255,159,10,0.12)] flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-[#FF9F0A]" />
+                  </div>
+                  <div>
+                    <p className="text-[24px] font-bold text-[#1d1d1f]">{stats.pendingIncoming}</p>
+                    <p className="text-[12px] text-[#86868b]">Pending Approval</p>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(88,86,214,0.12)] flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-[#5856D6]" />
+                  </div>
+                  <div>
+                    <p className="text-[24px] font-bold text-[#1d1d1f]">{stats.totalPartners}</p>
+                    <p className="text-[12px] text-[#86868b]">Partners</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-stone-200 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                  <Check className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-[24px] font-bold text-stone-900">{stats.activeOutgoing}</p>
-                  <p className="text-[12px] text-stone-500">Active Offers</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-stone-200 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-[24px] font-bold text-stone-900">{stats.pendingIncoming}</p>
-                  <p className="text-[12px] text-stone-500">Pending Approval</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-stone-200 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
-                  <UserPlus className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-[24px] font-bold text-stone-900">{stats.totalPartners}</p>
-                  <p className="text-[12px] text-stone-500">Partners</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Filters Card */}
           <div className="admin-card overflow-hidden">
@@ -678,6 +685,7 @@ export default function CollabsPage() {
             </>
           )}
         </div>
+      </div>
       </div>
 
       {/* Create Offer Modal */}

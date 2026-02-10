@@ -29,7 +29,7 @@ export const RewardCategorySection: React.FC<RewardCategorySectionProps> = ({
           <RewardCard
             key={reward.id}
             {...reward}
-            onRedeem={() => console.log("redeem", reward.id)}
+            onRedeem={() => { /* TODO: Implement redeem */ }}
           />
         ))}
       </div>

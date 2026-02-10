@@ -125,8 +125,8 @@ export default function ReferralsPage() {
 
       // Apply the code
       await referralsAPI.applyCode({
-        referee_user_id: user.id,
-        referral_code: code
+        code: code,
+        referee_user_id: user.id
       });
 
       toast.success('Referral code applied successfully!');

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import '@/app/admin/admin.css';
 import { Bell, Send, Users, Radio, Search, X, Check, ChevronDown } from 'lucide-react';
 import { notificationsAPI, usersAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -138,75 +139,80 @@ export default function NotificationsPage() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-neutral-50">
-        <div className="max-w-[1600px] mx-auto px-4 py-6">
+      <div className="min-h-screen admin-page animate-macos-fade">
+        <div className="admin-page-container">
           {/* Header */}
           <div className="flex items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-[28px] font-semibold text-neutral-900">Push Notifications</h1>
-              <p className="text-[14px] text-neutral-500">Send notifications to your users</p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF453A] to-[#D70015] flex items-center justify-center shadow-lg">
+                <Bell className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">Push Notifications</h1>
+                <p className="text-[14px] text-[#86868b]">Send notifications to your users</p>
+              </div>
             </div>
           </div>
 
           {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-white rounded-xl border border-neutral-200 p-4">
+              <div className="admin-card p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Users size={20} className="text-green-600" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(52,199,89,0.12)] flex items-center justify-center">
+                    <Users size={20} className="text-[#34C759]" />
                   </div>
                   <div>
-                    <p className="text-[24px] font-semibold text-neutral-900">{stats.subscribed_users}</p>
-                    <p className="text-[12px] text-neutral-500">Subscribed Users</p>
+                    <p className="text-[24px] font-semibold text-[#1d1d1f]">{stats.subscribed_users}</p>
+                    <p className="text-[12px] text-[#86868b]">Subscribed Users</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-neutral-200 p-4">
+              <div className="admin-card p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Bell size={20} className="text-blue-600" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(0,122,255,0.12)] flex items-center justify-center">
+                    <Bell size={20} className="text-[#007AFF]" />
                   </div>
                   <div>
-                    <p className="text-[24px] font-semibold text-neutral-900">{stats.total_subscriptions}</p>
-                    <p className="text-[12px] text-neutral-500">Total Devices</p>
+                    <p className="text-[24px] font-semibold text-[#1d1d1f]">{stats.total_subscriptions}</p>
+                    <p className="text-[12px] text-[#86868b]">Total Devices</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-neutral-200 p-4">
+              <div className="admin-card p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Radio size={20} className="text-amber-600" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(255,159,10,0.12)] flex items-center justify-center">
+                    <Radio size={20} className="text-[#FF9F0A]" />
                   </div>
                   <div>
-                    <p className="text-[24px] font-semibold text-neutral-900">{stats.pending_notifications}</p>
-                    <p className="text-[12px] text-neutral-500">Pending</p>
+                    <p className="text-[24px] font-semibold text-[#1d1d1f]">{stats.pending_notifications}</p>
+                    <p className="text-[12px] text-[#86868b]">Pending</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-neutral-200 p-4">
+              <div className="admin-card p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Check size={20} className="text-green-600" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(52,199,89,0.12)] flex items-center justify-center">
+                    <Check size={20} className="text-[#34C759]" />
                   </div>
                   <div>
-                    <p className="text-[24px] font-semibold text-neutral-900">{stats.sent_last_24h}</p>
-                    <p className="text-[12px] text-neutral-500">Sent (24h)</p>
+                    <p className="text-[24px] font-semibold text-[#1d1d1f]">{stats.sent_last_24h}</p>
+                    <p className="text-[12px] text-[#86868b]">Sent (24h)</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-neutral-200 p-4">
+              <div className="admin-card p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                    <X size={20} className="text-red-600" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(255,69,58,0.12)] flex items-center justify-center">
+                    <X size={20} className="text-[#FF453A]" />
                   </div>
                   <div>
-                    <p className="text-[24px] font-semibold text-neutral-900">{stats.failed_last_24h}</p>
-                    <p className="text-[12px] text-neutral-500">Failed (24h)</p>
+                    <p className="text-[24px] font-semibold text-[#1d1d1f]">{stats.failed_last_24h}</p>
+                    <p className="text-[12px] text-[#86868b]">Failed (24h)</p>
                   </div>
                 </div>
               </div>
@@ -215,29 +221,21 @@ export default function NotificationsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Send Notification Form */}
-            <div className="bg-white rounded-xl border border-neutral-200 p-6">
-              <h2 className="text-[18px] font-semibold text-neutral-900 mb-4">Send Notification</h2>
+            <div className="admin-card p-6">
+              <h2 className="text-[18px] font-semibold text-[#1d1d1f] mb-4">Send Notification</h2>
 
-              {/* Send Mode Toggle */}
-              <div className="flex gap-2 mb-4">
+              {/* Send Mode Toggle - macOS Segmented Control */}
+              <div className="admin-segmented-control mb-4">
                 <button
                   onClick={() => setSendMode('targeted')}
-                  className={`flex-1 py-2 px-4 rounded-lg text-[14px] font-medium transition-colors ${
-                    sendMode === 'targeted'
-                      ? 'bg-neutral-900 text-white'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                  }`}
+                  className={`admin-segment ${sendMode === 'targeted' ? 'active' : ''}`}
                 >
                   <Users size={16} className="inline mr-2" />
                   Targeted
                 </button>
                 <button
                   onClick={() => setSendMode('broadcast')}
-                  className={`flex-1 py-2 px-4 rounded-lg text-[14px] font-medium transition-colors ${
-                    sendMode === 'broadcast'
-                      ? 'bg-neutral-900 text-white'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                  }`}
+                  className={`admin-segment ${sendMode === 'broadcast' ? 'active' : ''}`}
                 >
                   <Radio size={16} className="inline mr-2" />
                   Broadcast
@@ -395,7 +393,7 @@ export default function NotificationsPage() {
               <button
                 onClick={handleSend}
                 disabled={isSending || !title.trim() || !body.trim() || (sendMode === 'targeted' && selectedUsers.length === 0)}
-                className="w-full py-2.5 bg-neutral-900 text-white rounded-lg text-[14px] font-medium hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                className="admin-btn-primary w-full justify-center"
               >
                 {isSending ? (
                   <>
@@ -412,8 +410,8 @@ export default function NotificationsPage() {
             </div>
 
             {/* Preview */}
-            <div className="bg-white rounded-xl border border-neutral-200 p-6">
-              <h2 className="text-[18px] font-semibold text-neutral-900 mb-4">Preview</h2>
+            <div className="admin-card p-6">
+              <h2 className="text-[18px] font-semibold text-[#1d1d1f] mb-4">Preview</h2>
 
               <div className="bg-neutral-100 rounded-xl p-4">
                 {/* Phone mockup */}

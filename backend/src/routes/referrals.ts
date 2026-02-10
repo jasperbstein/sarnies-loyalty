@@ -5,9 +5,72 @@ import crypto from 'crypto';
 
 const router = Router();
 
-// Configuration (could be moved to settings table)
-const REFERRAL_POINTS_REWARD = 50;
-const REFERRAL_MONTHLY_CAP = 10;
+// Default configuration (overridden by app_settings)
+const DEFAULT_REFERRAL_POINTS_REWARD = 50;
+const DEFAULT_REFERRAL_MONTHLY_CAP = 10;
+
+/**
+ * Get referral settings from database
+ */
+async function getReferralSettings(): Promise<{
+  enabled: boolean;
+  pointsReward: number;
+  monthlyCap: number;
+  refereeDiscountPercent: number;
+}> {
+  try {
+    const result = await query(`
+      SELECT setting_key, setting_value
+      FROM app_settings
+      WHERE setting_key IN (
+        'referral_enabled',
+        'referral_points_reward',
+        'referral_monthly_cap',
+        'referral_referee_discount_percent'
+      )
+    `);
+
+    const settings: { [key: string]: string } = {};
+    result.rows.forEach((row: any) => {
+      settings[row.setting_key] = row.setting_value;
+    });
+
+    return {
+      enabled: settings.referral_enabled?.toLowerCase() !== 'false',
+      pointsReward: parseInt(settings.referral_points_reward) || DEFAULT_REFERRAL_POINTS_REWARD,
+      monthlyCap: parseInt(settings.referral_monthly_cap) || DEFAULT_REFERRAL_MONTHLY_CAP,
+      refereeDiscountPercent: parseInt(settings.referral_referee_discount_percent) || 0
+    };
+  } catch (error) {
+    console.error('Failed to load referral settings, using defaults:', error);
+    return {
+      enabled: true,
+      pointsReward: DEFAULT_REFERRAL_POINTS_REWARD,
+      monthlyCap: DEFAULT_REFERRAL_MONTHLY_CAP,
+      refereeDiscountPercent: 0
+    };
+  }
+}
+
+/**
+ * Check if a specific user can refer others
+ */
+async function canUserRefer(userId: number): Promise<boolean> {
+  const settings = await getReferralSettings();
+  if (!settings.enabled) return false;
+
+  // Check for per-user override
+  const userResult = await query(
+    'SELECT referral_enabled_override FROM users WHERE id = $1',
+    [userId]
+  );
+
+  if (userResult.rows.length > 0 && userResult.rows[0].referral_enabled_override !== null) {
+    return userResult.rows[0].referral_enabled_override;
+  }
+
+  return true; // Use global setting (enabled)
+}
 
 /**
  * Generate a unique referral code
@@ -30,6 +93,17 @@ router.get('/my-code', authenticate, async (req: AuthRequest, res: Response) => 
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Check if referral program is enabled for this user
+    const canRefer = await canUserRefer(userId);
+    const settings = await getReferralSettings();
+
+    if (!canRefer) {
+      return res.status(403).json({
+        error: 'Referral program is not available for your account',
+        referral_enabled: false
+      });
     }
 
     // Check if user already has a referral code
@@ -101,8 +175,9 @@ router.get('/my-code', authenticate, async (req: AuthRequest, res: Response) => 
         pending_referrals: parseInt(stats.pending_referrals),
         total_points_earned: parseInt(stats.total_points_earned),
         monthly_referrals: monthlyCount,
-        monthly_cap: REFERRAL_MONTHLY_CAP,
-        remaining_this_month: Math.max(0, REFERRAL_MONTHLY_CAP - monthlyCount)
+        monthly_cap: settings.monthlyCap,
+        remaining_this_month: Math.max(0, settings.monthlyCap - monthlyCount),
+        points_per_referral: settings.pointsReward
       },
       share_url: `https://loyalty.sarnies.tech/register?ref=${referralCode.code}`,
       share_message: `Join Sarnies Rewards and get a welcome bonus! Use my code: ${referralCode.code}`
@@ -149,82 +224,106 @@ router.get('/my-referrals', authenticate, async (req: AuthRequest, res: Response
 
 /**
  * POST /api/referrals/apply
- * Apply a referral code during registration
- * Called internally when a new user registers with a referral code
+ * Apply a referral code - authenticated user can only apply to their own account
  */
-router.post('/apply', async (req: AuthRequest, res: Response) => {
+router.post('/apply', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const { referee_user_id, referral_code } = req.body;
+    const { referral_code } = req.body;
+    const referee_user_id = req.user?.id; // Use authenticated user's ID, not from body
 
-    if (!referee_user_id || !referral_code) {
-      return res.status(400).json({ error: 'referee_user_id and referral_code are required' });
+    if (!referee_user_id) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Find the referral code
-    const codeResult = await query(
-      'SELECT * FROM referral_codes WHERE code = $1 AND is_active = true',
-      [referral_code.toUpperCase()]
-    );
-
-    if (codeResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invalid or inactive referral code' });
+    if (!referral_code) {
+      return res.status(400).json({ error: 'referral_code is required' });
     }
 
-    const referralCode = codeResult.rows[0];
-
-    // Check user isn't referring themselves
-    if (referralCode.user_id === referee_user_id) {
-      return res.status(400).json({ error: 'You cannot use your own referral code' });
+    // Check if referral program is enabled
+    const settings = await getReferralSettings();
+    if (!settings.enabled) {
+      return res.status(400).json({ error: 'Referral program is currently disabled' });
     }
 
-    // Check if referee has already been referred
-    const existingReferral = await query(
-      'SELECT id FROM referrals WHERE referee_id = $1',
-      [referee_user_id]
-    );
+    // Start transaction to prevent race conditions
+    await query('BEGIN');
 
-    if (existingReferral.rows.length > 0) {
-      return res.status(400).json({ error: 'User has already been referred' });
+    try {
+      // Find the referral code
+      const codeResult = await query(
+        'SELECT * FROM referral_codes WHERE code = $1 AND is_active = true FOR UPDATE',
+        [referral_code.toUpperCase()]
+      );
+
+      if (codeResult.rows.length === 0) {
+        await query('ROLLBACK');
+        return res.status(404).json({ error: 'Invalid or inactive referral code' });
+      }
+
+      const referralCode = codeResult.rows[0];
+
+      // Check user isn't referring themselves
+      if (referralCode.user_id === referee_user_id) {
+        await query('ROLLBACK');
+        return res.status(400).json({ error: 'You cannot use your own referral code' });
+      }
+
+      // Check if referee has already been referred (with lock)
+      const existingReferral = await query(
+        'SELECT id FROM referrals WHERE referee_id = $1 FOR UPDATE',
+        [referee_user_id]
+      );
+
+      if (existingReferral.rows.length > 0) {
+        await query('ROLLBACK');
+        return res.status(400).json({ error: 'User has already been referred' });
+      }
+
+      // Check referrer's monthly cap
+      const monthlyResult = await query(`
+        SELECT COUNT(*) as count
+        FROM referrals
+        WHERE referrer_id = $1
+        AND status = 'completed'
+        AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
+      `, [referralCode.user_id]);
+
+      if (parseInt(monthlyResult.rows[0].count) >= settings.monthlyCap) {
+        await query('ROLLBACK');
+        return res.status(400).json({ error: 'Referrer has reached their monthly referral limit' });
+      }
+
+      // Create the referral record
+      const referralResult = await query(
+        `INSERT INTO referrals (referrer_id, referee_id, referral_code_id, status)
+         VALUES ($1, $2, $3, 'pending')
+         RETURNING *`,
+        [referralCode.user_id, referee_user_id, referralCode.id]
+      );
+
+      // Increment uses_count on referral code
+      await query(
+        'UPDATE referral_codes SET uses_count = uses_count + 1 WHERE id = $1',
+        [referralCode.id]
+      );
+
+      // Store referral_code in user record for tracking
+      await query(
+        'UPDATE users SET referral_code = $1 WHERE id = $2',
+        [referral_code.toUpperCase(), referee_user_id]
+      );
+
+      await query('COMMIT');
+
+      res.json({
+        success: true,
+        message: 'Referral code applied successfully',
+        referral_id: referralResult.rows[0].id
+      });
+    } catch (innerError) {
+      await query('ROLLBACK');
+      throw innerError;
     }
-
-    // Check referrer's monthly cap
-    const monthlyResult = await query(`
-      SELECT COUNT(*) as count
-      FROM referrals
-      WHERE referrer_id = $1
-      AND status = 'completed'
-      AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
-    `, [referralCode.user_id]);
-
-    if (parseInt(monthlyResult.rows[0].count) >= REFERRAL_MONTHLY_CAP) {
-      return res.status(400).json({ error: 'Referrer has reached their monthly referral limit' });
-    }
-
-    // Create the referral record
-    const referralResult = await query(
-      `INSERT INTO referrals (referrer_id, referee_id, referral_code_id, status)
-       VALUES ($1, $2, $3, 'pending')
-       RETURNING *`,
-      [referralCode.user_id, referee_user_id, referralCode.id]
-    );
-
-    // Increment uses_count on referral code
-    await query(
-      'UPDATE referral_codes SET uses_count = uses_count + 1 WHERE id = $1',
-      [referralCode.id]
-    );
-
-    // Store referral_code in user record for tracking
-    await query(
-      'UPDATE users SET referral_code = $1 WHERE id = $2',
-      [referral_code.toUpperCase(), referee_user_id]
-    );
-
-    res.json({
-      success: true,
-      message: 'Referral code applied successfully',
-      referral_id: referralResult.rows[0].id
-    });
   } catch (error) {
     console.error('Apply referral code error:', error);
     res.status(500).json({ error: 'Failed to apply referral code' });
@@ -239,6 +338,7 @@ router.post('/apply', async (req: AuthRequest, res: Response) => {
 router.post('/complete/:refereeId', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { refereeId } = req.params;
+    const settings = await getReferralSettings();
 
     // Find pending referral for this referee
     const referralResult = await query(
@@ -264,7 +364,7 @@ router.post('/complete/:refereeId', authenticate, async (req: AuthRequest, res: 
       AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
     `, [referral.referrer_id]);
 
-    if (parseInt(monthlyResult.rows[0].count) >= REFERRAL_MONTHLY_CAP) {
+    if (parseInt(monthlyResult.rows[0].count) >= settings.monthlyCap) {
       // Mark as expired instead of completed
       await query(
         `UPDATE referrals
@@ -275,17 +375,19 @@ router.post('/complete/:refereeId', authenticate, async (req: AuthRequest, res: 
       return res.json({ success: false, message: 'Referrer monthly cap reached' });
     }
 
+    const pointsReward = settings.pointsReward;
+
     // Award points to referrer
     await query(
       'UPDATE users SET points_balance = points_balance + $1 WHERE id = $2',
-      [REFERRAL_POINTS_REWARD, referral.referrer_id]
+      [pointsReward, referral.referrer_id]
     );
 
     // Create transaction record for referrer
     await query(
       `INSERT INTO transactions (user_id, type, points_delta, outlet)
        VALUES ($1, 'earn', $2, 'Referral Reward')`,
-      [referral.referrer_id, REFERRAL_POINTS_REWARD]
+      [referral.referrer_id, pointsReward]
     );
 
     // Update referral status
@@ -297,7 +399,7 @@ router.post('/complete/:refereeId', authenticate, async (req: AuthRequest, res: 
            referrer_points_awarded = $1,
            updated_at = NOW()
        WHERE id = $2`,
-      [REFERRAL_POINTS_REWARD, referral.id]
+      [pointsReward, referral.id]
     );
 
     // Queue notification for referrer
@@ -309,8 +411,8 @@ router.post('/complete/:refereeId', authenticate, async (req: AuthRequest, res: 
         referral.referrer_id,
         'referral_reward',
         'Referral Reward!',
-        `Your friend made their first purchase! You earned ${REFERRAL_POINTS_REWARD} bonus points.`,
-        JSON.stringify({ points_earned: REFERRAL_POINTS_REWARD, referee_id: refereeId }),
+        `Your friend made their first purchase! You earned ${pointsReward} bonus points.`,
+        JSON.stringify({ points_earned: pointsReward, referee_id: refereeId }),
         'referrals'
       ]
     );
@@ -318,7 +420,7 @@ router.post('/complete/:refereeId', authenticate, async (req: AuthRequest, res: 
     res.json({
       success: true,
       message: 'Referral completed successfully',
-      points_awarded: REFERRAL_POINTS_REWARD
+      points_awarded: pointsReward
     });
   } catch (error) {
     console.error('Complete referral error:', error);
@@ -369,6 +471,8 @@ router.get('/validate/:code', async (req: AuthRequest, res: Response) => {
  */
 router.get('/admin/stats', authenticate, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
+    const settings = await getReferralSettings();
+
     const stats = await query(`
       SELECT
         (SELECT COUNT(*) FROM referral_codes WHERE is_active = true) as active_codes,
@@ -396,6 +500,12 @@ router.get('/admin/stats', authenticate, requireAdmin, async (req: AuthRequest, 
     `);
 
     res.json({
+      settings: {
+        enabled: settings.enabled,
+        points_reward: settings.pointsReward,
+        monthly_cap: settings.monthlyCap,
+        referee_discount_percent: settings.refereeDiscountPercent
+      },
       stats: stats.rows[0],
       top_referrers: topReferrers.rows
     });
