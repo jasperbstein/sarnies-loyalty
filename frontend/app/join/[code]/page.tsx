@@ -240,41 +240,61 @@ function JoinCompanyContent() {
 
             {/* Benefits */}
             <div className="bg-[#F5F5F4] rounded-xl p-4 mb-6 space-y-3">
-              {isEmployee && company.discount_percentage && company.discount_percentage > 0 && (
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#ECFDF5] rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Percent className="w-4 h-4 text-[#059669]" />
+              {isEmployee ? (
+                <>
+                  {/* Employee benefits */}
+                  {company.discount_percentage && company.discount_percentage > 0 && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-[#ECFDF5] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Percent className="w-4 h-4 text-[#059669]" />
+                      </div>
+                      <span
+                        className="text-[13px] text-[#44403C]"
+                        style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                      >
+                        {company.discount_percentage}% employee discount
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-[#EDE9FE] rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-[#7C3AED]" />
+                    </div>
+                    <span
+                      className="text-[13px] text-[#44403C]"
+                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    >
+                      Exclusive team perks
+                    </span>
                   </div>
-                  <span
-                    className="text-[13px] text-[#44403C]"
-                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                  >
-                    {company.discount_percentage}% employee discount
-                  </span>
-                </div>
+                </>
+              ) : (
+                <>
+                  {/* Customer benefits */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-[#FEF3C7] rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Gift className="w-4 h-4 text-[#D97706]" />
+                    </div>
+                    <span
+                      className="text-[13px] text-[#44403C]"
+                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    >
+                      Earn points on every purchase
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-[#EDE9FE] rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-[#7C3AED]" />
+                    </div>
+                    <span
+                      className="text-[13px] text-[#44403C]"
+                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    >
+                      Exclusive member rewards
+                    </span>
+                  </div>
+                </>
               )}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#FEF3C7] rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Gift className="w-4 h-4 text-[#D97706]" />
-                </div>
-                <span
-                  className="text-[13px] text-[#44403C]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
-                  Earn points on every purchase
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#EDE9FE] rounded-lg flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-4 h-4 text-[#7C3AED]" />
-                </div>
-                <span
-                  className="text-[13px] text-[#44403C]"
-                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                >
-                  {isEmployee ? 'Exclusive team perks' : 'Exclusive member rewards'}
-                </span>
-              </div>
             </div>
 
             {/* Email Form */}

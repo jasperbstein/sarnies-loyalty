@@ -698,7 +698,14 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Determine user_type based on company association
     // If user has a verified company, they are an employee; otherwise customer
-    const userType = (company_id && is_company_verified) ? 'employee' : 'customer';
+    // For join flow: user already has company set, preserve that
+    const finalUserType = user.user_type === 'employee' ? 'employee' :
+                          (company_id && is_company_verified) ? 'employee' : 'customer';
+    const finalCompanyId = user.company_id || company_id;
+    const finalIsCompanyVerified = user.is_company_verified || is_company_verified;
+
+    // Use existing email if not provided (magic link users already have email)
+    const finalEmail = email?.toLowerCase() || user.email;
 
     // Update user with registration data (use ID for reliable lookup)
     const updateResult = await query(
@@ -721,16 +728,16 @@ router.post('/register', async (req: Request, res: Response) => {
       [
         name,
         surname,
-        email?.toLowerCase(),
+        finalEmail,
         birthday,
         gender,
         company,
         email_consent || false,
         sms_consent || false,
         preferred_outlet,
-        company_id,
-        is_company_verified,
-        userType,
+        finalCompanyId,
+        finalIsCompanyVerified,
+        finalUserType,
         user.id
       ]
     );
