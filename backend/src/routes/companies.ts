@@ -921,6 +921,191 @@ router.post('/join/:code/verify-email', async (req, res: Response) => {
   }
 });
 
+// ============================================================================
+// SIMPLIFIED JOIN FLOW - Single endpoint for email + magic link
+// ============================================================================
+
+// Send magic link for company join (unified flow for all invite types)
+router.post('/join/:code/send-magic-link', async (req, res: Response) => {
+  try {
+    const { code } = req.params;
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const emailLower = email.toLowerCase().trim();
+    const upperCode = code.toUpperCase();
+
+    // Validate email format
+    if (!emailLower.includes('@') || !emailLower.includes('.')) {
+      return res.status(400).json({ error: 'Please enter a valid email address' });
+    }
+
+    let companyId: number | null = null;
+    let companyName = '';
+    let userType: 'employee' | 'customer' = 'customer';
+    let personalInviteId: number | null = null;
+
+    // First check if it's a personal invite code (12 chars)
+    if (upperCode.length === 12) {
+      const personalResult = await query(
+        `SELECT pic.*, c.id as company_id, c.name as company_name
+         FROM personal_invite_codes pic
+         JOIN companies c ON pic.company_id = c.id
+         WHERE pic.code = $1 AND c.is_active = true`,
+        [upperCode]
+      );
+
+      if (personalResult.rows.length > 0) {
+        const invite = personalResult.rows[0];
+
+        // Check if already used
+        if (invite.is_used) {
+          return res.status(410).json({
+            error: 'This invite link has already been used'
+          });
+        }
+
+        // Check if expired
+        if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+          return res.status(410).json({
+            error: 'This invite link has expired'
+          });
+        }
+
+        companyId = invite.company_id;
+        companyName = invite.company_name;
+        userType = invite.invite_type === 'customer' ? 'customer' : 'employee';
+        personalInviteId = invite.id;
+      }
+    }
+
+    // Check if it's an EMPLOYEE invite code (8 chars)
+    if (!companyId) {
+      const employeeInviteResult = await query(
+        `SELECT id, name FROM companies
+         WHERE invite_code = $1 AND is_active = true`,
+        [upperCode]
+      );
+
+      if (employeeInviteResult.rows.length > 0) {
+        const company = employeeInviteResult.rows[0];
+        companyId = company.id;
+        companyName = company.name;
+        userType = 'employee';
+      }
+    }
+
+    // Check if it's a CUSTOMER invite code (8 chars)
+    if (!companyId) {
+      const customerInviteResult = await query(
+        `SELECT id, name FROM companies
+         WHERE customer_invite_code = $1 AND is_active = true`,
+        [upperCode]
+      );
+
+      if (customerInviteResult.rows.length > 0) {
+        const company = customerInviteResult.rows[0];
+        companyId = company.id;
+        companyName = company.name;
+        userType = 'customer';
+      }
+    }
+
+    if (!companyId) {
+      return res.status(404).json({ error: 'Invalid invite code' });
+    }
+
+    // Check or create user
+    let userId: number;
+    let needsRegistration = true;
+
+    const existingUser = await query(
+      'SELECT id, registration_completed FROM users WHERE LOWER(email) = $1',
+      [emailLower]
+    );
+
+    if (existingUser.rows.length > 0) {
+      userId = existingUser.rows[0].id;
+      needsRegistration = !existingUser.rows[0].registration_completed;
+
+      // Update user's company association
+      await query(
+        `UPDATE users
+         SET company_id = $1, is_company_verified = true, user_type = $2
+         WHERE id = $3`,
+        [companyId, userType, userId]
+      );
+    } else {
+      // Create new user with company association
+      const insertResult = await query(
+        `INSERT INTO users (email, email_verified, company_id, is_company_verified, user_type, registration_completed, primary_auth_method)
+         VALUES ($1, true, $2, true, $3, false, 'email')
+         RETURNING id`,
+        [emailLower, companyId, userType]
+      );
+      userId = insertResult.rows[0].id;
+    }
+
+    // If employee, create/update company_employees record
+    if (userType === 'employee') {
+      await query(
+        `INSERT INTO company_employees (company_id, employee_email, user_id, is_verified, verified_at, is_active)
+         VALUES ($1, $2, $3, true, NOW(), true)
+         ON CONFLICT (company_id, employee_email) DO UPDATE
+         SET user_id = $3, is_verified = true, verified_at = NOW()`,
+        [companyId, emailLower, userId]
+      );
+
+      // Increment invite code usage counter
+      await query(
+        'UPDATE companies SET invite_code_uses = COALESCE(invite_code_uses, 0) + 1 WHERE id = $1',
+        [companyId]
+      );
+    }
+
+    // Mark personal invite as used if applicable
+    if (personalInviteId) {
+      await query(
+        `UPDATE personal_invite_codes
+         SET is_used = true, used_at = NOW(), used_by_user_id = $1
+         WHERE id = $2`,
+        [userId, personalInviteId]
+      );
+    }
+
+    // Generate session ID for WebSocket-based login notification
+    const sessionId = generateSessionId();
+
+    // Generate and save magic token with session ID
+    const token = generateMagicToken();
+    await saveMagicToken(emailLower, token, sessionId);
+
+    // Build magic link URL
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const magicLink = `${baseUrl}/auth/verify?token=${token}`;
+
+    // Send magic link email
+    console.log(`📧 Sending magic link to ${emailLower} for company ${companyName} join`);
+    await sendMagicLinkEmail(emailLower, magicLink);
+
+    res.json({
+      success: true,
+      message: 'Magic link sent successfully',
+      sessionId: sessionId,
+      email: emailLower,
+      company_name: companyName,
+      user_type: userType,
+      needs_registration: needsRegistration
+    });
+  } catch (error) {
+    console.error('Send magic link for join error:', error);
+    res.status(500).json({ error: 'Failed to send login link. Please try again.' });
+  }
+});
+
 // Mark personal invite as used
 router.post('/join/:code/use', authenticate, async (req: AuthRequest, res: Response) => {
   try {
