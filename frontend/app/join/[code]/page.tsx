@@ -30,7 +30,7 @@ interface InviteData {
   company: Company;
 }
 
-type VerificationStep = 'options' | 'email' | 'access_code' | 'verified';
+type VerificationStep = 'options' | 'email' | 'access_code' | 'verified' | 'enter_email' | 'magic_link_sent';
 
 function JoinCompanyContent() {
   const router = useRouter();
@@ -48,6 +48,7 @@ function JoinCompanyContent() {
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
   const [verifying, setVerifying] = useState(false);
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
 
   useEffect(() => {
     const validateCode = async () => {
@@ -106,10 +107,39 @@ function JoinCompanyContent() {
 
     try {
       await api.post(`/companies/join/${code}/verify-access-code`, { access_code: accessCode });
-      toast.success('Verified!');
-      setVerificationStep('verified');
+      toast.success('Verified! Now enter your email.');
+      // Go to email entry step instead of showing login options
+      setVerificationStep('enter_email');
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Invalid access code');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleSendMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!magicLinkEmail.trim()) {
+      toast.error('Please enter your email');
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      // Store company info in session for registration
+      sessionStorage.setItem('company_invite_code', code);
+      sessionStorage.setItem('company_invite_data', JSON.stringify({
+        type: inviteData?.type,
+        invite_type: 'employee',
+        company: inviteData?.company
+      }));
+
+      // Send magic link with company context
+      await authAPI.sendMagicLink(magicLinkEmail.trim().toLowerCase());
+      toast.success('Check your email for the login link!');
+      setVerificationStep('magic_link_sent');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to send email');
     } finally {
       setVerifying(false);
     }
@@ -462,6 +492,101 @@ function JoinCompanyContent() {
                   Verify
                 </button>
               </form>
+            )}
+
+            {/* Email Entry Form (after access code verified) */}
+            {verificationStep === 'enter_email' && (
+              <form onSubmit={handleSendMagicLink} className="space-y-4">
+                <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl p-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-[#059669]" />
+                    <p
+                      className="text-[13px] font-medium text-[#065F46]"
+                      style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                    >
+                      Access code verified! You're eligible for {company?.name} benefits.
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    className="block text-[13px] font-medium text-[#44403C] mb-2"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    Your Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={magicLinkEmail}
+                    onChange={(e) => setMagicLinkEmail(e.target.value)}
+                    placeholder="you@email.com"
+                    className="w-full px-4 py-3 border border-[#D6D3D1] rounded-xl text-[14px] focus:outline-none focus:ring-2 focus:ring-[#1C1917]"
+                    autoFocus
+                    required
+                  />
+                  <p
+                    className="text-[11px] text-[#78716C] mt-2"
+                    style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                  >
+                    We'll send you a link to verify your email and complete registration
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={verifying}
+                  className="w-full py-3 bg-[#1C1917] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                >
+                  {verifying && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Send Login Link
+                </button>
+              </form>
+            )}
+
+            {/* Magic Link Sent */}
+            {verificationStep === 'magic_link_sent' && (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#FEF3C7] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-[#D97706]" />
+                </div>
+                <h3
+                  className="text-[18px] font-bold text-[#1C1917] mb-2"
+                  style={{ fontFamily: 'Spline Sans, sans-serif' }}
+                >
+                  Check Your Email
+                </h3>
+                <p
+                  className="text-[14px] text-[#57534E] mb-1"
+                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                >
+                  We sent a login link to
+                </p>
+                <p
+                  className="text-[14px] font-semibold text-[#1C1917] mb-4"
+                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                >
+                  {magicLinkEmail}
+                </p>
+                <p
+                  className="text-[13px] text-[#78716C]"
+                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                >
+                  Click the link to verify your email and complete your {company?.name} membership.
+                </p>
+
+                <button
+                  onClick={() => {
+                    setVerificationStep('enter_email');
+                    setMagicLinkEmail('');
+                  }}
+                  className="mt-6 text-[13px] text-[#78716C] hover:text-[#1C1917]"
+                  style={{ fontFamily: 'Instrument Sans, sans-serif' }}
+                >
+                  Use a different email
+                </button>
+              </div>
             )}
           </div>
         )}
