@@ -3,6 +3,8 @@ import { query } from '../db/database';
 import { authenticate, requireAdmin, AuthRequest } from '../middleware/auth';
 import { Company, CompanyEmployee } from '../types';
 import { logCompanyAction } from '../utils/auditLog';
+import { generateMagicToken, generateSessionId, saveMagicToken } from '../utils/magicLink';
+import { sendMagicLinkEmail } from '../utils/email';
 
 const router = Router();
 
@@ -891,14 +893,27 @@ router.post('/join/:code/verify-email', async (req, res: Response) => {
       });
     }
 
-    // TODO: Send magic link email for verification
-    // For now, return success - the actual magic link logic is in auth routes
+    // Generate session ID for WebSocket-based login notification
+    const sessionId = generateSessionId();
+
+    // Generate and save magic token with session ID
+    const token = generateMagicToken();
+    await saveMagicToken(emailLower, token, sessionId);
+
+    // Build magic link URL
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const magicLink = `${baseUrl}/auth/verify?token=${token}`;
+
+    // Send magic link email
+    console.log(`📧 Sending magic link to ${emailLower} for company ${company.name}`);
+    await sendMagicLinkEmail(emailLower, magicLink);
 
     res.json({
       verified: false, // Not yet verified, magic link sent
       message: 'Verification email sent',
       email: emailLower,
-      company_id: company.id
+      company_id: company.id,
+      sessionId: sessionId
     });
   } catch (error) {
     console.error('Verify email for join error:', error);
