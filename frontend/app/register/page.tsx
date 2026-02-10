@@ -69,12 +69,12 @@ function RegisterPageContent() {
   const [verifyingPhone, setVerifyingPhone] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(!!hasRealPhone);
 
-  // Form data
+  // Form data - email comes from authenticated user (verified via magic link)
   const [formData, setFormData] = useState({
     phone: searchParams.get('phone') || (hasRealPhone ? user?.phone : '') || '',
     name: (user as any)?.line_display_name || user?.name || '',
     surname: user?.surname || '',
-    email: searchParams.get('email') || user?.email || '',
+    email: user?.email || '', // Pre-filled from authenticated user (already verified via magic link)
     birthday: '', // DD-MM format
     gender: '',
     company: '', // Freetext
@@ -156,6 +156,13 @@ function RegisterPageContent() {
     }
   }, [user, router]);
 
+  // Sync email from authenticated user (email is already verified via magic link)
+  useEffect(() => {
+    if (user?.email && !formData.email) {
+      setFormData(prev => ({ ...prev, email: user.email || '' }));
+    }
+  }, [user?.email]);
+
   // Fetch outlets on mount
   useEffect(() => {
     const fetchOutlets = async () => {
@@ -169,41 +176,47 @@ function RegisterPageContent() {
     fetchOutlets();
   }, []);
 
-  // Check company eligibility when email changes
+  // Check company eligibility on mount (email is already verified via magic link)
+  // Only run this if we don't already have company info from invite code
   useEffect(() => {
     const checkCompanyEligibility = async () => {
-      if (formData.email && formData.email.includes('@')) {
+      // Skip if we already have company info from invite code
+      if (companyInfo?.fromInviteCode) return;
+
+      // Get email from user (already authenticated)
+      const userEmail = user?.email;
+      if (userEmail && userEmail.includes('@')) {
         setCheckingEmail(true);
         try {
           const response = await api.post('/companies/verify-email', {
-            email: formData.email
+            email: userEmail
           });
 
           if (response.data.eligible) {
             setCompanyInfo(response.data.company);
             // Auto-enable marketing consent for employees
-            handleChange('email_consent', true);
-            handleChange('sms_consent', true);
-            // Set company name for employees
-            handleChange('company', response.data.company.name);
+            setFormData(prev => ({
+              ...prev,
+              email_consent: true,
+              sms_consent: true,
+              company: response.data.company.name
+            }));
             toast.success(
               `Welcome ${response.data.company.name} team member!`,
               { duration: 3000 }
             );
-          } else {
-            setCompanyInfo(null);
           }
         } catch {
-          setCompanyInfo(null);
+          // Not eligible for any company, that's fine
         } finally {
           setCheckingEmail(false);
         }
       }
     };
 
-    const timeoutId = setTimeout(checkCompanyEligibility, 500);
-    return () => clearTimeout(timeoutId);
-  }, [formData.email]);
+    // Only run once on mount
+    checkCompanyEligibility();
+  }, [user?.email]); // Only re-run if user email changes (shouldn't happen)
 
   const validateReferralCode = async (code: string) => {
     setLoadingReferral(true);
@@ -418,7 +431,11 @@ function RegisterPageContent() {
           className="text-[13px] text-[#78716C]"
           style={{ fontFamily: 'Instrument Sans, sans-serif' }}
         >
-          Complete Your Profile
+          {formData.email ? (
+            <>Email verified! Complete your profile</>
+          ) : (
+            <>Complete Your Profile</>
+          )}
         </p>
       </div>
 
@@ -863,7 +880,7 @@ function RegisterPageContent() {
                 </div>
               )}
 
-              {/* Step 2: Contact & Company - Simplified for employees */}
+              {/* Step 2: Contact & Company - Email is already verified via magic link */}
               {step === 2 && (
                 <div className="space-y-5">
                   <h2
@@ -873,29 +890,26 @@ function RegisterPageContent() {
                     Contact Information
                   </h2>
 
-                  {/* Email field - show as read-only for employees, editable for customers */}
+                  {/* Email field - ALWAYS read-only since it's verified via magic link */}
                   <div>
                     <label
                       className="block text-[12px] font-semibold text-[#57534E] mb-2"
                       style={{ fontFamily: 'Instrument Sans, sans-serif' }}
                     >
-                      Email Address {!isEmployeeRegistration(companyInfo, formData.email) && <span className="text-[10px] font-normal">(Optional - unlocks partner benefits)</span>}
+                      Email Address <span className="text-[10px] font-normal text-[#059669]">(Verified ✓)</span>
                     </label>
                     <div className="relative">
                       <input
                         type="email"
-                        className={`w-full h-[48px] px-4 pr-10 rounded-[12px] border border-[#E5E5E5] text-[14px] text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:border-[#1C1917] transition-colors ${isEmployeeRegistration(companyInfo, formData.email) ? 'bg-[#F5F5F4]' : ''}`}
+                        className="w-full h-[48px] px-4 pr-10 rounded-[12px] border border-[#E5E5E5] text-[14px] text-[#1C1917] bg-[#F5F5F4] cursor-not-allowed"
                         style={{ fontFamily: 'Instrument Sans, sans-serif' }}
-                        placeholder="you@company.com"
                         value={formData.email}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        readOnly={isEmployeeRegistration(companyInfo, formData.email)}
+                        readOnly
+                        disabled
                       />
-                      {checkingEmail && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <Loader2 className="w-5 h-5 text-[#78716C] animate-spin" />
-                        </div>
-                      )}
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <CheckCircle className="w-5 h-5 text-[#059669]" />
+                      </div>
                     </div>
 
                     {/* Show company info for employees */}
