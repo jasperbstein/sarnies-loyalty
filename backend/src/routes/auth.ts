@@ -748,7 +748,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const token = generateToken({
       id: updatedUser.id,
       phone: updatedUser.phone,
-      type: userType
+      type: finalUserType
     });
 
     res.json({
@@ -765,8 +765,8 @@ router.post('/register', async (req: Request, res: Response) => {
         points_balance: updatedUser.points_balance,
         company_id: updatedUser.company_id,
         is_company_verified: updatedUser.is_company_verified,
-        user_type: userType,
-        type: userType,
+        user_type: finalUserType,
+        type: finalUserType,
         registration_completed: true
       }
     });
